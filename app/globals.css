@@ -25,3 +25,56 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* PWA Install Banner */
+.install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #185fa5;
+  color: white;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15);
+}
+.install-banner__logo img {
+  width: 32px;
+  height: auto;
+  flex-shrink: 0;
+}
+.install-banner span {
+  flex: 1;
+  font-size: 0.9rem;
+}
+.install-banner__btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-size: 0.875rem;
+}
+.install-banner__btn--primary {
+  background: white;
+  color: #185fa5;
+}
+.install-banner__btn--dismiss {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: underline;
+}
+@media (min-width: 960px) {
+  .install-banner {
+    bottom: 16px;
+    left: auto;
+    right: 16px;
+    width: 360px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  }
+}

@@ -11,6 +11,8 @@ import {
   useGetPublicLocationsQuery,
 } from "../_service/catalogApi";
 import { useFuseSearch } from "@/hooks/useFuseSearch";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { PushDialog } from "../components/PushDialog";
 import type { PublicCatalogItem } from "@/lib/dashboard-types";
 
 const PRODUCT_FUSE_KEYS = [
@@ -430,10 +432,22 @@ export default function CatalogProductsPage() {
   const dispatch = useAppDispatch();
   const [cat, setCat] = useState<string | null>(null);
   const [storeSearch, setStoreSearch] = useState("");
+  const [showPushDialog, setShowPushDialog] = useState(false);
+  const { requestPermissionAndSubscribe } = usePushNotifications();
 
   const { data: products, isLoading, isError, refetch } = useGetPublicCatalogQuery(locationId);
   const { data: locations } = useGetPublicLocationsQuery();
   const loc = locations?.find((l) => l.id === locationId);
+
+  useEffect(() => {
+    const key = `push-asked-${locationId}`;
+    if (localStorage.getItem(key)) return;
+    const timer = setTimeout(() => {
+      setShowPushDialog(true);
+      localStorage.setItem(key, "true");
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [locationId]);
 
   useEffect(() => {
     if (loc) {
@@ -626,6 +640,14 @@ export default function CatalogProductsPage() {
           </div>
         </div>
       </main>
+
+      <PushDialog
+        open={showPushDialog}
+        onClose={() => setShowPushDialog(false)}
+        onActivate={() => requestPermissionAndSubscribe(locationId)}
+        storeName={loc?.name ?? "esta tienda"}
+        storePhotoUrl={loc?.photoUrl}
+      />
     </div>
   );
 }

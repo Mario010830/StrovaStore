@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
 import { useAppSelector } from "@/store/store";
 import { CartDrawer } from "./components/CartDrawer";
@@ -46,7 +47,13 @@ export default function CatalogLayout({ children }: { children: React.ReactNode 
         <nav className="store-nav store-nav--directory">
           <Link href="/" className="store-nav__brand">
             <span className="store-nav__logo-box">
-              <Icon name="storefront" />
+              <Image
+                src="/images/logo-claro-nobg.png"
+                alt="StrovaStore"
+                width={120}
+                height={36}
+                priority
+              />
             </span>
             <span className="store-nav__brand-label">StrovaStore</span>
           </Link>
