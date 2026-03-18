@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Catálogo — Tienda",
-  description: "Catálogo público de productos y tiendas",
+  title: "StrovaStore — Tiendas y productos locales",
+  description: "Descubrí tiendas de tu ciudad y explorá sus productos. Pedí por WhatsApp.",
 };
 
 export default function RootLayout({

@@ -1,13 +1,25 @@
 "use client";
 
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { useCatalogCtx } from "./layout";
 import { useGetAllPublicProductsQuery, useGetPublicTagsQuery } from "./_service/catalogApi";
 import { useFuseSearch } from "@/hooks/useFuseSearch";
-import { TAG_GROUPS } from "@/constants/tags";
 import type { PublicCatalogItem } from "@/lib/dashboard-types";
+
+const STROVA_BUSINESS_URL = "https://strova.com";
+
+const MP_CHIP_ICONS: Record<string, string> = {
+  todos: "apps",
+  alimentación: "restaurant",
+  ferretería: "build",
+  librería: "menu_book",
+  hogar: "home",
+  electrónica: "devices",
+  deporte: "fitness_center",
+};
 
 const PRODUCT_FUSE_KEYS = [
   { name: "name" as const, weight: 0.5 },
@@ -22,16 +34,6 @@ const PAGE_SIZE = 50;
 
 function fmtPrice(v: number) {
   return `$${v.toFixed(2)}`;
-}
-
-function hexToRgb(hex: string): string | null {
-  const h = hex.replace("#", "");
-  if (h.length !== 6) return null;
-  const r = parseInt(h.substring(0, 2), 16);
-  const g = parseInt(h.substring(2, 4), 16);
-  const b = parseInt(h.substring(4, 6), 16);
-  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return null;
-  return `${r}, ${g}, ${b}`;
 }
 
 function PriceRangeSlider({
@@ -265,86 +267,119 @@ function ProductCard({
   item: PublicCatalogItem;
   onGoToStore: () => void;
 }) {
-  const baseColor = item.categoryColor ?? "#378ADD";
-  const rgb = hexToRgb(baseColor);
-  const catStyle =
-    rgb != null
-      ? {
-          background: `rgba(${rgb}, 0.09)`,
-          color: baseColor,
-          border: `1px solid rgba(${rgb}, 0.25)`,
-        }
-      : {
-          background: "#E6F1FB",
-          color: "#0C447C",
-          border: "1px solid #85B7EB",
-        };
+  const cc = item.categoryColor ?? "#3b82f6";
 
   return (
-    <div className="p-card p-card--explore">
-      <div className="p-explore-img" onClick={onGoToStore}>
+    <div className="p-card">
+      <div className="p-card__img-area" onClick={onGoToStore}>
         {item.imagenUrl ? (
           <img
             src={item.imagenUrl}
             alt={item.name}
-            className="p-explore-img__inner"
+            className="p-card__img"
             loading="lazy"
           />
         ) : (
-          <div className="p-explore-img__placeholder">
+          <div className="p-card__no-img">
             <Icon name="inventory_2" />
           </div>
         )}
+        <div className="p-card__img-top">
+          {item.categoryName && (
+            <div className="p-card__cat-chip">
+              <span
+                className="p-card__cat-dot"
+                style={{ backgroundColor: cc }}
+              />
+              <span className="p-card__cat-label">{item.categoryName}</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="p-explore-img-badges">
-        {item.categoryName && (
-          <div className="p-explore-cat-badge" style={catStyle}>
-            <span
-              className="p-explore-cat-badge__dot"
-              style={{ backgroundColor: baseColor }}
-            />
-            <span className="p-explore-cat-badge__label">
-              {item.categoryName}
-            </span>
-          </div>
-        )}
-
-      </div>
-
-      <div className="p-explore-body">
-        <button
-          type="button"
-          className="p-explore-name"
-          onClick={onGoToStore}
-        >
+      <div className="p-card__info">
+        <div className="p-card__name" onClick={onGoToStore}>
           {item.name}
-        </button>
-
+        </div>
+        {item.description && (
+          <p className="p-card__desc">{item.description}</p>
+        )}
         {item.locationName && item.locationId != null && (
           <button
             type="button"
-            className="p-explore-location"
+            className="p-card__location"
             onClick={onGoToStore}
           >
-            <span className="p-explore-location__icon">
-              <Icon name="location_on" />
-            </span>
-            <span className="p-explore-location__label">
-              {item.locationName}
-            </span>
+            <Icon name="location_on" />
+            <span>{item.locationName}</span>
           </button>
         )}
-
-        <div className="p-explore-price">{fmtPrice(item.precio)}</div>
-
+        <div className="p-card__price-row">
+          <span className="p-card__price">{fmtPrice(item.precio)}</span>
+        </div>
         <button
           type="button"
-          className="p-explore-cta"
+          className="p-card__add"
           onClick={onGoToStore}
         >
-          Ver en tienda
+          <Icon name="add_shopping_cart" />
+          <span>Ver en tienda</span>
         </button>
+      </div>
+    </div>
+  );
+}
+
+function MarketplaceProductCard({
+  item,
+  onPedir,
+}: {
+  item: PublicCatalogItem;
+  onPedir: () => void;
+}) {
+  return (
+    <div
+      className="mp-card"
+      onClick={onPedir}
+      onKeyDown={(e) => e.key === "Enter" && onPedir()}
+      role="button"
+      tabIndex={0}
+    >
+      <div className="mp-card__img-wrap">
+        {item.imagenUrl ? (
+          <img src={item.imagenUrl} alt={item.name} loading="lazy" />
+        ) : (
+          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #eef1f5 0%, #e2e8f0 100%)" }}>
+            <Icon name="inventory_2" />
+          </div>
+        )}
+        {item.categoryName && (
+          <span className="mp-card__cat-tag">{item.categoryName}</span>
+        )}
+      </div>
+      <div className="mp-card__body">
+        <h3 className="mp-card__name">{item.name}</h3>
+        {item.locationName && (
+          <span className="mp-card__store">
+            <Icon name="store" />
+            {item.locationName}
+          </span>
+        )}
+        <div className="mp-card__footer">
+          <span className="mp-card__price">{fmtPrice(item.precio)}</span>
+          <button
+            type="button"
+            className="mp-card__pedir"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onPedir();
+            }}
+          >
+            <Icon name="chat" />
+            Pedir
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -361,7 +396,6 @@ export default function AllProductsView() {
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<PublicCatalogItem[]>([]);
   const [mobileFilters, setMobileFilters] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set());
 
   const {
     data,
@@ -503,39 +537,6 @@ export default function AllProductsView() {
     0;
 
 
-  const getProductGroup = useCallback(
-    (product: PublicCatalogItem) => {
-      const firstSlug =
-        product.tags?.[0]?.slug ??
-        (product.tagIds?.[0] != null
-          ? tagsStable.find((t) => t.id === product.tagIds![0])?.slug
-          : undefined);
-      if (!firstSlug) return null;
-      return TAG_GROUPS.find((g) => g.tagSlugs.includes(firstSlug)) ?? null;
-    },
-    [tagsStable],
-  );
-
-  /** Secciones por grupo de tags; orden: más productos primero, "Otros" al final. */
-  const sectionsByTagGroup = useMemo(() => {
-    const grouped: Record<
-      string,
-      { name: string; color: string; products: PublicCatalogItem[] }
-    > = {};
-    filtered.forEach((product) => {
-      const group = getProductGroup(product);
-      const key = group?.name ?? "Otros";
-      const color = group?.color ?? "#888780";
-      if (!grouped[key]) grouped[key] = { name: key, color, products: [] };
-      grouped[key].products.push(product);
-    });
-    return Object.values(grouped).sort((a, b) => {
-      if (a.name === "Otros") return 1;
-      if (b.name === "Otros") return -1;
-      return b.products.length - a.products.length;
-    });
-  }, [filtered, getProductGroup]);
-
   const hasMore =
     !!pagination && page < pagination.totalPages && !isLoading && !isError;
 
@@ -599,86 +600,77 @@ export default function AllProductsView() {
   const hasFilterResults = filtered.length > 0;
 
   return (
-    <div className="allprod-page">
-      {/* HERO */}
-      <section className="allprod-hero">
-        <div className="allprod-hero__inner">
-          <header className="allprod-hero__header">
-            <h1 className="allprod-hero__title">Todos los productos</h1>
-            <p className="allprod-hero__subtitle">
-              {totalProducts > 0
-                ? `${totalProducts} productos en ${totalLocations} tiendas`
-                : "Sin resultados para los filtros actuales"}
-            </p>
-          </header>
-
-          <div className="allprod-hero__pills">
-            <button
-              type="button"
-              className={`allprod-pill${
-                selectedTagSlugs.length === 0 ? " allprod-pill--active" : ""
-              }`}
-              onClick={() => setSelectedTagSlugs([])}
-            >
-              <span className="allprod-pill__dot allprod-pill__dot--all" />
-              <span className="allprod-pill__label">Todas</span>
-            </button>
-            {tagsWithCount.map((t) => (
-              <button
-                key={t.slug}
-                type="button"
-                className={`allprod-pill${
-                  selectedTagSlugs.includes(t.slug) ? " allprod-pill--active" : ""
-                }`}
-                onClick={() =>
-                  setSelectedTagSlugs((prev) =>
-                    prev.includes(t.slug)
-                      ? prev.filter((x) => x !== t.slug)
-                      : [...prev, t.slug],
-                  )
-                }
-              >
-                <span
-                  className="allprod-pill__dot"
-                  style={{ backgroundColor: t.color }}
-                />
-                <span className="allprod-pill__label">{t.name}</span>
-              </button>
-            ))}
+    <div className="mp-page">
+      <section className="mp-hero">
+        <div className="mp-hero__text">
+          <h1 className="mp-hero__title">Marketplace de Productos</h1>
+          <p className="mp-hero__subtitle">
+            Explorá lo que ofrecen los negocios de tu ciudad
+          </p>
+        </div>
+        <div className="mp-hero__search-wrap">
+          <div className="mp-hero__search-box">
+            <Icon name="search" />
+            <input
+              type="text"
+              className="mp-hero__search"
+              placeholder="Buscá herramientas, café, libros..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
         </div>
       </section>
 
-      {/* BARRA SUPERIOR DEL GRID */}
-      <div className="allprod-gridbar">
-        <div className="allprod-gridbar__left">
-          <span className="allprod-gridbar__count">
-            <strong>{totalProducts}</strong> productos
-          </span>
-        </div>
-        <div className="allprod-gridbar__right">
+      <div className="mp-chips">
+        <button
+          type="button"
+          className={`mp-chip ${selectedTagSlugs.length === 0 ? "mp-chip--active" : ""}`}
+          onClick={() => setSelectedTagSlugs([])}
+        >
+          <Icon name="apps" />
+          Todos
+        </button>
+        {tagsWithCount.map((t) => (
           <button
+            key={t.slug}
             type="button"
-            className="prod-mobile-filter-btn"
-            onClick={() => setMobileFilters(true)}
+            className={`mp-chip ${selectedTagSlugs.includes(t.slug) ? "mp-chip--active" : ""}`}
+            onClick={() =>
+              setSelectedTagSlugs((prev) =>
+                prev.includes(t.slug)
+                  ? prev.filter((x) => x !== t.slug)
+                  : [...prev, t.slug],
+              )
+            }
           >
-            <Icon name="tune" /> Filtros
+            <Icon name={MP_CHIP_ICONS[t.name.toLowerCase()] ?? "label"} />
+            {t.name}
           </button>
-          <select
-            className="allprod-sort"
-            value={sortKey}
-            onChange={(e) => setSortKey(e.target.value as SortKey)}
-          >
-            <option value="default">Relevancia</option>
-            <option value="price-asc">Precio: menor a mayor</option>
-            <option value="price-desc">Precio: mayor a menor</option>
-            <option value="name-asc">Nombre: A-Z</option>
-            <option value="name-desc">Nombre: Z-A</option>
-          </select>
+        ))}
+      </div>
+
+      <div className="mp-stats">
+        <div className="mp-stats__inner">
+          <div className="mp-stats__item">
+            <span className="mp-stats__value mp-stats__value--primary">
+              {totalProducts.toLocaleString()}+
+            </span>
+            <span className="mp-stats__label">Productos disponibles</span>
+          </div>
+          <div className="mp-stats__divider" />
+          <div className="mp-stats__item">
+            <span className="mp-stats__value mp-stats__value--secondary">Directo</span>
+            <span className="mp-stats__label">Sin comisiones</span>
+          </div>
+          <div className="mp-stats__divider" />
+          <div className="mp-stats__item">
+            <span className="mp-stats__value mp-stats__value--secondary">WhatsApp</span>
+            <span className="mp-stats__label">Acordá el envío</span>
+          </div>
         </div>
       </div>
 
-      {/* ESTADO: sin resultados por filtros */}
       {!hasFilterResults && items.length > 0 && (
         <div className="store-empty store-empty--compact">
           <div className="store-empty__icon">
@@ -687,145 +679,118 @@ export default function AllProductsView() {
           <p className="store-empty__text">
             No se encontraron productos con esos filtros.
           </p>
-          <button
-            type="button"
-            className="store-empty__btn"
-            onClick={resetFilters}
-          >
+          <button type="button" className="store-empty__btn" onClick={resetFilters}>
             Limpiar filtros
           </button>
         </div>
       )}
 
-      {/* LAYOUT PRINCIPAL */}
-      <div className="allprod-layout">
-        <FilterSidebar
-          categories={categories}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          tags={tagsWithCount}
-          selectedTagSlugs={selectedTagSlugs}
-          setSelectedTagSlugs={setSelectedTagSlugs}
-          priceRange={priceRange}
-          setPriceRange={setPriceRange}
-          priceExtent={priceExtent}
-          onlyInStock={onlyInStock}
-          setOnlyInStock={setOnlyInStock}
-          sortKey={sortKey}
-          setSortKey={setSortKey}
-        />
-
-        <div className="allprod-grid-wrap">
-          {loadingFirstPage ? (
-            <SkeletonGrid />
-          ) : (
-            <>
-              {sectionsByTagGroup.map((section) => {
-                const isExpanded = expandedSections.has(section.name);
-                const maxShow = 8;
-                const toShow = isExpanded
-                  ? section.products
-                  : section.products.slice(0, maxShow);
-                const hasMoreInSection = section.products.length > maxShow;
-                return (
-                  <section key={section.name} className="catalog-section">
-                    <div className="catalog-section-header">
-                      <span
-                        className="catalog-section-header__dot"
-                        style={{ backgroundColor: section.color }}
-                      />
-                      <span className="catalog-section-header__name">
-                        {section.name}
-                      </span>
-                      <span className="catalog-section-header__count">
-                        {section.products.length}
-                      </span>
-                    </div>
-                    <div className="allprod-grid">
-                      {toShow.map((item) => (
-                        <ProductCard
-                          key={`${item.id}-${item.locationId ?? "x"}`}
-                          item={item}
-                          onGoToStore={() => goToStore(item.locationId)}
-                        />
-                      ))}
-                    </div>
-                    {hasMoreInSection && !isExpanded && (
-                      <div className="catalog-section-more">
-                        <button
-                          type="button"
-                          className="catalog-section-more__btn"
-                          onClick={() =>
-                            setExpandedSections((prev) =>
-                              new Set(prev).add(section.name),
-                            )
-                          }
-                        >
-                          Ver todos los productos de {section.name} →
-                        </button>
-                      </div>
-                    )}
-                  </section>
-                );
-              })}
-
-              {loadingMore && <SkeletonGrid count={6} />}
-
-              {hasMore && !loadingMore && (
-                <div className="allprod-more">
-                  <button
-                    type="button"
-                    className="allprod-more__btn"
-                    onClick={loadMore}
-                    disabled={loadingMore}
-                  >
-                    Ver más
-                  </button>
+      {loadingFirstPage ? (
+        <div className="mp-grid">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="mp-card" style={{ opacity: 0.6 }}>
+              <div className="mp-card__img-wrap" />
+              <div className="mp-card__body">
+                <div style={{ height: 20, background: "#e2e8f0", borderRadius: 4 }} />
+                <div style={{ height: 14, background: "#e2e8f0", borderRadius: 4, width: "60%" }} />
+                <div className="mp-card__footer" style={{ marginTop: 12 }}>
+                  <div style={{ height: 24, width: 60, background: "#e2e8f0", borderRadius: 4 }} />
+                  <div style={{ height: 40, width: 80, background: "#e2e8f0", borderRadius: 12 }} />
                 </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* SIDEBAR MOBILE (drawer) */}
-      {mobileFilters && (
-        <div
-          className="mobile-filter-overlay open"
-          onClick={() => setMobileFilters(false)}
-        >
-          <div
-            className="mobile-filter-panel"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mobile-filter-head">
-              Filtros
-              <button
-                type="button"
-                className="mobile-filter-close"
-                onClick={() => setMobileFilters(false)}
-              >
-                <Icon name="close" />
-              </button>
+              </div>
             </div>
-            <FilterSidebar
-              categories={categories}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-              tags={tagsWithCount}
-              selectedTagSlugs={selectedTagSlugs}
-              setSelectedTagSlugs={setSelectedTagSlugs}
-              priceRange={priceRange}
-              setPriceRange={setPriceRange}
-              priceExtent={priceExtent}
-              onlyInStock={onlyInStock}
-              setOnlyInStock={setOnlyInStock}
-              sortKey={sortKey}
-              setSortKey={setSortKey}
+          ))}
+        </div>
+      ) : (
+        <div className="mp-grid">
+          {filtered.map((item) => (
+            <MarketplaceProductCard
+              key={`${item.id}-${item.locationId ?? "x"}`}
+              item={item}
+              onPedir={() => goToStore(item.locationId)}
             />
-          </div>
+          ))}
         </div>
       )}
+
+      {hasMore && !loadingFirstPage && !loadingMore && (
+        <div className="mp-more">
+          <button
+            type="button"
+            className="mp-more__btn"
+            onClick={loadMore}
+            disabled={loadingMore}
+          >
+            Ver más productos
+          </button>
+        </div>
+      )}
+
+      <section className="mp-cta">
+        <div className="mp-cta__bg-icon" aria-hidden>
+          <Icon name="storefront" />
+        </div>
+        <div className="mp-cta__inner">
+          <div className="mp-cta__content">
+            <h2 className="mp-cta__title">¿Tenés un negocio local?</h2>
+            <p className="mp-cta__text">
+              Sumate a StrovaStore y empezá a recibir pedidos por WhatsApp hoy mismo. Tu catálogo online listo en minutos.
+            </p>
+            <div className="mp-cta__btns">
+              <a
+                href={STROVA_BUSINESS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mp-cta__btn-primary"
+              >
+                Registrar mi negocio
+              </a>
+              <a
+                href={STROVA_BUSINESS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mp-cta__btn-outline"
+              >
+                Saber más
+              </a>
+            </div>
+          </div>
+          <div className="mp-cta__icon" aria-hidden>
+            <Icon name="rocket_launch" />
+          </div>
+        </div>
+      </section>
+
+      <footer className="mp-footer">
+        <div className="mp-footer__inner">
+          <div className="mp-footer__left">
+            <Link href="/" className="mp-footer__brand">
+              <span className="store-nav__logo-box" style={{ width: 24, height: 24 }}>
+                <Icon name="storefront" />
+              </span>
+              StrovaStore
+            </Link>
+            <p className="mp-footer__copy">
+              © 2024 Powered by Strova. Todos los derechos reservados.
+            </p>
+          </div>
+          <div className="mp-footer__right">
+            <div className="mp-footer__links">
+              <a href="#">Privacidad</a>
+              <a href="#">Términos</a>
+              <a href="#">Ayuda</a>
+            </div>
+            <div className="mp-footer__social">
+              <a href="#" aria-label="Instagram">
+                <Icon name="instagram" />
+              </a>
+              <a href="#" aria-label="Facebook">
+                <Icon name="facebook" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
