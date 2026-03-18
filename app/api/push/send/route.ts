@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import webpush from "web-push";
 import { subscriptions } from "../_store";
 
-const vapidEmail = process.env.VAPID_EMAIL;
 const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
+const vapidEmailRaw = process.env.VAPID_EMAIL;
+// web-push exige que el subject sea una URL (p. ej. mailto:...)
+const vapidSubject =
+  vapidEmailRaw?.startsWith("mailto:") ? vapidEmailRaw : vapidEmailRaw ? `mailto:${vapidEmailRaw}` : "";
 
-if (vapidEmail && vapidPublic && vapidPrivate) {
-  webpush.setVapidDetails(vapidEmail, vapidPublic, vapidPrivate);
+if (vapidSubject && vapidPublic && vapidPrivate) {
+  webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
 }
 
 export async function POST(req: NextRequest) {
