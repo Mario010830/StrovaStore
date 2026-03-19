@@ -34,6 +34,14 @@ export default function ProductDetailPage() {
   const isElaborado = product?.tipo === "elaborado";
   const inStock = isElaborado || (product?.stockAtLocation ?? 0) > 0;
 
+  const productImagePath = product?.imagenUrl
+    ? product.imagenUrl.replace(
+        process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
+        "",
+      )
+    : "";
+  const productImageUrl = productImagePath ? `/api/image?path=${productImagePath}` : null;
+
   if (isLoading) {
     return (
       <div className="pd-page">
@@ -76,8 +84,8 @@ export default function ProductDetailPage() {
         <div className="pd-main">
           <div className="pd-gallery">
             <div className="pd-gallery__main">
-              {product.imagenUrl ? (
-                <img src={product.imagenUrl} alt={product.name} />
+              {productImageUrl ? (
+                <img src={productImageUrl} alt={product.name} />
               ) : (
                 <div className="pd-gallery__placeholder">
                   <Icon name="inventory_2" />
@@ -85,9 +93,9 @@ export default function ProductDetailPage() {
               )}
             </div>
             <div className="pd-gallery__thumbs">
-              {product.imagenUrl && (
+              {productImageUrl && (
                 <button type="button" className="pd-thumb pd-thumb--active">
-                  <img src={product.imagenUrl} alt="" />
+                  <img src={productImageUrl} alt="" />
                 </button>
               )}
               {[2, 3].map((i) => (
@@ -173,9 +181,14 @@ export default function ProductDetailPage() {
                 className="pd-other-card"
               >
                 <div className="pd-other-card__img">
-                  {item.imagenUrl ? (
-                    <img src={item.imagenUrl} alt={item.name} />
-                  ) : (
+                  {item.imagenUrl ? (() => {
+                    const imagePath = item.imagenUrl.replace(
+                      process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
+                      "",
+                    );
+                    const proxiedUrl = `/api/image?path=${imagePath}`;
+                    return <img src={proxiedUrl} alt={item.name} />;
+                  })() : (
                     <Icon name="inventory_2" />
                   )}
                 </div>

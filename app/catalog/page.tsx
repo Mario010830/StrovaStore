@@ -101,11 +101,18 @@ function LocationCard({
     onToggle(e);
   };
 
+  const imagePath =
+    loc.photoUrl?.replace(
+      process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
+      "",
+    ) ?? "";
+  const proxiedImageUrl = imagePath ? `/api/image?path=${imagePath}` : null;
+
   return (
     <Link href={`/catalog/${loc.id}`} className="loc2-card">
       <div className="loc2-card__img">
-        {loc.photoUrl ? (
-          <img src={loc.photoUrl} alt={loc.name} />
+        {proxiedImageUrl ? (
+          <img src={proxiedImageUrl} alt={loc.name} />
         ) : (
           <div className="loc2-card__placeholder">
             <Icon name="storefront" />
@@ -151,11 +158,18 @@ function DirectoryCard({ loc }: { loc: PublicLocation }) {
   const isOpen = loc.isOpenNow === true;
   const categoryLine = loc.organizationName || "—";
 
+  const imagePath =
+    loc.photoUrl?.replace(
+      process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
+      "",
+    ) ?? "";
+  const proxiedImageUrl = imagePath ? `/api/image?path=${imagePath}` : null;
+
   return (
     <Link href={`/catalog/${loc.id}`} className="dir-card">
       <div className="dir-card__img-wrap">
-        {loc.photoUrl ? (
-          <img src={loc.photoUrl} alt={loc.name} />
+        {proxiedImageUrl ? (
+          <img src={proxiedImageUrl} alt={loc.name} />
         ) : (
           <div className="dir-card__placeholder">
             <Icon name="storefront" />

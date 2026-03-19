@@ -17,6 +17,14 @@ export function PushDialog({
 }: PushDialogProps) {
   if (!open) return null;
 
+  const imagePath = storePhotoUrl
+    ? storePhotoUrl.replace(
+        process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
+        "",
+      )
+    : "";
+  const proxiedImageUrl = imagePath ? `/api/image?path=${imagePath}` : null;
+
   return (
     <div className="push-dialog-overlay" role="dialog" aria-modal="true" aria-labelledby="push-dialog-title">
       <div className="push-dialog">
@@ -26,9 +34,9 @@ export function PushDialog({
         <p className="push-dialog__body">
           Te avisamos cuando <strong>{storeName}</strong> publique novedades o descuentos.
         </p>
-        {storePhotoUrl && (
+        {proxiedImageUrl && (
           <div className="push-dialog__logo">
-            <img src={storePhotoUrl} alt="" width={64} height={64} />
+            <img src={proxiedImageUrl} alt="" width={64} height={64} />
           </div>
         )}
         <div className="push-dialog__actions">

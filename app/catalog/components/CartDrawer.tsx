@@ -291,9 +291,14 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
               ) : (
                 cart.items.map((it) => (
                   <div key={it.productId} className="cart-row">
-                    {it.imagenUrl ? (
-                      <img src={it.imagenUrl} alt={it.name} className="cart-row__img" />
-                    ) : (
+                    {it.imagenUrl ? (() => {
+                      const imagePath = it.imagenUrl.replace(
+                        process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
+                        "",
+                      );
+                      const proxiedUrl = `/api/image?path=${imagePath}`;
+                      return <img src={proxiedUrl} alt={it.name} className="cart-row__img" />;
+                    })() : (
                       <div className="cart-row__no-img">
                         <Icon name="inventory_2" />
                       </div>

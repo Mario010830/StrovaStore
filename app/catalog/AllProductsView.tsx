@@ -269,12 +269,20 @@ function ProductCard({
 }) {
   const cc = item.categoryColor ?? "#3b82f6";
 
+  const imagePath = item.imagenUrl
+    ? item.imagenUrl.replace(
+        process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
+        "",
+      )
+    : "";
+  const proxiedImageUrl = imagePath ? `/api/image?path=${imagePath}` : null;
+
   return (
     <div className="p-card">
       <div className="p-card__img-area" onClick={onGoToStore}>
-        {item.imagenUrl ? (
+        {proxiedImageUrl ? (
           <img
-            src={item.imagenUrl}
+            src={proxiedImageUrl}
             alt={item.name}
             className="p-card__img"
             loading="lazy"
@@ -337,6 +345,13 @@ function MarketplaceProductCard({
   item: PublicCatalogItem;
   onPedir: () => void;
 }) {
+  const imagePath = item.imagenUrl
+    ? item.imagenUrl.replace(
+        process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
+        "",
+      )
+    : "";
+  const proxiedImageUrl = imagePath ? `/api/image?path=${imagePath}` : null;
   return (
     <div
       className="mp-card"
@@ -346,8 +361,8 @@ function MarketplaceProductCard({
       tabIndex={0}
     >
       <div className="mp-card__img-wrap">
-        {item.imagenUrl ? (
-          <img src={item.imagenUrl} alt={item.name} loading="lazy" />
+        {proxiedImageUrl ? (
+          <img src={proxiedImageUrl} alt={item.name} loading="lazy" />
         ) : (
           <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #eef1f5 0%, #e2e8f0 100%)" }}>
             <Icon name="inventory_2" />

@@ -287,9 +287,14 @@ function QuickView({
         </button>
 
         <div className="quickview__img-side">
-          {item.imagenUrl ? (
-            <img src={item.imagenUrl} alt={item.name} className="quickview__img" />
-          ) : (
+          {item.imagenUrl ? (() => {
+            const imagePath = item.imagenUrl.replace(
+              process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
+              "",
+            );
+            const proxiedUrl = `/api/image?path=${imagePath}`;
+            return <img src={proxiedUrl} alt={item.name} className="quickview__img" />;
+          })() : (
             <div className="quickview__no-img"><Icon name="inventory_2" /></div>
           )}
         </div>
@@ -387,9 +392,14 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
   return (
     <Link href={`/catalog/${locationId}/product/${item.id}`} className={`sp-card${sold ? " sp-card--sold" : ""}`}>
       <div className="sp-card__img-wrap">
-        {item.imagenUrl ? (
-          <img src={item.imagenUrl} alt={item.name} className="sp-card__img" loading="lazy" />
-        ) : (
+        {item.imagenUrl ? (() => {
+          const imagePath = item.imagenUrl.replace(
+            process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
+            "",
+          );
+          const proxiedUrl = `/api/image?path=${imagePath}`;
+          return <img src={proxiedUrl} alt={item.name} className="sp-card__img" loading="lazy" />;
+        })() : (
           <span style={{ fontSize: 48, color: "var(--dir-hint)" }}><Icon name="inventory_2" /></span>
         )}
       </div>
@@ -497,9 +507,14 @@ export default function CatalogProductsPage() {
     <div className="sp-layout">
       <aside className="sp-sidebar">
         <div>
-          {loc?.photoUrl ? (
-            <img src={loc.photoUrl} alt={loc.name} className="sp-profile__img" />
-          ) : (
+          {loc?.photoUrl ? (() => {
+            const imagePath = loc.photoUrl.replace(
+              process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
+              "",
+            );
+            const proxiedUrl = `/api/image?path=${imagePath}`;
+            return <img src={proxiedUrl} alt={loc.name} className="sp-profile__img" />;
+          })() : (
             <div className="sp-profile__img" style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "var(--dir-divider)" }}>
               <Icon name="storefront" />
             </div>
