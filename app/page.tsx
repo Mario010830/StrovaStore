@@ -10,6 +10,7 @@ import { EcommerceCarousel } from "@/components/landing/EcommerceCarousel";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { SectionHeader } from "@/components/landing/SectionHeader";
 import {
+  QUERY_POLLING_OPTIONS,
   useGetAllPublicProductsQuery,
   useGetPublicLocationsQuery,
   useGetPublicTagsQuery,
@@ -54,9 +55,12 @@ export default function LandingPage() {
   const [leavingSpotlight, setLeavingSpotlight] = useState<{ mode: "tiendas" | "productos"; index: number } | null>(null);
   const leavingTimeoutRef = useRef<number | null>(null);
   const router = useRouter();
-  const { data: locations = [] } = useGetPublicLocationsQuery();
-  const { data: tags = [] } = useGetPublicTagsQuery();
-  const { data: allProducts } = useGetAllPublicProductsQuery({ page: 1, pageSize: 200 });
+  const { data: locations = [] } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
+  const { data: tags = [] } = useGetPublicTagsQuery(undefined, QUERY_POLLING_OPTIONS.general);
+  const { data: allProducts } = useGetAllPublicProductsQuery(
+    { page: 1, pageSize: 200 },
+    QUERY_POLLING_OPTIONS.general,
+  );
 
   const featuredCategories = tags.length
     ? tags.slice(0, 8).map((tag) => ({
