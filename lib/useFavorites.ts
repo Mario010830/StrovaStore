@@ -16,14 +16,16 @@ function safeParseArray(raw: string | null): string[] {
 }
 
 export function useFavorites() {
-  const [favoriteLocations, setFavoriteLocations] = useState<string[]>([]);
-  const [favoriteProducts, setFavoriteProducts] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setFavoriteLocations(safeParseArray(window.localStorage.getItem(LOCATIONS_KEY)));
-    setFavoriteProducts(safeParseArray(window.localStorage.getItem(PRODUCTS_KEY)));
-  }, []);
+  const [favoriteLocations, setFavoriteLocations] = useState<string[]>(() =>
+    typeof window === "undefined"
+      ? []
+      : safeParseArray(window.localStorage.getItem(LOCATIONS_KEY)),
+  );
+  const [favoriteProducts, setFavoriteProducts] = useState<string[]>(() =>
+    typeof window === "undefined"
+      ? []
+      : safeParseArray(window.localStorage.getItem(PRODUCTS_KEY)),
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;

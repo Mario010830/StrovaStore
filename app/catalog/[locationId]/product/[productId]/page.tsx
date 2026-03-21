@@ -2,7 +2,12 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
+import { toImageProxyUrl } from "@/lib/image";
+import { PriceText } from "@/components/ui/PriceText";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { getRtkErrorInfo } from "@/lib/rtk-error";
 import {
   useGetPublicCatalogQuery,
   useGetPublicLocationsQuery,
@@ -22,7 +27,7 @@ export default function ProductDetailPage() {
   const locationId = Number(params.locationId);
   const productId = Number(params.productId);
 
-  const { data: products, isLoading, isError } = useGetPublicCatalogQuery(locationId);
+  const { data: products, isLoading, isError, error } = useGetPublicCatalogQuery(locationId);
   const { data: locations } = useGetPublicLocationsQuery();
   const loc = locations?.find((l) => l.id === locationId) ?? null;
   const product = products?.find((p) => p.id === productId) ?? null;
@@ -34,13 +39,8 @@ export default function ProductDetailPage() {
   const isElaborado = product?.tipo === "elaborado";
   const inStock = isElaborado || (product?.stockAtLocation ?? 0) > 0;
 
-  const productImagePath = product?.imagenUrl
-    ? product.imagenUrl.replace(
-        process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
-        "",
-      )
-    : "";
-  const productImageUrl = productImagePath ? `/api/image?path=${productImagePath}` : null;
+  const productImageUrl = toImageProxyUrl(product?.imagenUrl);
+  const errorInfo = getRtkErrorInfo(error);
 
   if (isLoading) {
     return (
@@ -58,7 +58,9 @@ export default function ProductDetailPage() {
         <div className="pd-container">
           <div className="store-empty">
             <div className="store-empty__icon"><Icon name="inventory_2" /></div>
-            <p className="store-empty__text">Producto no encontrado</p>
+            <p className="store-empty__text">
+              {isError ? `${errorInfo.title}: ${errorInfo.message}` : "Producto no encontrado"}
+            </p>
             <Link href={`/catalog/${locationId}`} className="store-empty__btn">
               Volver al catálogo
             </Link>
@@ -85,7 +87,7 @@ export default function ProductDetailPage() {
           <div className="pd-gallery">
             <div className="pd-gallery__main">
               {productImageUrl ? (
-                <img src={productImageUrl} alt={product.name} />
+                <Image src={productImageUrl} alt={product.name} width={720} height={720} />
               ) : (
                 <div className="pd-gallery__placeholder">
                   <Icon name="inventory_2" />
@@ -95,7 +97,7 @@ export default function ProductDetailPage() {
             <div className="pd-gallery__thumbs">
               {productImageUrl && (
                 <button type="button" className="pd-thumb pd-thumb--active">
-                  <img src={productImageUrl} alt="" />
+                  <Image src={productImageUrl} alt="" width={120} height={120} />
                 </button>
               )}
               {[2, 3].map((i) => (
@@ -105,13 +107,15 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="pd-info">
-            <span className="pd-stock-tag" data-stock={inStock ? "true" : undefined}>
-              {inStock ? "STOCK DISPONIBLE" : "NO DISPONIBLE"}
-            </span>
+            <StatusBadge
+              label={inStock ? "STOCK DISPONIBLE" : "NO DISPONIBLE"}
+              className="pd-stock-tag"
+              active={inStock}
+              dataStock={inStock}
+            />
             <h1 className="pd-title">{product.name}</h1>
             <div className="pd-price-row">
-              <span className="pd-price">${product.precio.toFixed(2)}</span>
-              {/* Optional discount tag - hide if no discount in API */}
+              <PriceText value={product.precio} className="pd-price" />
             </div>
 
             <div className="pd-divider" />
@@ -182,46 +186,19 @@ export default function ProductDetailPage() {
               >
                 <div className="pd-other-card__img">
                   {item.imagenUrl ? (() => {
-                    const imagePath = item.imagenUrl.replace(
-                      process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
-                      "",
-                    );
-                    const proxiedUrl = `/api/image?path=${imagePath}`;
-                    return <img src={proxiedUrl} alt={item.name} />;
+                    const proxiedUrl = toImageProxyUrl(item.imagenUrl);
+                    return proxiedUrl ? <Image src={proxiedUrl} alt={item.name} width={240} height={160} /> : <Icon name="inventory_2" />;
                   })() : (
                     <Icon name="inventory_2" />
                   )}
                 </div>
                 <span className="pd-other-card__name">{item.name}</span>
-                <span className="pd-other-card__price">${item.precio.toFixed(2)}</span>
+                <PriceText value={item.precio} className="pd-other-card__price" />
               </Link>
             ))}
           </div>
         </section>
 
-        <footer className="pd-footer">
-          <div className="pd-footer__inner">
-            <div className="pd-footer__brand-wrap">
-              <span className="pd-footer__logo">
-                <Icon name="storefront" />
-              </span>
-              <span className="pd-footer__brand">StrovaStore</span>
-            </div>
-            <p className="pd-footer__tagline">Descubrí el comercio local de tu ciudad.</p>
-            <div className="pd-footer__links">
-              <Link href="/catalog?tab=tiendas">Tiendas</Link>
-              <Link href="/catalog?tab=productos">Productos</Link>
-              <span>Ayuda</span>
-            </div>
-            <div className="pd-footer__bottom">
-              <span className="pd-footer__copy">© 2024 StrovaStore. Powered by Strova.</span>
-              <div className="pd-footer__social">
-                <span aria-hidden><Icon name="instagram" /></span>
-                <span aria-hidden><Icon name="facebook" /></span>
-              </div>
-            </div>
-          </div>
-        </footer>
       </div>
     </div>
   );

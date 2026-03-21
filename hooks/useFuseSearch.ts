@@ -17,7 +17,7 @@ export function useFuseSearch<T>(
         ignoreLocation: true,
         useExtendedSearch: false,
       }),
-    [items],
+    [items, keys],
   );
 
   return useMemo(() => {

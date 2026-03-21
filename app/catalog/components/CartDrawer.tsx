@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
 import { useAppSelector, useAppDispatch } from "@/store/store";
 import { removeItem, updateQuantity, clearCart } from "@/store/cartSlice";
 import { getApiUrl } from "@/lib/auth-api";
 import type { CreateSaleOrderRequest } from "@/lib/dashboard-types";
-
-function fmt(v: number) {
-  return `$${v.toFixed(2)}`;
-}
+import { toImageProxyUrl } from "@/lib/image";
+import { formatPrice } from "@/lib/format";
 
 interface CustomerInfo {
   name: string;
@@ -25,7 +24,7 @@ function buildWaMessage(
   customer: CustomerInfo
 ): string {
   const lines = items
-    .map((i) => `- ${i.name} x ${i.quantity} — ${fmt(i.unitPrice)} c/u`)
+    .map((i) => `- ${i.name} x ${i.quantity} — ${formatPrice(i.unitPrice)} c/u`)
     .join("\n");
   const total = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
   const parts = [
@@ -33,7 +32,7 @@ function buildWaMessage(
     ``,
     lines,
     ``,
-    `Total: ${fmt(total)}`,
+    `Total: ${formatPrice(total)}`,
     `Ubicación: ${locationName}`,
     `Ref. orden: ${folio}`,
   ];
@@ -93,30 +92,32 @@ function ConfirmOrderModal({ onClose, onConfirm, submitting, error }: ConfirmPro
             {cart.locationName}
           </div>
 
-          <table className="confirm-table">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th className="td-right">Cant.</th>
-                <th className="td-right">P.U.</th>
-                <th className="td-right">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cart.items.map((it) => (
-                <tr key={it.productId}>
-                  <td>{it.name}</td>
-                  <td className="td-right">{it.quantity}</td>
-                  <td className="td-right">{fmt(it.unitPrice)}</td>
-                  <td className="td-right">{fmt(it.quantity * it.unitPrice)}</td>
+          <div className="confirm-table-wrap">
+            <table className="confirm-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th className="td-right">Cant.</th>
+                  <th className="td-right">P.U.</th>
+                  <th className="td-right">Subtotal</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {cart.items.map((it) => (
+                  <tr key={it.productId}>
+                    <td>{it.name}</td>
+                    <td className="td-right">{it.quantity}</td>
+                    <td className="td-right">{formatPrice(it.unitPrice)}</td>
+                    <td className="td-right">{formatPrice(it.quantity * it.unitPrice)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <div className="confirm-total">
             <span>Total estimado</span>
-            <strong>{fmt(total)}</strong>
+            <strong>{formatPrice(total)}</strong>
           </div>
 
           <div className="confirm-section">
@@ -177,6 +178,8 @@ interface CartDrawerProps {
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
   const dispatch = useAppDispatch();
   const cart = useAppSelector((s) => s.cart);
+  const [isDrawerVisible, setIsDrawerVisible] = useState(open);
+  const [isDrawerClosing, setIsDrawerClosing] = useState(false);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [waWarningOpen, setWaWarningOpen] = useState(false);
@@ -185,6 +188,24 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
   const count = cart.items.reduce((s, i) => s + i.quantity, 0);
   const total = cart.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+
+  useEffect(() => {
+    if (open) {
+      setIsDrawerVisible(true);
+      setIsDrawerClosing(false);
+      return;
+    }
+
+    if (!isDrawerVisible) return;
+
+    setIsDrawerClosing(true);
+    const timer = window.setTimeout(() => {
+      setIsDrawerVisible(false);
+      setIsDrawerClosing(false);
+    }, 220);
+
+    return () => window.clearTimeout(timer);
+  }, [open, isDrawerVisible]);
 
   const handleConfirm = async (customer: CustomerInfo) => {
     if (!cart.locationId) return;
@@ -248,25 +269,29 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
   return (
     <>
-      {/* FAB for mobile */}
       <button
         type="button"
-        className="cart-fab"
+        className={`cart-fab ${count > 0 ? "cart-fab--has-items" : "cart-fab--empty"}`}
         onClick={() => onOpenChange(true)}
         aria-label={`Carrito (${count})`}
       >
         <Icon name="shopping_cart" />
-        {count > 0 && (
-          <span className="cart-fab__badge">{count > 99 ? "99+" : count}</span>
-        )}
+        {count > 0 && <span className="cart-fab__badge">{count > 99 ? "99+" : count}</span>}
       </button>
 
-      {/* Slide-over panel */}
-      {open && (
+      {isDrawerVisible && (
         <>
-          <div className="cart-overlay" onClick={() => onOpenChange(false)} aria-hidden />
+          <div
+            className={`cart-overlay ${isDrawerClosing ? "cart-overlay--closing" : ""}`}
+            onClick={() => onOpenChange(false)}
+            aria-hidden
+          />
 
-          <aside className="cart-panel" role="dialog" aria-label="Tu pedido">
+          <aside
+            className={`cart-panel ${isDrawerClosing ? "cart-panel--closing" : ""}`}
+            role="dialog"
+            aria-label="Tu pedido"
+          >
             <div className="cart-panel__head">
               <span className="cart-panel__title">
                 <Icon name="shopping_cart" />
@@ -292,12 +317,14 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                 cart.items.map((it) => (
                   <div key={it.productId} className="cart-row">
                     {it.imagenUrl ? (() => {
-                      const imagePath = it.imagenUrl.replace(
-                        process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
-                        "",
+                      const proxiedUrl = toImageProxyUrl(it.imagenUrl);
+                      return proxiedUrl ? (
+                        <Image src={proxiedUrl} alt={it.name} className="cart-row__img" width={72} height={72} />
+                      ) : (
+                        <div className="cart-row__no-img">
+                          <Icon name="inventory_2" />
+                        </div>
                       );
-                      const proxiedUrl = `/api/image?path=${imagePath}`;
-                      return <img src={proxiedUrl} alt={it.name} className="cart-row__img" />;
                     })() : (
                       <div className="cart-row__no-img">
                         <Icon name="inventory_2" />
@@ -306,14 +333,14 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
                     <div className="cart-row__body">
                       <div className="cart-row__name">{it.name}</div>
-                      <div className="cart-row__unit">{fmt(it.unitPrice)} c/u</div>
+                      <div className="cart-row__unit">{formatPrice(it.unitPrice)} c/u</div>
                       <div className="cart-row__stepper">
                         <button
                           type="button"
                           className="cart-row__step-btn"
                           onClick={() => dispatch(updateQuantity({ productId: it.productId, quantity: it.quantity - 1 }))}
                         >
-                          −
+                          <Icon name="remove" />
                         </button>
                         <span className="cart-row__step-val">{it.quantity}</span>
                         <button
@@ -322,21 +349,22 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                           disabled={it.tipo !== "elaborado" && it.quantity >= it.stockAtLocation}
                           onClick={() => dispatch(updateQuantity({ productId: it.productId, quantity: it.quantity + 1 }))}
                         >
-                          +
+                          <Icon name="add" />
                         </button>
                       </div>
                     </div>
 
-                    <span className="cart-row__subtotal">{fmt(it.quantity * it.unitPrice)}</span>
-
-                    <button
-                      type="button"
-                      className="cart-row__del"
-                      onClick={() => dispatch(removeItem(it.productId))}
-                      aria-label={`Quitar ${it.name}`}
-                    >
-                      <Icon name="delete_outline" />
-                    </button>
+                    <div className="cart-row__meta">
+                      <span className="cart-row__subtotal">{formatPrice(it.quantity * it.unitPrice)}</span>
+                      <button
+                        type="button"
+                        className="cart-row__del"
+                        onClick={() => dispatch(removeItem(it.productId))}
+                        aria-label={`Quitar ${it.name}`}
+                      >
+                        <Icon name="delete_outline" />
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
@@ -346,7 +374,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
               <div className="cart-panel__foot">
                 <div className="cart-panel__total">
                   <span className="cart-panel__total-label">Total estimado</span>
-                  <span className="cart-panel__total-value">{fmt(total)}</span>
+                  <span className="cart-panel__total-value">{formatPrice(total)}</span>
                 </div>
 
                 {cart.whatsAppContact ? (

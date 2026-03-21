@@ -7,29 +7,68 @@ import type {
   Tag,
 } from "@/lib/dashboard-types";
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asNullableString(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}
+
+function asPositiveInt(value: unknown, fallback = 0): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
 
 function parseList<T>(raw: unknown): T[] {
   if (Array.isArray(raw)) return raw as T[];
-  const obj = raw as Record<string, unknown> | null;
+  const obj = asRecord(raw);
   if (!obj) return [];
   const inner = obj.result ?? obj.data ?? obj;
   if (Array.isArray(inner)) return inner as T[];
-  const nested = inner as Record<string, unknown> | null;
+  const nested = asRecord(inner);
   if (nested && Array.isArray(nested.data)) return nested.data as T[];
   return [];
 }
 
+function parseNumber(value: unknown, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 /** Asegura tagIds en cada ítem: el backend puede enviar "tags" (objetos) en lugar de "tagIds". */
 function normalizePublicItem(item: Record<string, unknown>): PublicCatalogItem {
-  const tags = item.tags as { id: number }[] | undefined;
+  const tags = Array.isArray(item.tags) ? (item.tags as { id: number }[]) : undefined;
   const tagIds =
-    (item.tagIds as number[] | undefined) ??
+    (Array.isArray(item.tagIds) ? (item.tagIds as number[]) : undefined) ??
     (Array.isArray(tags) ? tags.map((t) => t.id) : []);
-  return { ...item, tagIds } as PublicCatalogItem;
+
+  return {
+    id: asPositiveInt(item.id),
+    code: asString(item.code),
+    name: asString(item.name, "Producto"),
+    description: asNullableString(item.description),
+    precio: parseNumber(item.precio, 0),
+    imagenUrl: asNullableString(item.imagenUrl),
+    categoryId: asPositiveInt(item.categoryId),
+    categoryColor: asNullableString(item.categoryColor),
+    stockAtLocation: asPositiveInt(item.stockAtLocation),
+    tipo: (asString(item.tipo, "inventariable") === "elaborado" ? "elaborado" : "inventariable"),
+    categoryName: asNullableString(item.categoryName),
+    isOpenNow: typeof item.isOpenNow === "boolean" ? item.isOpenNow : null,
+    locationId: item.locationId == null ? null : asPositiveInt(item.locationId),
+    locationName: asNullableString(item.locationName),
+    tagIds: tagIds.filter((id) => Number.isInteger(id)),
+  } as PublicCatalogItem;
 }
 
 function normalizeLocations(raw: unknown): PublicLocation[] {
-  const base = parseList<any>(raw);
+  const base = parseList<Record<string, unknown>>(raw);
 
   const days = [
     "sunday",
@@ -62,6 +101,16 @@ function normalizeLocations(raw: unknown): PublicLocation[] {
 
     return {
       ...loc,
+      id: asPositiveInt(loc.id),
+      name: asString(loc.name, "Tienda"),
+      organizationId: asPositiveInt(loc.organizationId),
+      organizationName: asString(loc.organizationName),
+      whatsAppContact: asNullableString(loc.whatsAppContact),
+      description: asNullableString(loc.description),
+      photoUrl: asNullableString(loc.photoUrl),
+      province: asNullableString(loc.province),
+      municipality: asNullableString(loc.municipality),
+      street: asNullableString(loc.street),
       businessHours,
       coordinates,
       latitude,
@@ -70,7 +119,7 @@ function normalizeLocations(raw: unknown): PublicLocation[] {
       lng: longitude,
       todayOpen,
       todayClose,
-      isOpenNow: loc.isOpenNow ?? null,
+      isOpenNow: typeof loc.isOpenNow === "boolean" ? loc.isOpenNow : null,
     } as PublicLocation;
   });
 }
@@ -116,12 +165,13 @@ export const catalogApi = createApi({
         const data = parseList<Record<string, unknown>>(
           obj.data ?? obj.result ?? [],
         ).map(normalizePublicItem);
-        const pagination = (obj.pagination ?? {
-          page: 1,
-          pageSize: 50,
-          total: data.length,
-          totalPages: 1,
-        }) as PaginationMeta;
+        const rawPagination = (obj.pagination ?? {}) as Record<string, unknown>;
+        const pagination: PaginationMeta = {
+          page: parseNumber(rawPagination.page, 1),
+          pageSize: parseNumber(rawPagination.pageSize, 50),
+          total: parseNumber(rawPagination.total, data.length),
+          totalPages: parseNumber(rawPagination.totalPages, 1),
+        };
         return { data, pagination };
       },
     }),

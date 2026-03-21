@@ -51,6 +51,16 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: ".",
   },
+  images: {
+    localPatterns: [
+      {
+        pathname: "/api/image",
+      },
+      {
+        pathname: "/images/**",
+      },
+    ],
+  },
 };
 
 export default withPWA(nextConfig);
