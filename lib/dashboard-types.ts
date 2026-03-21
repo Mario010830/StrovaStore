@@ -10,12 +10,26 @@ export interface Tag {
   productCount?: number;
 }
 
+/** Categoría de negocio (GET /business-category). */
+export interface BusinessCategory {
+  id: number;
+  name: string;
+  /** Nombre del ícono Material (p. ej. restaurant). */
+  icon: string;
+  /** Slug para URL (?category=); si el backend no envía, se deriva del nombre. */
+  slug: string;
+}
+
 export interface PublicLocation {
   id: number;
   name: string;
   description: string | null;
   organizationId: number;
   organizationName: string;
+  /** Relación con BusinessCategory, si el backend la envía. */
+  businessCategoryId?: number | null;
+  /** Nombre de la categoría de negocio si el backend lo envía. */
+  businessCategoryName?: string | null;
   whatsAppContact: string | null;
   photoUrl?: string | null;
   province?: string | null;

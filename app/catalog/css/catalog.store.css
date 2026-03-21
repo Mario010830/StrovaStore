@@ -85,6 +85,10 @@
   margin: 4px 0 0;
 }
 
+.sp-profile__biz-cat {
+  margin-top: 10px;
+}
+
 .sp-wa-btn {
   display: inline-flex;
   align-items: center;

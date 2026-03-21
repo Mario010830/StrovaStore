@@ -360,6 +360,81 @@
   display: none;
 }
 
+/* Filtro categoría de negocio (pills tipo landing desktop) */
+.dir-biz-category-strip {
+  padding: 0 32px 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.dir-biz-category-strip__scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.dir-biz-category-strip__scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.dir-biz-cat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  background: #f1f5f9;
+  color: #0f172a;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.dir-biz-cat-pill:hover:not(.dir-biz-cat-pill--active) {
+  background: #e2e8f0;
+}
+
+.dir-biz-cat-pill--active {
+  background: var(--dir-primary);
+  color: var(--dir-on-primary);
+}
+
+.dir-biz-cat-pill__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  color: var(--dir-primary);
+}
+
+.dir-biz-cat-pill__icon svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.dir-biz-cat-pill--active .dir-biz-cat-pill__icon {
+  color: var(--dir-on-primary);
+}
+
+.dir-card__biz-pill {
+  margin-top: 8px;
+}
+
 .dir-chip {
   display: inline-flex;
   align-items: center;

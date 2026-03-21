@@ -1,10 +1,12 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getApiUrl } from "@/lib/auth-api";
+import { slugifyBusinessCategoryName } from "@/utils/businessCategoryIcons";
 import type {
   PublicLocation,
   PublicCatalogItem,
   PaginationMeta,
   Tag,
+  BusinessCategory,
 } from "@/lib/dashboard-types";
 
 export const QUERY_REFRESH_MS = {
@@ -109,6 +111,21 @@ function normalizeLocations(raw: unknown): PublicLocation[] {
     const todayOpen = today?.open ?? null;
     const todayClose = today?.close ?? null;
 
+    const nestedBc = asRecord(loc.businessCategory);
+    const businessCategoryIdRaw =
+      loc.businessCategoryId != null && loc.businessCategoryId !== ""
+        ? loc.businessCategoryId
+        : nestedBc?.id;
+    const businessCategoryId =
+      businessCategoryIdRaw == null || businessCategoryIdRaw === ""
+        ? null
+        : asPositiveInt(businessCategoryIdRaw);
+
+    const nestedBcName =
+      nestedBc && typeof nestedBc.name === "string" ? nestedBc.name : null;
+    const businessCategoryName =
+      asNullableString(loc.businessCategoryName) ?? nestedBcName;
+
     return {
       ...loc,
       id: asPositiveInt(loc.id),
@@ -130,8 +147,28 @@ function normalizeLocations(raw: unknown): PublicLocation[] {
       todayOpen,
       todayClose,
       isOpenNow: typeof loc.isOpenNow === "boolean" ? loc.isOpenNow : null,
+      businessCategoryId,
+      businessCategoryName,
     } as PublicLocation;
   });
+}
+
+function normalizeBusinessCategory(raw: Record<string, unknown>): BusinessCategory {
+  const name = asString(raw.name, "Categoría");
+  const slugFromApi = asNullableString(raw.slug)?.trim();
+  return {
+    id: asPositiveInt(raw.id),
+    name,
+    icon: asString(
+      raw.icon ?? raw.iconName ?? raw.materialIcon ?? raw.Icon,
+      "storefront",
+    ),
+    slug: slugFromApi || slugifyBusinessCategoryName(name),
+  };
+}
+
+function normalizeBusinessCategories(raw: unknown): BusinessCategory[] {
+  return parseList<Record<string, unknown>>(raw).map(normalizeBusinessCategory);
 }
 
 export const catalogApi = createApi({
@@ -191,6 +228,12 @@ export const catalogApi = createApi({
       query: () => "/public/tags",
       transformResponse: (raw: unknown) => parseList<Tag>(raw),
     }),
+
+    /** GET /business-category — categorías de negocio para filtros (landing, etc.). */
+    getBusinessCategories: builder.query<BusinessCategory[], void>({
+      query: () => "/business-category",
+      transformResponse: (raw: unknown) => normalizeBusinessCategories(raw),
+    }),
   }),
 });
 
@@ -200,4 +243,5 @@ export const {
   useLazyGetPublicCatalogQuery,
   useGetAllPublicProductsQuery,
   useGetPublicTagsQuery,
+  useGetBusinessCategoriesQuery,
 } = catalogApi;

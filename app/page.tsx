@@ -1,10 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
+import { BusinessCategoryPill } from "@/components/ui/BusinessCategoryPill";
 import { PriceText } from "@/components/ui/PriceText";
 import { EcommerceCarousel } from "@/components/landing/EcommerceCarousel";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
@@ -12,11 +14,20 @@ import { SectionHeader } from "@/components/landing/SectionHeader";
 import {
   QUERY_POLLING_OPTIONS,
   useGetAllPublicProductsQuery,
+  useGetBusinessCategoriesQuery,
   useGetPublicLocationsQuery,
 } from "@/app/catalog/_service/catalogApi";
 import { toImageProxyUrl } from "@/lib/image";
 import { isExcludedLandingStore } from "@/app/lib/landing-filters";
+import {
+  buildCatalogZoneHref,
+  getZoneCardSubtitle,
+  getZoneCardTitle,
+  groupPublicLocationsByZone,
+} from "@/app/lib/landing-zones";
 import { getBusinessUrl } from "@/lib/runtime-config";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { getBusinessCategoryLucideIcon } from "@/utils/businessCategoryIcons";
 
 const STROVA_BUSINESS_URL = getBusinessUrl();
 
@@ -40,15 +51,26 @@ const HERO_QUICK_TAGS = [
   { label: "Cerca", href: "/catalog" },
 ] as const;
 
-/** Subí el número (?v=) al cambiar el archivo en `public/images/`. `unoptimized` sirve el asset tal cual sin pasar por el optimizador de Next. */
 const HERO_PORTRAIT_SRC = "/images/woman.webp?v=1";
+
+/** Cantidad mostrada en «Productos populares» (landing); no listar todo el catálogo. */
+const LANDING_TOP_PRODUCTS_LIMIT = 8;
+
+type LandingCategoryRowItem = { key: string; name: string; slug: string };
 
 export default function LandingPage() {
   const [query, setQuery] = useState("");
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const isMobileLanding = useMediaQuery("(max-width: 768px)");
   const { data: locations = [] } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
+  const { data: businessCategories = [] } = useGetBusinessCategoriesQuery(
+    undefined,
+    QUERY_POLLING_OPTIONS.general,
+  );
   const { data: allProducts } = useGetAllPublicProductsQuery(
-    { page: 1, pageSize: 200 },
+    { page: 1, pageSize: LANDING_TOP_PRODUCTS_LIMIT },
     QUERY_POLLING_OPTIONS.general,
   );
 
@@ -60,6 +82,7 @@ export default function LandingPage() {
         eta: "Ver horarios",
         imageUrl: toImageProxyUrl(store.photoUrl),
         isOpen: store.isOpenNow === true,
+        businessCategoryId: store.businessCategoryId ?? null,
       }))
     : Array.from({ length: 8 }).map((_, index) => {
         const store = FALLBACK_STORES[index % FALLBACK_STORES.length];
@@ -70,12 +93,71 @@ export default function LandingPage() {
           eta: store.eta,
           imageUrl: null,
           isOpen: true,
+          businessCategoryId: null as number | null,
         };
       });
 
   const topStores = locations.length
     ? topStoresRaw.filter((s) => !isExcludedLandingStore(s.name, s.category))
     : topStoresRaw;
+
+  const categorySlug = searchParams.get("category")?.trim() ?? "";
+
+  const landingCategoryItems: LandingCategoryRowItem[] = useMemo(() => {
+    const sorted = [...businessCategories].sort((a, b) =>
+      a.name.localeCompare(b.name, "es", { sensitivity: "base" }),
+    );
+    return [
+      { key: "todos", name: "Todos", slug: "" },
+      ...sorted.map((c) => ({ key: String(c.id), name: c.name, slug: c.slug })),
+    ];
+  }, [businessCategories]);
+
+  const activeCategoryKey = useMemo(() => {
+    if (!categorySlug) return "todos";
+    const match = businessCategories.find((c) => c.slug === categorySlug);
+    return match ? String(match.id) : "todos";
+  }, [categorySlug, businessCategories]);
+
+  const selectLandingCategory = useCallback(
+    (item: LandingCategoryRowItem) => {
+      const sp = new URLSearchParams(searchParams.toString());
+      if (item.key === "todos" || !item.slug) sp.delete("category");
+      else sp.set("category", item.slug);
+      const q = sp.toString();
+      const base = pathname || "/";
+      router.replace(q ? `${base}?${q}` : base, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const storesForCards = useMemo(() => {
+    const byId = new Map(businessCategories.map((c) => [c.id, c.name]));
+    return topStores.map((s) => ({
+      ...s,
+      businessCategoryName:
+        s.businessCategoryId != null ? (byId.get(s.businessCategoryId) ?? null) : null,
+    }));
+  }, [topStores, businessCategories]);
+
+  const displayStores = useMemo(() => {
+    if (!locations.length) return storesForCards;
+    if (activeCategoryKey === "todos") return storesForCards;
+    const catId = Number(activeCategoryKey);
+    if (!Number.isInteger(catId) || catId <= 0) return storesForCards;
+    return storesForCards.filter((s) => s.businessCategoryId === catId);
+  }, [locations.length, storesForCards, activeCategoryKey]);
+
+  const locationZones = useMemo(() => {
+    const filtered = locations.filter(
+      (l) => !isExcludedLandingStore(l.name, l.organizationName || ""),
+    );
+    return groupPublicLocationsByZone(filtered).map((zone) => ({
+      ...zone,
+      coverUrl: toImageProxyUrl(zone.locations.find((loc) => loc.photoUrl)?.photoUrl ?? null),
+      href: buildCatalogZoneHref(zone.province, zone.municipality),
+    }));
+  }, [locations]);
 
   const activeStoreCount = locations.length;
   const socialProofLine =
@@ -84,7 +166,7 @@ export default function LandingPage() {
       : "Cientos de tiendas locales en tu ciudad";
 
   const topProducts = allProducts?.data?.length
-    ? allProducts.data.map((product) => ({
+    ? allProducts.data.slice(0, LANDING_TOP_PRODUCTS_LIMIT).map((product) => ({
         id: product.id,
         name: product.name,
         price: product.precio,
@@ -116,9 +198,113 @@ export default function LandingPage() {
     router.push(`/catalog?${params.toString()}`);
   };
 
+  const renderProductHref = (product: (typeof topProducts)[number]) =>
+    typeof product.locationId === "number" && Number.isInteger(product.locationId)
+      ? `/catalog/${product.locationId}/product/${product.id}`
+      : "/catalog?tab=productos";
+
+  const mobileCatScrollRef = useRef<HTMLDivElement>(null);
+  const [mobileCatScroll, setMobileCatScroll] = useState({ canLeft: false, canRight: false });
+
+  const updateMobileCatScrollHints = useCallback(() => {
+    const el = mobileCatScrollRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setMobileCatScroll({
+      canLeft: scrollLeft > 2,
+      canRight: scrollLeft + clientWidth < scrollWidth - 2,
+    });
+  }, []);
+
+  useEffect(() => {
+    const el = mobileCatScrollRef.current;
+    if (!el) return;
+    updateMobileCatScrollHints();
+    el.addEventListener("scroll", updateMobileCatScrollHints, { passive: true });
+    const ro = new ResizeObserver(updateMobileCatScrollHints);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", updateMobileCatScrollHints);
+      ro.disconnect();
+    };
+  }, [updateMobileCatScrollHints, landingCategoryItems.length, isMobileLanding]);
+
+  const scrollMobileCategories = useCallback((direction: -1 | 1) => {
+    const el = mobileCatScrollRef.current;
+    if (!el) return;
+    const delta = Math.min(200, Math.round(el.clientWidth * 0.55)) * direction;
+    el.scrollBy({ left: delta, behavior: "smooth" });
+  }, []);
+
   return (
     <div className="landing">
-      <section className="landing-hero landing-hero--split landing-anim">
+      <div className="landing-mobile-top landing-mob-only">
+        <div className="landing-mobile-top__sticky">
+          <form className="landing-mobile-search" onSubmit={handleSearch}>
+            <span className="landing-mobile-search__icon" aria-hidden>
+              <Icon name="search" outlined />
+            </span>
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar productos o tiendas"
+              aria-label="Buscar productos o tiendas"
+              enterKeyHint="search"
+            />
+          </form>
+          <div className="landing-mobile-categories-wrap">
+            <button
+              type="button"
+              className={`landing-mobile-categories-arrow landing-mobile-categories-arrow--left${mobileCatScroll.canLeft ? "" : " landing-mobile-categories-arrow--muted"}`}
+              aria-label="Ver categorías anteriores"
+              tabIndex={mobileCatScroll.canLeft ? undefined : -1}
+              onClick={() => scrollMobileCategories(-1)}
+            >
+              <ChevronLeft size={18} strokeWidth={2} aria-hidden />
+            </button>
+            <div
+              ref={mobileCatScrollRef}
+              className="landing-mobile-categories"
+              role="tablist"
+              aria-label="Categorías de negocio"
+            >
+              {landingCategoryItems.map((cat) => {
+                const active = activeCategoryKey === cat.key;
+                const LucideIcon =
+                  cat.key === "todos" ? LayoutGrid : getBusinessCategoryLucideIcon(cat.name);
+                return (
+                  <button
+                    key={cat.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    className={`landing-mobile-cat${active ? " landing-mobile-cat--active" : ""}`}
+                    onClick={() => selectLandingCategory(cat)}
+                  >
+                    <span className="landing-mobile-cat__icon-wrap">
+                      <LucideIcon size={24} strokeWidth={2} aria-hidden />
+                    </span>
+                    <span className="landing-mobile-cat__label">{cat.name}</span>
+                    {active ? <span className="landing-mobile-cat__dot" aria-hidden /> : null}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              className={`landing-mobile-categories-arrow landing-mobile-categories-arrow--right${mobileCatScroll.canRight ? "" : " landing-mobile-categories-arrow--muted"}`}
+              aria-label="Ver más categorías"
+              tabIndex={mobileCatScroll.canRight ? undefined : -1}
+              onClick={() => scrollMobileCategories(1)}
+            >
+              <ChevronRight size={18} strokeWidth={2} aria-hidden />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <section className="landing-hero landing-hero--split landing-anim landing-desktop-hero">
         <div className="landing-hero__blob landing-hero__blob--tr" aria-hidden />
         <div className="landing-hero__blob landing-hero__blob--tl" aria-hidden />
         <div className="hero__birds" aria-hidden>
@@ -192,106 +378,298 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <div className="landing-desktop-category-strip landing-desktop-only landing-anim">
+        <div className="landing-shell landing-desktop-category-strip__inner">
+          <div className="landing-desktop-categories" role="tablist" aria-label="Categorías de negocio">
+            {landingCategoryItems.map((cat) => {
+              const active = activeCategoryKey === cat.key;
+              const LucideIcon =
+                cat.key === "todos" ? LayoutGrid : getBusinessCategoryLucideIcon(cat.name);
+              return (
+                <button
+                  key={cat.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  className={`landing-desktop-cat${active ? " landing-desktop-cat--active" : ""}`}
+                  onClick={() => selectLandingCategory(cat)}
+                >
+                  <span className="landing-desktop-cat__icon" aria-hidden>
+                    <LucideIcon size={16} strokeWidth={2} />
+                  </span>
+                  <span className="landing-desktop-cat__label">{cat.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       <HowItWorksSection />
 
-      <section className="landing-section landing-section--landing-block landing-shell landing-anim">
-        <SectionHeader
-          eyebrow="Tiendas recomendadas"
-          title="Tiendas populares"
-          subtitle="Acceso directo a negocios destacados para acelerar la decisión."
-          actionHref="/catalog"
-          actionLabel="Ver todas las tiendas"
-        />
-        <EcommerceCarousel variant="stores" ariaLabel="Tiendas populares">
-          {topStores.map((store) => (
-            <Link key={store.id} href={`/catalog/${store.id}`} className="landing-store-card">
-              <div className="landing-store-card__media">
-                <span
-                  className={`landing-carousel-badge ${store.isOpen ? "landing-carousel-badge--open" : "landing-carousel-badge--closed"}`}
-                >
-                  {store.isOpen ? "Abierto" : "Cerrado"}
-                </span>
-                {store.imageUrl ? (
-                  <Image
-                    src={store.imageUrl}
-                    alt={store.name}
-                    width={640}
-                    height={360}
-                    className="landing-store-card__cover-img"
-                  />
-                ) : (
-                  <div className="landing-store-card__cover" aria-hidden />
-                )}
-              </div>
-              <div className="landing-store-card__body">
-                <span className="landing-store-card__name">{store.name}</span>
-                <span className="landing-store-card__cat">{store.category}</span>
-                <div className="landing-store-card__foot">
-                  <span className="landing-store-card__eta">Entrega aprox. {store.eta}</span>
-                  <span className="landing-store-card__cta">Ver tienda</span>
-                </div>
-              </div>
+      {locationZones.length > 0 ? (
+        <section className="landing-section landing-section--landing-block landing-section--zones landing-shell landing-anim">
+          <div className="landing-desktop-only">
+            <SectionHeader
+              eyebrow="Por ubicación"
+              title="Explorá por zona"
+              subtitle="Elegí municipio o provincia y descubrí las tiendas de esa zona."
+              actionHref="/catalog?tab=tiendas"
+              actionLabel="Ver todas las tiendas"
+            />
+          </div>
+          <div className="landing-mob-only">
+            <div className="landing-mob-section-header">
+              <h2 className="landing-mob-section-header__title">Explorá por zona</h2>
+              <Link href="/catalog?tab=tiendas" className="landing-mob-section-header__action">
+                Ver todas →
+              </Link>
+            </div>
+          </div>
+          <div className="landing-zones-scroll">
+            {locationZones.map((zone) => {
+              const title = getZoneCardTitle(zone);
+              const subtitle = getZoneCardSubtitle(zone);
+              return (
+                <Link key={zone.zoneKey} href={zone.href} className="landing-zone-card">
+                  <div className="landing-zone-card__media">
+                    {zone.coverUrl ? (
+                      <Image
+                        src={zone.coverUrl}
+                        alt=""
+                        fill
+                        className="landing-zone-card__img"
+                        sizes="(max-width: 768px) 78vw, 280px"
+                      />
+                    ) : (
+                      <div className="landing-zone-card__placeholder" aria-hidden />
+                    )}
+                    <div className="landing-zone-card__overlay" aria-hidden />
+                    <div className="landing-zone-card__text">
+                      <span className="landing-zone-card__title">{title}</span>
+                      {subtitle ? <span className="landing-zone-card__subtitle">{subtitle}</span> : null}
+                      <span className="landing-zone-card__cta">Explorar</span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="landing-section landing-section--landing-block landing-section--stores landing-shell landing-anim">
+        <div className="landing-desktop-only">
+          <SectionHeader
+            eyebrow="Tiendas recomendadas"
+            title="Tiendas populares"
+            subtitle="Acceso directo a negocios destacados para acelerar la decisión."
+            actionHref="/catalog"
+            actionLabel="Ver todas las tiendas"
+          />
+          {displayStores.length === 0 && storesForCards.length > 0 ? (
+            <p className="landing-stores-filter-empty" role="status">
+              No hay tiendas en esta categoría.
+            </p>
+          ) : (
+            <EcommerceCarousel variant="stores" ariaLabel="Tiendas populares">
+              {displayStores.map((store) => (
+                <Link key={store.id} href={`/catalog/${store.id}`} className="landing-store-card">
+                  <div className="landing-store-card__media">
+                    <span
+                      className={`landing-carousel-badge ${store.isOpen ? "landing-carousel-badge--open" : "landing-carousel-badge--closed"}`}
+                    >
+                      {store.isOpen ? "Abierto" : "Cerrado"}
+                    </span>
+                    {store.imageUrl ? (
+                      <Image
+                        src={store.imageUrl}
+                        alt={store.name}
+                        width={640}
+                        height={360}
+                        className="landing-store-card__cover-img"
+                      />
+                    ) : (
+                      <div className="landing-store-card__cover" aria-hidden />
+                    )}
+                  </div>
+                  <div className="landing-store-card__body">
+                    <span className="landing-store-card__name">{store.name}</span>
+                    <span className="landing-store-card__cat">{store.category}</span>
+                    <BusinessCategoryPill name={store.businessCategoryName} />
+                    <div className="landing-store-card__foot">
+                      <span className="landing-store-card__eta">Entrega aprox. {store.eta}</span>
+                      <span className="landing-store-card__cta">Ver tienda</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </EcommerceCarousel>
+          )}
+        </div>
+
+        <div className="landing-mob-only">
+          <div className="landing-mob-section-header">
+            <h2 className="landing-mob-section-header__title">Tiendas populares</h2>
+            <Link href="/catalog" className="landing-mob-section-header__action">
+              Ver todas →
             </Link>
-          ))}
-        </EcommerceCarousel>
+          </div>
+          <div className="landing-mob-store-scroll">
+            {displayStores.length === 0 && storesForCards.length > 0 ? (
+              <p className="landing-stores-filter-empty landing-stores-filter-empty--mob" role="status">
+                No hay tiendas en esta categoría.
+              </p>
+            ) : (
+              displayStores.map((store) => (
+                <Link key={store.id} href={`/catalog/${store.id}`} className="landing-mob-store-item">
+                  <div className="landing-mob-store-item__avatar">
+                    {store.imageUrl ? (
+                      <Image
+                        src={store.imageUrl}
+                        alt=""
+                        width={72}
+                        height={72}
+                        className="landing-mob-store-item__img"
+                      />
+                    ) : (
+                      <div className="landing-mob-store-item__placeholder" aria-hidden />
+                    )}
+                  </div>
+                  <div className="landing-mob-store-item__meta">
+                    <span className="landing-mob-store-item__name">{store.name}</span>
+                    <BusinessCategoryPill name={store.businessCategoryName} />
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
       </section>
 
-      <section className="landing-section landing-section--landing-block landing-shell landing-anim">
-        <SectionHeader
-          eyebrow="Productos destacados"
-          title="Productos populares"
-          subtitle="Compará precio y tienda en una vista simple antes de ir al catálogo completo."
-          actionHref="/catalog?tab=productos"
-          actionLabel="Ver todos los productos"
-        />
-        <EcommerceCarousel variant="products" ariaLabel="Productos populares">
-          {topProducts.map((product) => {
-            const soldOut = product.tipo === "inventariable" && product.stockAtLocation <= 0;
-            return (
-              <Link
-                key={product.id}
-                href={
-                  typeof product.locationId === "number" && Number.isInteger(product.locationId)
-                    ? `/catalog/${product.locationId}/product/${product.id}`
-                    : "/catalog?tab=productos"
-                }
-                className="landing-product-card"
-              >
-                <div className="landing-product-card__media">
-                  {soldOut ? (
-                    <span className="landing-product-card__soldout" aria-hidden>
-                      AGOTADO
-                    </span>
-                  ) : null}
-                  {product.imageUrl ? (
-                    <Image
-                      src={product.imageUrl}
-                      alt={product.name}
-                      width={640}
-                      height={360}
-                      className="landing-product-card__cover-img"
-                    />
-                  ) : (
-                    <div className="landing-product-card__cover" aria-hidden />
-                  )}
-                </div>
-                <div className="landing-product-card__body">
-                  <span className="landing-product-card__price">
-                    <PriceText value={product.price} />
-                  </span>
-                  <span className="landing-product-card__name">{product.name}</span>
-                  <span className="landing-product-card__store">{product.store}</span>
-                  <span className="landing-product-card__link">Ver en tienda →</span>
-                </div>
+      <section className="landing-section landing-section--landing-block landing-section--products landing-shell landing-anim">
+        {isMobileLanding ? (
+          <>
+            <div className="landing-mob-section-header">
+              <h2 className="landing-mob-section-header__title">Productos populares</h2>
+              <Link href="/catalog?tab=productos" className="landing-mob-section-header__action">
+                Ver todos →
               </Link>
-            );
-          })}
-        </EcommerceCarousel>
+            </div>
+            <div className="landing-mob-product-grid">
+              {topProducts.map((product) => {
+                const soldOut = product.tipo === "inventariable" && product.stockAtLocation <= 0;
+                return (
+                  <Link
+                    key={product.id}
+                    href={renderProductHref(product)}
+                    className="landing-product-card landing-product-card--market-mob"
+                  >
+                    <div className="landing-product-card__media landing-product-card__media--market-mob">
+                      {soldOut ? (
+                        <span className="landing-product-card__soldout" aria-hidden>
+                          AGOTADO
+                        </span>
+                      ) : null}
+                      {product.imageUrl ? (
+                        <Image
+                          src={product.imageUrl}
+                          alt={product.name}
+                          width={640}
+                          height={360}
+                          className="landing-product-card__cover-img landing-product-card__cover-img--market-mob"
+                        />
+                      ) : (
+                        <div className="landing-product-card__cover landing-product-card__cover--market-mob" aria-hidden />
+                      )}
+                      <div className="landing-product-card__price-shade" aria-hidden />
+                      <span className="landing-product-card__price-overlay">
+                        <PriceText value={product.price} />
+                      </span>
+                    </div>
+                    <div className="landing-product-card__body landing-product-card__body--market-mob">
+                      <span className="landing-product-card__name landing-product-card__name--market-mob">
+                        {product.name}
+                      </span>
+                      <span className="landing-product-card__store landing-product-card__store--market-mob">
+                        {product.store}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <>
+            <SectionHeader
+              eyebrow="Productos destacados"
+              title="Productos populares"
+              subtitle="Compará precio y tienda en una vista simple antes de ir al catálogo completo."
+              actionHref="/catalog?tab=productos"
+              actionLabel="Ver todos los productos"
+            />
+            <EcommerceCarousel variant="products" ariaLabel="Productos populares">
+              {topProducts.map((product) => {
+                const soldOut = product.tipo === "inventariable" && product.stockAtLocation <= 0;
+                return (
+                  <Link
+                    key={product.id}
+                    href={renderProductHref(product)}
+                    className="landing-product-card"
+                  >
+                    <div className="landing-product-card__media">
+                      {soldOut ? (
+                        <span className="landing-product-card__soldout" aria-hidden>
+                          AGOTADO
+                        </span>
+                      ) : null}
+                      {product.imageUrl ? (
+                        <Image
+                          src={product.imageUrl}
+                          alt={product.name}
+                          width={640}
+                          height={360}
+                          className="landing-product-card__cover-img"
+                        />
+                      ) : (
+                        <div className="landing-product-card__cover" aria-hidden />
+                      )}
+                    </div>
+                    <div className="landing-product-card__body">
+                      <span className="landing-product-card__price">
+                        <PriceText value={product.price} />
+                      </span>
+                      <span className="landing-product-card__name">{product.name}</span>
+                      <span className="landing-product-card__store">{product.store}</span>
+                      <span className="landing-product-card__link">Ver en tienda →</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </EcommerceCarousel>
+          </>
+        )}
         {/* TODO: cuando el backend no entregue locationId por producto, mantener fallback al listado general de productos. */}
       </section>
 
       <section className="landing-business landing-shell landing-anim">
-        <div className="landing-business__inner">
+        <div className="landing-business__mob-banner landing-mob-only">
+          <h2 className="landing-business__mob-title">¿Tenés un negocio?</h2>
+          <p className="landing-business__mob-line">
+            Sumá tu comercio al catálogo local y recibí pedidos por WhatsApp.
+          </p>
+          <a
+            href={STROVA_BUSINESS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="landing-business__mob-cta"
+          >
+            Registrarse
+          </a>
+        </div>
+
+        <div className="landing-business__inner landing-desktop-only">
           <div className="landing-business__grid">
             <div className="landing-business__content">
               <p className="landing-business__eyebrow">Para negocios</p>
@@ -360,7 +738,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
     </div>
   );
 }

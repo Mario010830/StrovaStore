@@ -1,11 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { LayoutGrid } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
-import { QUERY_POLLING_OPTIONS, useGetPublicLocationsQuery } from "./_service/catalogApi";
+import { BusinessCategoryPill } from "@/components/ui/BusinessCategoryPill";
+import {
+  QUERY_POLLING_OPTIONS,
+  useGetBusinessCategoriesQuery,
+  useGetPublicLocationsQuery,
+} from "./_service/catalogApi";
 import { useFuseSearch } from "@/hooks/useFuseSearch";
 import type { PublicLocation } from "@/lib/dashboard-types";
 import AllProductsView from "./AllProductsView";
@@ -17,6 +23,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { FilterChip } from "@/components/ui/FilterChip";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { getRtkErrorInfo } from "@/lib/rtk-error";
+import { getBusinessCategoryLucideIcon } from "@/utils/businessCategoryIcons";
 
 const STROVA_BUSINESS_URL = getBusinessUrl();
 
@@ -32,7 +39,13 @@ const DIRECTORY_CATEGORIES = [
 
 const SORT_OPTIONS = ["Más cercanos", "Más populares", "Nuevos"] as const;
 
-function DirectoryCard({ loc }: { loc: PublicLocation }) {
+function DirectoryCard({
+  loc,
+  businessCategoryDisplay,
+}: {
+  loc: PublicLocation;
+  businessCategoryDisplay: string | null;
+}) {
   const hasHours = !!loc.businessHours;
   const showBadge = hasHours && loc.isOpenNow != null;
   const isOpen = loc.isOpenNow === true;
@@ -63,6 +76,9 @@ function DirectoryCard({ loc }: { loc: PublicLocation }) {
       <div className="dir-card__body">
         <h3 className="dir-card__name">{loc.name}</h3>
         <p className="dir-card__category">{categoryLine}</p>
+        <div className="dir-card__biz-pill">
+          <BusinessCategoryPill name={businessCategoryDisplay} />
+        </div>
         <div className="dir-card__footer">
           <span className="dir-card__location">
             <Icon name="location_on" />
@@ -94,11 +110,21 @@ function DirSkeletons() {
   );
 }
 
+type DirBizCatItem = { key: string; name: string; slug: string };
+
 export default function CatalogLocationsPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const tab = searchParams.get("tab") ?? "tiendas";
+  const zonaProvincia = searchParams.get("provincia")?.trim() ?? "";
+  const zonaMunicipio = searchParams.get("municipio")?.trim() ?? "";
+  const categorySlug = searchParams.get("category")?.trim() ?? "";
 
   const { data: locations, isLoading, isError, error, refetch } = useGetPublicLocationsQuery(
+    undefined,
+    QUERY_POLLING_OPTIONS.general,
+  );
+  const { data: businessCategories = [] } = useGetBusinessCategoriesQuery(
     undefined,
     QUERY_POLLING_OPTIONS.general,
   );
@@ -117,8 +143,61 @@ export default function CatalogLocationsPage() {
     search,
   );
 
+  const dirBizCategoryItems: DirBizCatItem[] = useMemo(() => {
+    const sorted = [...businessCategories].sort((a, b) =>
+      a.name.localeCompare(b.name, "es", { sensitivity: "base" }),
+    );
+    return [
+      { key: "todos", name: "Todos", slug: "" },
+      ...sorted.map((c) => ({ key: String(c.id), name: c.name, slug: c.slug })),
+    ];
+  }, [businessCategories]);
+
+  const activeBizCategoryId = useMemo(() => {
+    if (!categorySlug) return null;
+    const match = businessCategories.find((c) => c.slug === categorySlug);
+    return match?.id ?? null;
+  }, [categorySlug, businessCategories]);
+
+  const activeDirBizKey = activeBizCategoryId != null ? String(activeBizCategoryId) : "todos";
+
+  const selectDirBizCategory = useCallback(
+    (item: DirBizCatItem) => {
+      const sp = new URLSearchParams(searchParams.toString());
+      if (item.key === "todos" || !item.slug) sp.delete("category");
+      else sp.set("category", item.slug);
+      if (!sp.get("tab")) sp.set("tab", "tiendas");
+      router.replace(`/catalog?${sp.toString()}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
+
+  const resolveLocationBizName = useCallback(
+    (loc: PublicLocation): string | null => {
+      if (loc.businessCategoryName?.trim()) return loc.businessCategoryName.trim();
+      if (loc.businessCategoryId == null) return null;
+      const c = businessCategories.find((x) => x.id === loc.businessCategoryId);
+      return c?.name ?? null;
+    },
+    [businessCategories],
+  );
+
+  const categoryFilterLabel = useMemo(() => {
+    if (!categorySlug) return null;
+    return businessCategories.find((c) => c.slug === categorySlug)?.name ?? null;
+  }, [categorySlug, businessCategories]);
+
   const directoryList = useMemo(() => {
     let list = [...filtered];
+    if (zonaProvincia) {
+      list = list.filter((loc) => (loc.province ?? "").trim() === zonaProvincia);
+    }
+    if (zonaMunicipio) {
+      list = list.filter((loc) => (loc.municipality ?? "").trim() === zonaMunicipio);
+    }
+    if (activeBizCategoryId != null) {
+      list = list.filter((loc) => loc.businessCategoryId === activeBizCategoryId);
+    }
     if (directoryCategory !== "todos") {
       const term = directoryCategory.toLowerCase();
       list = list.filter(
@@ -135,7 +214,14 @@ export default function CatalogLocationsPage() {
       list = [...list].sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
     }
     return list;
-  }, [filtered, directoryCategory, directorySort]);
+  }, [
+    filtered,
+    directoryCategory,
+    directorySort,
+    zonaProvincia,
+    zonaMunicipio,
+    activeBizCategoryId,
+  ]);
 
   const showTiendas = tab === "tiendas";
   const errorInfo = getRtkErrorInfo(error);
@@ -175,6 +261,31 @@ export default function CatalogLocationsPage() {
             </div>
           </div>
         </header>
+
+        <div className="dir-biz-category-strip">
+          <div className="dir-biz-category-strip__scroll" role="tablist" aria-label="Tipo de negocio">
+            {dirBizCategoryItems.map((item) => {
+              const active = activeDirBizKey === item.key;
+              const LucideIcon =
+                item.key === "todos" ? LayoutGrid : getBusinessCategoryLucideIcon(item.name);
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  className={`dir-biz-cat-pill${active ? " dir-biz-cat-pill--active" : ""}`}
+                  onClick={() => selectDirBizCategory(item)}
+                >
+                  <span className="dir-biz-cat-pill__icon" aria-hidden>
+                    <LucideIcon size={16} strokeWidth={2} />
+                  </span>
+                  <span>{item.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="dir-chips">
           {DIRECTORY_CATEGORIES.map((cat) => (
@@ -228,14 +339,18 @@ export default function CatalogLocationsPage() {
             locations.length > 0 && (
               <EmptyState
                 icon={<Icon name="search_off" />}
-                message={`No se encontraron tiendas para "${search}"${directoryCategory !== "todos" ? ` en ${DIRECTORY_CATEGORIES.find((c) => c.id === directoryCategory)?.label}` : ""}`}
+                message={`No se encontraron tiendas para "${search}"${directoryCategory !== "todos" ? ` en ${DIRECTORY_CATEGORIES.find((c) => c.id === directoryCategory)?.label}` : ""}${categoryFilterLabel ? ` · ${categoryFilterLabel}` : ""}`}
               />
             )}
 
           {!isLoading && !isError && directoryList.length > 0 && (
             <div className="dir-grid">
               {directoryList.map((loc) => (
-                <DirectoryCard key={loc.id} loc={loc} />
+                <DirectoryCard
+                  key={loc.id}
+                  loc={loc}
+                  businessCategoryDisplay={resolveLocationBizName(loc)}
+                />
               ))}
             </div>
           )}

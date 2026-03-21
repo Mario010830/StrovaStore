@@ -9,6 +9,7 @@ import { useAppSelector, useAppDispatch } from "@/store/store";
 import { addItem, updateQuantity, setLocation } from "@/store/cartSlice";
 import {
   QUERY_POLLING_OPTIONS,
+  useGetBusinessCategoriesQuery,
   useGetPublicCatalogQuery,
   useGetPublicLocationsQuery,
 } from "../_service/catalogApi";
@@ -22,6 +23,7 @@ import { PriceText } from "@/components/ui/PriceText";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { IconActionButton } from "@/components/ui/IconActionButton";
 import { getRtkErrorInfo } from "@/lib/rtk-error";
+import { BusinessCategoryPill } from "@/components/ui/BusinessCategoryPill";
 
 const PRODUCT_FUSE_KEYS = [
   { name: "name" as const, weight: 0.5 },
@@ -147,7 +149,18 @@ export default function CatalogProductsPage() {
     QUERY_POLLING_OPTIONS.storeCatalog,
   );
   const { data: locations } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
+  const { data: businessCategories = [] } = useGetBusinessCategoriesQuery(
+    undefined,
+    QUERY_POLLING_OPTIONS.general,
+  );
   const loc = locations?.find((l) => l.id === locationId);
+
+  const storeBusinessCategoryName = useMemo(() => {
+    if (!loc) return null;
+    if (loc.businessCategoryName?.trim()) return loc.businessCategoryName.trim();
+    if (loc.businessCategoryId == null) return null;
+    return businessCategories.find((c) => c.id === loc.businessCategoryId)?.name ?? null;
+  }, [loc, businessCategories]);
 
   useEffect(() => {
     const key = `push-asked-${locationId}`;
@@ -235,6 +248,9 @@ export default function CatalogProductsPage() {
           <p className="sp-profile__category">
             {loc?.organizationName || loc?.description || "—"}
           </p>
+          <div className="sp-profile__biz-cat">
+            <BusinessCategoryPill name={storeBusinessCategoryName} />
+          </div>
         </div>
 
         <a
