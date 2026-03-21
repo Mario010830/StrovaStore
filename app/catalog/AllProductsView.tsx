@@ -1,15 +1,22 @@
 "use client";
 
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
 import { useCatalogCtx } from "./layout";
 import { useGetAllPublicProductsQuery, useGetPublicTagsQuery } from "./_service/catalogApi";
 import { useFuseSearch } from "@/hooks/useFuseSearch";
 import type { PublicCatalogItem } from "@/lib/dashboard-types";
+import { getBusinessUrl } from "@/lib/runtime-config";
+import { toImageProxyUrl } from "@/lib/image";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { FilterChip } from "@/components/ui/FilterChip";
+import { PriceText } from "@/components/ui/PriceText";
+import { IconActionButton } from "@/components/ui/IconActionButton";
+import { getRtkErrorInfo } from "@/lib/rtk-error";
 
-const STROVA_BUSINESS_URL = "https://strova.com";
+const STROVA_BUSINESS_URL = getBusinessUrl();
 
 const MP_CHIP_ICONS: Record<string, string> = {
   todos: "apps",
@@ -32,312 +39,6 @@ type SortKey = "default" | "price-asc" | "price-desc" | "name-asc" | "name-desc"
 
 const PAGE_SIZE = 50;
 
-function fmtPrice(v: number) {
-  return `$${v.toFixed(2)}`;
-}
-
-function PriceRangeSlider({
-  min,
-  max,
-  value,
-  onChange,
-}: {
-  min: number;
-  max: number;
-  value: [number, number];
-  onChange: (v: [number, number]) => void;
-}) {
-  const range = max - min || 1;
-  const leftPct = ((value[0] - min) / range) * 100;
-  const rightPct = ((value[1] - min) / range) * 100;
-
-  return (
-    <>
-      <div className="filter-price-display">
-        <span>{fmtPrice(value[0])}</span>
-        <span>{fmtPrice(value[1])}</span>
-      </div>
-      <div className="filter-range-wrap">
-        <div className="filter-range-track" />
-        <div
-          className="filter-range-fill"
-          style={{ left: `${leftPct}%`, width: `${rightPct - leftPct}%` }}
-        />
-        <input
-          type="range"
-          className="filter-range-input"
-          min={min}
-          max={max}
-          step={0.01}
-          value={value[0]}
-          onChange={(e) => {
-            const v = Math.min(Number(e.target.value), value[1] - 0.01);
-            onChange([v, value[1]]);
-          }}
-        />
-        <input
-          type="range"
-          className="filter-range-input"
-          min={min}
-          max={max}
-          step={0.01}
-          value={value[1]}
-          onChange={(e) => {
-            const v = Math.max(Number(e.target.value), value[0] + 0.01);
-            onChange([value[0], v]);
-          }}
-        />
-      </div>
-    </>
-  );
-}
-
-function FilterSidebar({
-  categories,
-  selectedCategory,
-  setSelectedCategory,
-  tags,
-  selectedTagSlugs,
-  setSelectedTagSlugs,
-  priceRange,
-  setPriceRange,
-  priceExtent,
-  onlyInStock,
-  setOnlyInStock,
-  sortKey,
-  setSortKey,
-}: {
-  categories: { name: string; color: string; count: number }[];
-  selectedCategory: string | null;
-  setSelectedCategory: (v: string | null) => void;
-  tags: { id: number; name: string; slug: string; color: string; count: number }[];
-  selectedTagSlugs: string[];
-  setSelectedTagSlugs: (v: string[] | ((prev: string[]) => string[])) => void;
-  priceRange: [number, number];
-  setPriceRange: (v: [number, number]) => void;
-  priceExtent: [number, number];
-  onlyInStock: boolean;
-  setOnlyInStock: (v: boolean) => void;
-  sortKey: SortKey;
-  setSortKey: (v: SortKey) => void;
-}) {
-  const [visibleTagCount, setVisibleTagCount] = useState(6);
-
-  const toggleTag = (slug: string) => {
-    setSelectedTagSlugs((prev) =>
-      prev.includes(slug) ? prev.filter((x) => x !== slug) : [...prev, slug],
-    );
-  };
-
-  return (
-    <aside className="allprod-sidebar">
-      {categories.length > 0 && (
-        <section className="filter-section">
-          <div className="filter-title">Categorías</div>
-          <div className="filter-cat-list">
-            <button
-              type="button"
-              className={`filter-cat${!selectedCategory ? " filter-cat--active" : ""}`}
-              onClick={() => setSelectedCategory(null)}
-            >
-              <span className="filter-cat__dot" />
-              Todas
-            </button>
-            {categories.map((c) => (
-              <button
-                key={c.name}
-                type="button"
-                className={`filter-cat${selectedCategory === c.name ? " filter-cat--active" : ""}`}
-                onClick={() => setSelectedCategory(selectedCategory === c.name ? null : c.name)}
-              >
-                <span className="filter-cat__dot" style={{ background: c.color }} />
-                {c.name}
-                <span className="filter-cat__count">({c.count})</span>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {tags.length > 0 && (
-        <section className="filter-section">
-          <div className="filter-title">Etiquetas</div>
-          <div className="filter-cat-list">
-            <button
-              type="button"
-              className={`filter-cat${selectedTagSlugs.length === 0 ? " filter-cat--active" : ""}`}
-              onClick={() => setSelectedTagSlugs([])}
-            >
-              <span className="filter-cat__dot" />
-              Todas
-            </button>
-            {tags.slice(0, visibleTagCount).map((t) => (
-              <button
-                key={t.slug}
-                type="button"
-                className={`filter-cat${selectedTagSlugs.includes(t.slug) ? " filter-cat--active" : ""}`}
-                onClick={() => toggleTag(t.slug)}
-              >
-                <span
-                  className="filter-cat__dot"
-                  style={{ background: t.color }}
-                />
-                {t.name}
-                <span className="filter-cat__count">({t.count})</span>
-              </button>
-            ))}
-            {visibleTagCount < tags.length && (
-              <button
-                type="button"
-                className="filter-cat filter-cat--more"
-                onClick={() =>
-                  setVisibleTagCount((prev) =>
-                    Math.min(prev + 6, tags.length),
-                  )
-                }
-              >
-                Ver más
-              </button>
-            )}
-          </div>
-        </section>
-      )}
-
-      <section className="filter-section">
-        <div className="filter-title">Precio</div>
-        <PriceRangeSlider
-          min={priceExtent[0]}
-          max={priceExtent[1]}
-          value={priceRange}
-          onChange={setPriceRange}
-        />
-      </section>
-
-      <section className="filter-section">
-        <div className="filter-title">Disponibilidad</div>
-        <label className="filter-check">
-          <input
-            type="checkbox"
-            checked={onlyInStock}
-            onChange={(e) => setOnlyInStock(e.target.checked)}
-          />
-          Solo en stock
-        </label>
-      </section>
-
-      <section className="filter-section">
-        <div className="filter-title">Ordenar por</div>
-        <select
-          className="filter-select"
-          value={sortKey}
-          onChange={(e) => setSortKey(e.target.value as SortKey)}
-        >
-          <option value="default">Relevancia</option>
-          <option value="price-asc">Precio: menor a mayor</option>
-          <option value="price-desc">Precio: mayor a menor</option>
-          <option value="name-asc">Nombre: A-Z</option>
-          <option value="name-desc">Nombre: Z-A</option>
-        </select>
-      </section>
-    </aside>
-  );
-}
-
-function SkeletonGrid({ count = 12 }: { count?: number }) {
-  return (
-    <div className="allprod-grid">
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="skel-card">
-          <div className="skel-card__img" />
-          <div className="skel-card__body">
-            <div className="skel-line skel-line--lg" />
-            <div className="skel-line skel-line--md" />
-            <div className="skel-line skel-line--price" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ProductCard({
-  item,
-  onGoToStore,
-}: {
-  item: PublicCatalogItem;
-  onGoToStore: () => void;
-}) {
-  const cc = item.categoryColor ?? "#3b82f6";
-
-  const imagePath = item.imagenUrl
-    ? item.imagenUrl.replace(
-        process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
-        "",
-      )
-    : "";
-  const proxiedImageUrl = imagePath ? `/api/image?path=${imagePath}` : null;
-
-  return (
-    <div className="p-card">
-      <div className="p-card__img-area" onClick={onGoToStore}>
-        {proxiedImageUrl ? (
-          <img
-            src={proxiedImageUrl}
-            alt={item.name}
-            className="p-card__img"
-            loading="lazy"
-          />
-        ) : (
-          <div className="p-card__no-img">
-            <Icon name="inventory_2" />
-          </div>
-        )}
-        <div className="p-card__img-top">
-          {item.categoryName && (
-            <div className="p-card__cat-chip">
-              <span
-                className="p-card__cat-dot"
-                style={{ backgroundColor: cc }}
-              />
-              <span className="p-card__cat-label">{item.categoryName}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="p-card__info">
-        <div className="p-card__name" onClick={onGoToStore}>
-          {item.name}
-        </div>
-        {item.description && (
-          <p className="p-card__desc">{item.description}</p>
-        )}
-        {item.locationName && item.locationId != null && (
-          <button
-            type="button"
-            className="p-card__location"
-            onClick={onGoToStore}
-          >
-            <Icon name="location_on" />
-            <span>{item.locationName}</span>
-          </button>
-        )}
-        <div className="p-card__price-row">
-          <span className="p-card__price">{fmtPrice(item.precio)}</span>
-        </div>
-        <button
-          type="button"
-          className="p-card__add"
-          onClick={onGoToStore}
-        >
-          <Icon name="add_shopping_cart" />
-          <span>Ver en tienda</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function MarketplaceProductCard({
   item,
   onPedir,
@@ -345,13 +46,7 @@ function MarketplaceProductCard({
   item: PublicCatalogItem;
   onPedir: () => void;
 }) {
-  const imagePath = item.imagenUrl
-    ? item.imagenUrl.replace(
-        process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
-        "",
-      )
-    : "";
-  const proxiedImageUrl = imagePath ? `/api/image?path=${imagePath}` : null;
+  const proxiedImageUrl = toImageProxyUrl(item.imagenUrl);
   return (
     <div
       className="mp-card"
@@ -362,7 +57,7 @@ function MarketplaceProductCard({
     >
       <div className="mp-card__img-wrap">
         {proxiedImageUrl ? (
-          <img src={proxiedImageUrl} alt={item.name} loading="lazy" />
+          <Image src={proxiedImageUrl} alt={item.name} width={480} height={320} />
         ) : (
           <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #eef1f5 0%, #e2e8f0 100%)" }}>
             <Icon name="inventory_2" />
@@ -381,19 +76,17 @@ function MarketplaceProductCard({
           </span>
         )}
         <div className="mp-card__footer">
-          <span className="mp-card__price">{fmtPrice(item.precio)}</span>
-          <button
-            type="button"
+          <PriceText value={item.precio} className="mp-card__price" />
+          <IconActionButton
+            label="Pedir"
             className="mp-card__pedir"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               onPedir();
             }}
-          >
-            <Icon name="chat" />
-            Pedir
-          </button>
+            icon={<Icon name="chat" />}
+          />
         </div>
       </div>
     </div>
@@ -402,47 +95,59 @@ function MarketplaceProductCard({
 
 export default function AllProductsView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { search, setSearch } = useCatalogCtx();
+  const initializedQueryFromUrlRef = useRef(false);
+  const initialQueryFromUrl = searchParams.get("q")?.trim() ?? "";
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedTagSlugs, setSelectedTagSlugs] = useState<string[]>([]);
+  const [selectedTagSlugs, setSelectedTagSlugs] = useState<string[]>(() => {
+    const rawTagParams = searchParams.getAll("tag");
+    return rawTagParams
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean)
+      .filter((slug, index, arr) => arr.indexOf(slug) === index);
+  });
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("default");
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<PublicCatalogItem[]>([]);
-  const [mobileFilters, setMobileFilters] = useState(false);
 
   const {
     data,
     isLoading,
     isFetching,
     isError,
+    error,
     refetch,
   } = useGetAllPublicProductsQuery({ page, pageSize: PAGE_SIZE });
   const { data: publicTagsRaw } = useGetPublicTagsQuery();
-  const publicTags = publicTagsRaw ?? [];
-  const lastTagsRef = useRef<typeof publicTags>([]);
-  if (publicTags.length > 0) lastTagsRef.current = publicTags;
-  const tagsStable = publicTags.length > 0 ? publicTags : lastTagsRef.current;
+  const tagsStable = useMemo(() => publicTagsRaw ?? [], [publicTagsRaw]);
+
+  useEffect(() => {
+    if (initializedQueryFromUrlRef.current) return;
+    initializedQueryFromUrlRef.current = true;
+    if (!initialQueryFromUrl) return;
+    setSearch(initialQueryFromUrl);
+  }, [initialQueryFromUrl, setSearch]);
 
   const pagination = data?.pagination;
 
-  // Reset página cuando cambian filtros principales
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
   }, [search, selectedCategory, selectedTagSlugs, priceRange, onlyInStock, sortKey]);
 
-  // Sincronizar items con la respuesta del backend cuando cambia page
   useEffect(() => {
     if (!data) return;
     if (page === 1) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setItems(data.data);
     } else {
       setItems((prev) => [...prev, ...data.data]);
     }
   }, [data, page]);
 
-  // Inicializar rango de precios
   useEffect(() => {
     if (!items.length) return;
     let mn = Infinity;
@@ -452,8 +157,9 @@ export default function AllProductsView() {
       if (p.precio > mx) mx = p.precio;
     }
     if (!Number.isFinite(mn) || !Number.isFinite(mx)) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPriceRange([Math.floor(mn), Math.ceil(mx)]);
-  }, [items.length]);
+  }, [items]);
 
   const filteredBySearch = useFuseSearch(items, PRODUCT_FUSE_KEYS, search);
 
@@ -468,17 +174,6 @@ export default function AllProductsView() {
     if (!Number.isFinite(mn) || !Number.isFinite(mx)) return [0, 100];
     return [Math.floor(mn), Math.ceil(mx)];
   }, [items]);
-
-  const categories = useMemo(() => {
-    const m = new Map<string, { name: string; color: string; count: number }>();
-    for (const p of filteredBySearch) {
-      if (!p.categoryName) continue;
-      const existing = m.get(p.categoryName);
-      if (existing) existing.count++;
-      else m.set(p.categoryName, { name: p.categoryName, color: p.categoryColor ?? "#3b82f6", count: 1 });
-    }
-    return Array.from(m.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [filteredBySearch]);
 
   const tagsWithCount = useMemo(() => {
     const countBySlug = new Map<string, number>();
@@ -547,11 +242,6 @@ export default function AllProductsView() {
   ]);
 
   const totalProducts = filtered.length;
-  const totalLocations =
-    new Set(filtered.map((p) => p.locationId).filter((v) => v != null)).size ||
-    0;
-
-
   const hasMore =
     !!pagination && page < pagination.totalPages && !isLoading && !isError;
 
@@ -580,24 +270,25 @@ export default function AllProductsView() {
 
   const loadingFirstPage = isLoading && page === 1;
   const loadingMore = isFetching && page > 1;
+  const errorInfo = getRtkErrorInfo(error);
 
   if (isError) {
     return (
-      <div className="store-empty">
-        <div className="store-empty__icon">
-          <Icon name="wifi_off" />
-        </div>
-        <p className="store-empty__text">
-          No pudimos cargar los productos.
-        </p>
-        <button
-          type="button"
-          className="store-empty__btn"
-          onClick={() => refetch()}
-        >
-          <Icon name="refresh" /> Reintentar
-        </button>
-      </div>
+      <EmptyState
+        icon={<Icon name="wifi_off" />}
+        message={`${errorInfo.title}: ${errorInfo.message}`}
+        action={
+          errorInfo.retryable ? (
+            <button
+              type="button"
+              className="store-empty__btn"
+              onClick={() => refetch()}
+            >
+              <Icon name="refresh" /> Reintentar
+            </button>
+          ) : null
+        }
+      />
     );
   }
 
@@ -638,19 +329,20 @@ export default function AllProductsView() {
       </section>
 
       <div className="mp-chips">
-        <button
-          type="button"
-          className={`mp-chip ${selectedTagSlugs.length === 0 ? "mp-chip--active" : ""}`}
+        <FilterChip
+          label="Todos"
+          iconName="apps"
+          active={selectedTagSlugs.length === 0}
           onClick={() => setSelectedTagSlugs([])}
-        >
-          <Icon name="apps" />
-          Todos
-        </button>
+          className="mp-chip"
+          activeClassName="mp-chip--active"
+        />
         {tagsWithCount.map((t) => (
-          <button
+          <FilterChip
             key={t.slug}
-            type="button"
-            className={`mp-chip ${selectedTagSlugs.includes(t.slug) ? "mp-chip--active" : ""}`}
+            label={t.name}
+            iconName={MP_CHIP_ICONS[t.name.toLowerCase()] ?? "label"}
+            active={selectedTagSlugs.includes(t.slug)}
             onClick={() =>
               setSelectedTagSlugs((prev) =>
                 prev.includes(t.slug)
@@ -658,10 +350,9 @@ export default function AllProductsView() {
                   : [...prev, t.slug],
               )
             }
-          >
-            <Icon name={MP_CHIP_ICONS[t.name.toLowerCase()] ?? "label"} />
-            {t.name}
-          </button>
+            className="mp-chip"
+            activeClassName="mp-chip--active"
+          />
         ))}
       </div>
 
@@ -776,36 +467,6 @@ export default function AllProductsView() {
         </div>
       </section>
 
-      <footer className="mp-footer">
-        <div className="mp-footer__inner">
-          <div className="mp-footer__left">
-            <Link href="/" className="mp-footer__brand">
-              <span className="store-nav__logo-box" style={{ width: 24, height: 24 }}>
-                <Icon name="storefront" />
-              </span>
-              StrovaStore
-            </Link>
-            <p className="mp-footer__copy">
-              © 2024 Powered by Strova. Todos los derechos reservados.
-            </p>
-          </div>
-          <div className="mp-footer__right">
-            <div className="mp-footer__links">
-              <a href="#">Privacidad</a>
-              <a href="#">Términos</a>
-              <a href="#">Ayuda</a>
-            </div>
-            <div className="mp-footer__social">
-              <a href="#" aria-label="Instagram">
-                <Icon name="instagram" />
-              </a>
-              <a href="#" aria-label="Facebook">
-                <Icon name="facebook" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

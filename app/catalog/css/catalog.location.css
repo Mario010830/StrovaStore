@@ -1,0 +1,467 @@
+/* ══════════════════════════════════════
+   LOCATION PAGE (v2 — grouped by province/municipality)
+   ══════════════════════════════════════ */
+
+.loc2-page {
+  width: 100%;
+  padding-top: 16px;
+}
+
+/* ─── Tabs Tiendas / Productos como barra secundaria full-width ─── */
+.loc2-tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--color-border-tertiary);
+  background: var(--color-background-primary);
+}
+
+.catalog-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.catalog-tab {
+  border: none;
+  background: transparent;
+  padding: 12px 20px;
+  border-radius: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: background-color var(--st-ease), color var(--st-ease), border-color var(--st-ease);
+}
+
+.catalog-tab__icon {
+  font-size: 14px;
+}
+
+.catalog-tab--active {
+  color: var(--color-text-primary);
+  font-weight: 500;
+  border-bottom-color: #185FA5;
+}
+
+.catalog-tab:not(.catalog-tab--active):hover {
+  color: var(--color-text-primary);
+  background: var(--color-background-secondary);
+}
+
+/* ─── Search ─── */
+.loc2-search {
+  position: relative;
+  max-width: 640px;
+  min-width: 420px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 14px;
+  background: var(--st-surface);
+  border: 1.5px solid var(--st-border);
+  border-radius: var(--st-r-pill);
+  transition: border-color var(--st-ease), box-shadow var(--st-ease);
+}
+
+.loc2-search:focus-within {
+  border-color: var(--st-blue);
+  box-shadow: 0 0 0 3px var(--st-blue-glow);
+}
+
+.loc2-search > .material-icons { font-size: 18px; color: var(--st-text-dim); flex-shrink: 0; }
+
+.loc2-search__input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: transparent;
+  font-size: 0.86rem;
+  font-family: inherit;
+  color: var(--st-text);
+  outline: none;
+}
+
+.loc2-search__input::placeholder { color: var(--st-text-dim); }
+
+.loc2-search__clear {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: var(--st-bg);
+  color: var(--st-text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--st-ease);
+}
+
+.loc2-search__clear:hover { background: var(--st-border); color: var(--st-text); }
+.loc2-search__clear .material-icons { font-size: 14px; }
+
+/* ─── Search suggestions dropdown ─── */
+.loc2-search-suggestions {
+  position: absolute;
+  top: 46px;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.16);
+  padding: 4px 0;
+  z-index: 30;
+}
+
+.loc2-search-suggestion {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 6px 12px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.loc2-search-suggestion:hover {
+  background: #f8fafc;
+}
+
+.loc2-search-suggestion__name {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.loc2-search-suggestion__meta {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* ─── Content wrapper ─── */
+.loc2-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ─── Province section ─── */
+.loc2-province {
+  background: var(--st-surface);
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-r-lg);
+  overflow: hidden;
+}
+
+.loc2-province__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+}
+
+.loc2-province__header > .material-icons:first-child {
+  font-size: 20px;
+  color: var(--st-blue);
+}
+
+.loc2-province__name {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--st-text);
+  letter-spacing: -0.01em;
+}
+
+.loc2-province__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 12px;
+  background: var(--st-blue-soft);
+  color: var(--st-blue);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.loc2-province__body {
+  padding: 4px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-top: 1px solid var(--st-border-light);
+}
+
+/* ─── Municipality sub-section ─── */
+.loc2-muni__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding-top: 14px;
+}
+
+.loc2-muni__header > .material-icons {
+  font-size: 16px;
+  color: var(--st-text-dim);
+}
+
+.loc2-muni__name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--st-text-sub);
+}
+
+.loc2-muni__count {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--st-text-dim);
+  font-weight: 500;
+}
+
+.loc2-muni__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+/* ─── Location Card (v2) ─── */
+.loc2-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--st-surface);
+  border: 1px solid var(--dir-divider);
+  border-radius: 24px;
+  overflow: hidden;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+}
+
+.loc2-card:hover {
+  border-color: var(--dir-primary);
+  box-shadow: 0 4px 16px rgba(24, 95, 165, 0.15);
+  transform: translateY(-2px);
+}
+
+.loc2-card__img {
+  width: 100%;
+  height: 150px;
+  background: linear-gradient(135deg, #eef1f5 0%, #e2e8f0 100%);
+  overflow: hidden;
+  position: relative;
+}
+
+.loc2-card__img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0) 55%);
+  pointer-events: none;
+}
+
+.loc2-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+
+.loc2-badge--open {
+  background: var(--st-green-soft);
+  color: var(--st-green);
+}
+
+.loc2-badge--closed {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.loc2-badge__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--st-green);
+  box-shadow: 0 0 0 0 rgba(22,163,74,0.6);
+  animation: st-open-pulse 1.4s ease-out infinite;
+}
+
+@keyframes st-open-pulse {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(22,163,74,0.6);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(22,163,74,0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(22,163,74,0);
+  }
+}
+
+.loc2-card__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.loc2-card:hover .loc2-card__img img {
+  transform: scale(1.06);
+}
+
+.loc2-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--st-blue-soft) 0%, #e2e8f0 100%);
+}
+
+.loc2-card__placeholder .material-icons {
+  font-size: 40px;
+  color: var(--st-blue);
+  opacity: 0.3;
+}
+
+.loc2-card__body {
+  padding: 14px 16px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.loc2-card__name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--st-text);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.loc2-card__org {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--st-blue);
+}
+
+.loc2-card__address {
+  display: flex;
+  align-items: flex-start;
+  gap: 3px;
+  font-size: 0.72rem;
+  color: var(--st-text-dim);
+  margin: 4px 0 0;
+  line-height: 1.35;
+}
+
+.loc2-card__address .material-icons {
+  font-size: 13px;
+  color: var(--st-text-dim);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.loc2-card__desc {
+  font-size: 0.72rem;
+  color: var(--st-text-dim);
+  margin: 2px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.loc2-card__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px;
+  z-index: 1;
+}
+
+.loc2-card__overlay-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.loc2-card__overlay-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.loc2-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid var(--st-border-light);
+  margin-top: auto;
+}
+
+.loc2-card__cta {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--st-blue);
+  transition: color var(--st-ease);
+}
+
+.loc2-card__footer .material-icons {
+  font-size: 16px;
+  color: var(--st-blue);
+  transition: transform 0.2s ease;
+}
+
+.loc2-card:hover .loc2-card__footer .material-icons {
+  transform: translateX(3px);
+}
+
+/* ─── Skeletons (v2) ─── */
+.loc2-skel-wrap {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.loc2-skel-card {
+  height: 240px;
+  border-radius: var(--st-r-lg);
+  border: 1px solid var(--st-border);
+  background: linear-gradient(90deg, #fff 25%, #f8f9fb 37%, #fff 63%);
+  background-size: 800px 100%;
+  animation: st-shimmer 1.3s ease-in-out infinite;
+}

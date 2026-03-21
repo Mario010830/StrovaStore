@@ -1,4 +1,6 @@
 "use client";
+import Image from "next/image";
+import { toImageProxyUrl } from "@/lib/image";
 
 interface PushDialogProps {
   open: boolean;
@@ -17,13 +19,7 @@ export function PushDialog({
 }: PushDialogProps) {
   if (!open) return null;
 
-  const imagePath = storePhotoUrl
-    ? storePhotoUrl.replace(
-        process.env.NEXT_PUBLIC_TUNNEL_URL ?? "https://dark-boats-feel.loca.lt",
-        "",
-      )
-    : "";
-  const proxiedImageUrl = imagePath ? `/api/image?path=${imagePath}` : null;
+  const proxiedImageUrl = toImageProxyUrl(storePhotoUrl);
 
   return (
     <div className="push-dialog-overlay" role="dialog" aria-modal="true" aria-labelledby="push-dialog-title">
@@ -36,7 +32,7 @@ export function PushDialog({
         </p>
         {proxiedImageUrl && (
           <div className="push-dialog__logo">
-            <img src={proxiedImageUrl} alt="" width={64} height={64} />
+            <Image src={proxiedImageUrl} alt="" width={64} height={64} />
           </div>
         )}
         <div className="push-dialog__actions">

@@ -1,23 +1,26 @@
 import { NextRequest } from "next/server";
+import { hasAbsoluteHttpUrl } from "../push/_validators";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const path = searchParams.get("path");
+  const encodedPath = searchParams.get("path");
 
-  if (!path) {
+  if (!encodedPath) {
     return new Response("Missing path parameter", { status: 400 });
   }
+  const path = decodeURIComponent(encodedPath);
 
   const tunnelUrl = process.env.TUNNEL_URL;
 
-  // Si el path ya es una URL absoluta (http/https), úsala directamente.
-  // Esto cubre el caso en el que el backend devuelve la URL completa del túnel.
   let targetUrl: string;
-  if (path.startsWith("http://") || path.startsWith("https://")) {
+  if (hasAbsoluteHttpUrl(path)) {
     targetUrl = path;
   } else {
     if (!tunnelUrl) {
       return new Response("TUNNEL_URL is not configured", { status: 500 });
+    }
+    if (!path.startsWith("/")) {
+      return new Response("Invalid path parameter", { status: 400 });
     }
     targetUrl = `${tunnelUrl}${path}`;
   }
