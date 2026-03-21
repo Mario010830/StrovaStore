@@ -3,14 +3,14 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --font-geist-sans: "Segoe UI";
+  --font-geist-sans: "Plus Jakarta Sans";
   --font-geist-mono: "Consolas";
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
@@ -25,7 +25,20 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), "Segoe UI", system-ui, sans-serif;
+  font-family: "Plus Jakarta Sans", var(--font-geist-sans), "Segoe UI", system-ui,
+    sans-serif;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 /* PWA Install Banner */

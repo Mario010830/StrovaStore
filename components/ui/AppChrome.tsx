@@ -17,6 +17,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   const tab = searchParams.get("tab") ?? "tiendas";
   const activeCatalogTab = tab === "productos" ? "productos" : "tiendas";
   const isCatalogRoute = pathname.startsWith("/catalog");
+  const isLandingHome = pathname === "/";
   const navbarVariant = isCatalogRoute ? "store" : "landing";
   return (
     <>
@@ -27,7 +28,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
       />
       {children}
       <LandingFooter businessUrl={STROVA_BUSINESS_URL} />
-      <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
+      {!isLandingHome && <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />}
     </>
   );
 }

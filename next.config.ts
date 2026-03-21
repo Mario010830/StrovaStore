@@ -52,6 +52,7 @@ const nextConfig: NextConfig = {
     root: ".",
   },
   images: {
+    qualities: [75, 92],
     localPatterns: [
       {
         pathname: "/api/image",

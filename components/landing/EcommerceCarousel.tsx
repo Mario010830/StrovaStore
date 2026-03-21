@@ -7,9 +7,11 @@ import { Icon } from "@/components/ui/Icon";
 interface EcommerceCarouselProps {
   children: ReactNode[];
   ariaLabel: string;
+  /** Ajusta el ancho de slide en landing (tiendas vs productos) por breakpoint. */
+  variant?: "stores" | "products";
 }
 
-export function EcommerceCarousel({ children, ariaLabel }: EcommerceCarouselProps) {
+export function EcommerceCarousel({ children, ariaLabel, variant = "stores" }: EcommerceCarouselProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -54,8 +56,11 @@ export function EcommerceCarousel({ children, ariaLabel }: EcommerceCarouselProp
     return () => window.clearInterval(timer);
   }, [emblaApi]);
 
+  const variantClass =
+    variant === "products" ? "landing-carousel--products" : "landing-carousel--stores";
+
   return (
-    <div className="landing-carousel" aria-label={ariaLabel}>
+    <div className={`landing-carousel ${variantClass}`} aria-label={ariaLabel}>
       <button
         type="button"
         className="landing-carousel__nav landing-carousel__nav--prev"

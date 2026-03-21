@@ -35,6 +35,10 @@ export default function RootLayout({
     <html lang="es" className="h-full antialiased">
       <head>
         <link
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
+        <link
           href="https://fonts.googleapis.com/icon?family=Material+Icons"
           rel="stylesheet"
         />
