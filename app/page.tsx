@@ -197,12 +197,12 @@ export default function LandingPage() {
       <section className="landing-section landing-section--landing-block landing-shell landing-anim">
         <SectionHeader
           eyebrow="Tiendas recomendadas"
-          title="Galería de tiendas populares"
+          title="Tiendas populares"
           subtitle="Acceso directo a negocios destacados para acelerar la decisión."
           actionHref="/catalog"
           actionLabel="Ver todas las tiendas"
         />
-        <EcommerceCarousel variant="stores" ariaLabel="Galería de tiendas populares">
+        <EcommerceCarousel variant="stores" ariaLabel="Tiendas populares">
           {topStores.map((store) => (
             <Link key={store.id} href={`/catalog/${store.id}`} className="landing-store-card">
               <div className="landing-store-card__media">
@@ -239,12 +239,12 @@ export default function LandingPage() {
       <section className="landing-section landing-section--landing-block landing-shell landing-anim">
         <SectionHeader
           eyebrow="Productos destacados"
-          title="Galería de productos populares"
+          title="Productos populares"
           subtitle="Compará precio y tienda en una vista simple antes de ir al catálogo completo."
           actionHref="/catalog?tab=productos"
           actionLabel="Ver todos los productos"
         />
-        <EcommerceCarousel variant="products" ariaLabel="Galería de productos populares">
+        <EcommerceCarousel variant="products" ariaLabel="Productos populares">
           {topProducts.map((product) => {
             const soldOut = product.tipo === "inventariable" && product.stockAtLocation <= 0;
             return (
