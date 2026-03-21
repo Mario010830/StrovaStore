@@ -7,6 +7,16 @@ import type {
   Tag,
 } from "@/lib/dashboard-types";
 
+export const QUERY_REFRESH_MS = {
+  general: 5 * 60 * 1000,
+  storeCatalog: 2 * 60 * 1000,
+} as const;
+
+export const QUERY_POLLING_OPTIONS = {
+  general: { pollingInterval: QUERY_REFRESH_MS.general },
+  storeCatalog: { pollingInterval: QUERY_REFRESH_MS.storeCatalog },
+} as const;
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
 }

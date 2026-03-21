@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
-import { useGetPublicLocationsQuery } from "./_service/catalogApi";
+import { QUERY_POLLING_OPTIONS, useGetPublicLocationsQuery } from "./_service/catalogApi";
 import { useFuseSearch } from "@/hooks/useFuseSearch";
 import type { PublicLocation } from "@/lib/dashboard-types";
 import AllProductsView from "./AllProductsView";
@@ -98,7 +98,10 @@ export default function CatalogLocationsPage() {
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") ?? "tiendas";
 
-  const { data: locations, isLoading, isError, error, refetch } = useGetPublicLocationsQuery();
+  const { data: locations, isLoading, isError, error, refetch } = useGetPublicLocationsQuery(
+    undefined,
+    QUERY_POLLING_OPTIONS.general,
+  );
   const { search, setSearch } = useCatalogCtx();
   const [directoryCategory, setDirectoryCategory] = useState<string>("todos");
   const [directorySort, setDirectorySort] = useState<string>("Más cercanos");

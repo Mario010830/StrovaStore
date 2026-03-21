@@ -8,6 +8,7 @@ import { Icon } from "@/components/ui/Icon";
 import { useAppSelector, useAppDispatch } from "@/store/store";
 import { addItem, updateQuantity, setLocation } from "@/store/cartSlice";
 import {
+  QUERY_POLLING_OPTIONS,
   useGetPublicCatalogQuery,
   useGetPublicLocationsQuery,
 } from "../_service/catalogApi";
@@ -141,8 +142,11 @@ export default function CatalogProductsPage() {
   const [showPushDialog, setShowPushDialog] = useState(false);
   const { requestPermissionAndSubscribe } = usePushNotifications();
 
-  const { data: products, isLoading, isError, error, refetch } = useGetPublicCatalogQuery(locationId);
-  const { data: locations } = useGetPublicLocationsQuery();
+  const { data: products, isLoading, isError, error, refetch } = useGetPublicCatalogQuery(
+    locationId,
+    QUERY_POLLING_OPTIONS.storeCatalog,
+  );
+  const { data: locations } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
   const loc = locations?.find((l) => l.id === locationId);
 
   useEffect(() => {

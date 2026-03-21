@@ -5,7 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
 import { useCatalogCtx } from "./layout";
-import { useGetAllPublicProductsQuery, useGetPublicTagsQuery } from "./_service/catalogApi";
+import {
+  QUERY_POLLING_OPTIONS,
+  useGetAllPublicProductsQuery,
+  useGetPublicTagsQuery,
+} from "./_service/catalogApi";
 import { useFuseSearch } from "@/hooks/useFuseSearch";
 import type { PublicCatalogItem } from "@/lib/dashboard-types";
 import { getBusinessUrl } from "@/lib/runtime-config";
@@ -120,8 +124,11 @@ export default function AllProductsView() {
     isError,
     error,
     refetch,
-  } = useGetAllPublicProductsQuery({ page, pageSize: PAGE_SIZE });
-  const { data: publicTagsRaw } = useGetPublicTagsQuery();
+  } = useGetAllPublicProductsQuery(
+    { page, pageSize: PAGE_SIZE },
+    QUERY_POLLING_OPTIONS.general,
+  );
+  const { data: publicTagsRaw } = useGetPublicTagsQuery(undefined, QUERY_POLLING_OPTIONS.general);
   const tagsStable = useMemo(() => publicTagsRaw ?? [], [publicTagsRaw]);
 
   useEffect(() => {

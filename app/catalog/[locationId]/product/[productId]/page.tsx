@@ -9,6 +9,7 @@ import { PriceText } from "@/components/ui/PriceText";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { getRtkErrorInfo } from "@/lib/rtk-error";
 import {
+  QUERY_POLLING_OPTIONS,
   useGetPublicCatalogQuery,
   useGetPublicLocationsQuery,
 } from "../../../_service/catalogApi";
@@ -27,8 +28,11 @@ export default function ProductDetailPage() {
   const locationId = Number(params.locationId);
   const productId = Number(params.productId);
 
-  const { data: products, isLoading, isError, error } = useGetPublicCatalogQuery(locationId);
-  const { data: locations } = useGetPublicLocationsQuery();
+  const { data: products, isLoading, isError, error } = useGetPublicCatalogQuery(
+    locationId,
+    QUERY_POLLING_OPTIONS.storeCatalog,
+  );
+  const { data: locations } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
   const loc = locations?.find((l) => l.id === locationId) ?? null;
   const product = products?.find((p) => p.id === productId) ?? null;
   const otherProducts = (products ?? []).filter((p) => p.id !== productId).slice(0, 4);
