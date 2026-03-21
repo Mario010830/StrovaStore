@@ -41,7 +41,7 @@ const HERO_QUICK_TAGS = [
 ] as const;
 
 /** Subí el número (?v=) al cambiar el archivo en `public/images/`. `unoptimized` sirve el asset tal cual sin pasar por el optimizador de Next. */
-const HERO_PORTRAIT_SRC = "/images/woman1.webp?v=1";
+const HERO_PORTRAIT_SRC = "/images/woman.webp?v=1";
 
 export default function LandingPage() {
   const [query, setQuery] = useState("");
