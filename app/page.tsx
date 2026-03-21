@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -45,6 +45,14 @@ const FALLBACK_PRODUCTS = [
 
 export default function LandingPage() {
   const [query, setQuery] = useState("");
+  const [spotlightMode, setSpotlightMode] = useState<"tiendas" | "productos">("tiendas");
+  const [spotlightIndex, setSpotlightIndex] = useState(0);
+  const [displayedSpotlight, setDisplayedSpotlight] = useState<{ mode: "tiendas" | "productos"; index: number }>({
+    mode: "tiendas",
+    index: 0,
+  });
+  const [leavingSpotlight, setLeavingSpotlight] = useState<{ mode: "tiendas" | "productos"; index: number } | null>(null);
+  const leavingTimeoutRef = useRef<number | null>(null);
   const router = useRouter();
   const { data: locations = [] } = useGetPublicLocationsQuery();
   const { data: tags = [] } = useGetPublicTagsQuery();
@@ -104,6 +112,45 @@ export default function LandingPage() {
   const visibleStoresCount = locations.length || 150;
   const visibleTagsCount = tags.length || 8;
   const visibleProductsCount = allProducts?.pagination?.total ?? 0;
+  const spotlightStores = useMemo(() => topStores.slice(0, 6), [topStores]);
+  const spotlightProducts = useMemo(() => topProducts.slice(0, 6), [topProducts]);
+  const spotlightItemsCount =
+    spotlightMode === "tiendas" ? spotlightStores.length : spotlightProducts.length;
+
+  const triggerSpotlightTransition = useCallback(
+    (nextMode: "tiendas" | "productos", nextIndex: number) => {
+      setLeavingSpotlight(displayedSpotlight);
+      setDisplayedSpotlight({ mode: nextMode, index: nextIndex });
+      setSpotlightMode(nextMode);
+      setSpotlightIndex(nextIndex);
+
+      if (leavingTimeoutRef.current != null) {
+        window.clearTimeout(leavingTimeoutRef.current);
+      }
+      leavingTimeoutRef.current = window.setTimeout(() => {
+        setLeavingSpotlight(null);
+      }, 460);
+    },
+    [displayedSpotlight],
+  );
+
+  useEffect(() => {
+    if (spotlightItemsCount <= 1) return;
+    const interval = window.setInterval(() => {
+      const nextIndex = (spotlightIndex + 1) % spotlightItemsCount;
+      triggerSpotlightTransition(spotlightMode, nextIndex);
+    }, 3800);
+    return () => window.clearInterval(interval);
+  }, [spotlightItemsCount, spotlightIndex, spotlightMode, triggerSpotlightTransition]);
+
+  useEffect(
+    () => () => {
+      if (leavingTimeoutRef.current != null) {
+        window.clearTimeout(leavingTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -111,6 +158,75 @@ export default function LandingPage() {
     const params = new URLSearchParams({ tab: "productos" });
     if (trimmed) params.set("q", trimmed);
     router.push(`/catalog?${params.toString()}`);
+  };
+
+  const renderSpotlightCard = (
+    mode: "tiendas" | "productos",
+    index: number,
+    transitionClass: "is-entering" | "is-leaving",
+  ) => {
+    if (mode === "tiendas") {
+      if (!spotlightStores.length) return null;
+      const spotlightStore = spotlightStores[index % spotlightStores.length];
+      return (
+        <div
+          className={`landing-hero-panel__spotlight-card ${transitionClass}`}
+          key={`${transitionClass}-store-${spotlightStore.id}-${index}`}
+        >
+          <div className="landing-hero-panel__spotlight-media" aria-hidden>
+            {spotlightStore.imageUrl ? (
+              <Image
+                src={spotlightStore.imageUrl}
+                alt={spotlightStore.name}
+                width={160}
+                height={120}
+                className="landing-hero-panel__spotlight-img"
+              />
+            ) : (
+              <span className="landing-hero-panel__spotlight-icon">
+                <Icon name="storefront" />
+              </span>
+            )}
+          </div>
+          <div className="landing-hero-panel__spotlight-copy">
+            <p>{spotlightStore.name}</p>
+            <small>{spotlightStore.category}</small>
+          </div>
+        </div>
+      );
+    }
+
+    if (!spotlightProducts.length) return null;
+    const spotlightProduct = spotlightProducts[index % spotlightProducts.length];
+    return (
+      <div
+        className={`landing-hero-panel__spotlight-card ${transitionClass}`}
+        key={`${transitionClass}-product-${spotlightProduct.id}-${index}`}
+      >
+        <div className="landing-hero-panel__spotlight-media" aria-hidden>
+          {spotlightProduct.imageUrl ? (
+            <Image
+              src={spotlightProduct.imageUrl}
+              alt={spotlightProduct.name}
+              width={160}
+              height={120}
+              className="landing-hero-panel__spotlight-img"
+            />
+          ) : (
+            <span className="landing-hero-panel__spotlight-icon">
+              <Icon name="inventory_2" />
+            </span>
+          )}
+        </div>
+        <div className="landing-hero-panel__spotlight-copy">
+          <p>{spotlightProduct.name}</p>
+          <small>{spotlightProduct.store}</small>
+        </div>
+        <span className="landing-hero-panel__spotlight-badge">
+          <PriceText value={spotlightProduct.price} />
+        </span>
+      </div>
+    );
   };
 
   return (
@@ -180,34 +296,36 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="landing-hero-panel">
-            <div className="landing-hero-panel__head">
-              <span>Actividad en tiempo real</span>
-              <span className="landing-hero-panel__dot">Online</span>
+            <div className="landing-hero-panel__topline">
+              <div className="landing-hero-panel__switch" role="tablist" aria-label="Destacados">
+                <button
+                  type="button"
+                  className={`landing-hero-panel__switch-btn ${spotlightMode === "tiendas" ? "is-active" : ""}`}
+                  onClick={() => triggerSpotlightTransition("tiendas", 0)}
+                >
+                  Tiendas
+                </button>
+                <button
+                  type="button"
+                  className={`landing-hero-panel__switch-btn ${spotlightMode === "productos" ? "is-active" : ""}`}
+                  onClick={() => triggerSpotlightTransition("productos", 0)}
+                >
+                  Productos
+                </button>
+              </div>
+              <div className="landing-hero-panel__quality">
+                <span className="landing-hero-panel__quality-badge landing-hero-panel__quality-badge--verified">
+                  <Icon name="verified" /> Tiendas verificadas
+                </span>
+                <span className="landing-hero-panel__quality-badge landing-hero-panel__quality-badge--safe">
+                  <Icon name="shield" /> Compra segura
+                </span>
+              </div>
             </div>
-            <div className="landing-hero-panel__kpis">
-              <article>
-                <strong>{visibleStoresCount.toLocaleString("es-AR")}</strong>
-                <span>Tiendas activas</span>
-              </article>
-              <article>
-                <strong>{visibleTagsCount.toLocaleString("es-AR")}</strong>
-                <span>Rubros cubiertos</span>
-              </article>
-              <article>
-                <strong>24/7</strong>
-                <span>Catálogos visibles</span>
-              </article>
-            </div>
-            <div className="landing-hero-panel__list">
-              {topProducts.slice(0, 3).map((product) => (
-                <div key={product.id} className="landing-hero-panel__item">
-                  <div>
-                    <p>{product.name}</p>
-                    <small>{product.store}</small>
-                  </div>
-                  <PriceText value={product.price} />
-                </div>
-              ))}
+
+            <div className="landing-hero-panel__spotlight">
+              {leavingSpotlight && renderSpotlightCard(leavingSpotlight.mode, leavingSpotlight.index, "is-leaving")}
+              {renderSpotlightCard(displayedSpotlight.mode, displayedSpotlight.index, "is-entering")}
             </div>
           </div>
         </div>
