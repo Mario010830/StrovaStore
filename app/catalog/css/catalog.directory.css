@@ -16,8 +16,9 @@
 }
 
 .dir-mp {
-  --dir-mp-bg: #fafafa;
-  --dir-mp-surface: #ffffff;
+  /* Mismo tono que el nav del catálogo (--dir-surface) y el footer (--lp-surface): #f8fafc */
+  --dir-mp-bg: var(--dir-surface);
+  --dir-mp-surface: var(--dir-surface);
   --dir-mp-elevated: #ffffff;
   --dir-mp-sidebar-w: 220px;
   --dir-mp-radius: 10px;
@@ -30,6 +31,8 @@
 .dir-page.dir-mp {
   /* Sin márgenes horizontales negativos: el main usa .store-main--flush-x en /catalog */
   margin: -16px 0 -60px 0;
+  /* .dir-page (catalog.css) pisa este fondo con --dir-bg (#fff); forzamos el gris del header/footer */
+  background: var(--dir-mp-bg);
 }
 
 .dir-mp__shell {

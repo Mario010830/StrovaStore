@@ -3339,6 +3339,8 @@
 .store-main.store-main--flush-x {
   padding-left: 0;
   padding-right: 0;
+  /* Mismo lienzo que el nav del directorio y el footer (--dir-surface / --lp-surface) */
+  background: var(--dir-surface);
 }
 
 @media (max-width: 959px) {
