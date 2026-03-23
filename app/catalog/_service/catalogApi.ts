@@ -4,6 +4,7 @@ import { slugifyBusinessCategoryName } from "@/utils/businessCategoryIcons";
 import type {
   PublicLocation,
   PublicCatalogItem,
+  PublicCatalogImageItem,
   PaginationMeta,
   Tag,
   BusinessCategory,
@@ -53,6 +54,30 @@ function parseNumber(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function normalizeCatalogImage(rec: Record<string, unknown>): PublicCatalogImageItem | null {
+  const imageUrl = asNullableString(rec.imageUrl);
+  if (!imageUrl?.trim()) return null;
+  return {
+    imageUrl: imageUrl.trim(),
+    sortOrder: parseNumber(rec.sortOrder, 0),
+    isMain: rec.isMain === true,
+  };
+}
+
+function normalizeCatalogImages(item: Record<string, unknown>): PublicCatalogImageItem[] {
+  const raw = item.images;
+  if (!Array.isArray(raw)) return [];
+  const list: PublicCatalogImageItem[] = [];
+  for (const el of raw) {
+    const rec = asRecord(el);
+    if (!rec) continue;
+    const img = normalizeCatalogImage(rec);
+    if (img) list.push(img);
+  }
+  list.sort((a, b) => a.sortOrder - b.sortOrder);
+  return list;
+}
+
 /** Asegura tagIds en cada ítem: el backend puede enviar "tags" (objetos) en lugar de "tagIds". */
 function normalizePublicItem(item: Record<string, unknown>): PublicCatalogItem {
   const tags = Array.isArray(item.tags) ? (item.tags as { id: number }[]) : undefined;
@@ -67,6 +92,7 @@ function normalizePublicItem(item: Record<string, unknown>): PublicCatalogItem {
     description: asNullableString(item.description),
     precio: parseNumber(item.precio, 0),
     imagenUrl: asNullableString(item.imagenUrl),
+    images: normalizeCatalogImages(item),
     categoryId: asPositiveInt(item.categoryId),
     categoryColor: asNullableString(item.categoryColor),
     stockAtLocation: asPositiveInt(item.stockAtLocation),

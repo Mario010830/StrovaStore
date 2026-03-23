@@ -54,12 +54,21 @@ export interface PublicLocation {
   lng?: number | null;
 }
 
+/** Imagen de galería en respuesta pública del catálogo (JSON camelCase). */
+export interface PublicCatalogImageItem {
+  imageUrl: string;
+  sortOrder: number;
+  isMain: boolean;
+}
+
 export interface PublicCatalogItem {
   id: number;
   code: string;
   name: string;
   description: string | null;
   imagenUrl: string | null;
+  /** Galería ordenada por sortOrder; vacío si solo hay imagen legada en imagenUrl. */
+  images?: PublicCatalogImageItem[];
   precio: number;
   categoryId: number;
   categoryName: string | null;

@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
+import { getPublicCatalogGalleryProxyUrls } from "@/lib/catalog-gallery";
 import { toImageProxyUrl } from "@/lib/image";
 import { PriceText } from "@/components/ui/PriceText";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -43,7 +45,16 @@ export default function ProductDetailPage() {
   const isElaborado = product?.tipo === "elaborado";
   const inStock = isElaborado || (product?.stockAtLocation ?? 0) > 0;
 
-  const productImageUrl = toImageProxyUrl(product?.imagenUrl);
+  const galleryUrls = useMemo(
+    () => (product ? getPublicCatalogGalleryProxyUrls(product) : []),
+    [product],
+  );
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
+
+  useEffect(() => {
+    setActiveImageIdx(0);
+  }, [productId]);
+
   const errorInfo = getRtkErrorInfo(error);
 
   if (isLoading) {
@@ -75,6 +86,7 @@ export default function ProductDetailPage() {
   }
 
   const categoryLabel = product.categoryName || "Productos";
+  const mainImageUrl = galleryUrls[activeImageIdx] ?? null;
 
   return (
     <div className="pd-page">
@@ -90,24 +102,31 @@ export default function ProductDetailPage() {
         <div className="pd-main">
           <div className="pd-gallery">
             <div className="pd-gallery__main">
-              {productImageUrl ? (
-                <Image src={productImageUrl} alt={product.name} width={720} height={720} />
+              {mainImageUrl ? (
+                <Image src={mainImageUrl} alt={product.name} width={720} height={720} priority />
               ) : (
                 <div className="pd-gallery__placeholder">
                   <Icon name="inventory_2" />
                 </div>
               )}
             </div>
-            <div className="pd-gallery__thumbs">
-              {productImageUrl && (
-                <button type="button" className="pd-thumb pd-thumb--active">
-                  <Image src={productImageUrl} alt="" width={120} height={120} />
-                </button>
-              )}
-              {[2, 3].map((i) => (
-                <div key={i} className="pd-thumb pd-thumb--placeholder" />
-              ))}
-            </div>
+            {galleryUrls.length > 1 ? (
+              <div className="pd-gallery__thumbs" role="tablist" aria-label="Imágenes del producto">
+                {galleryUrls.map((url, i) => (
+                  <button
+                    key={`${url}-${i}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={i === activeImageIdx}
+                    className={`pd-thumb${i === activeImageIdx ? " pd-thumb--active" : ""}`}
+                    onClick={() => setActiveImageIdx(i)}
+                    aria-label={`Imagen ${i + 1} de ${galleryUrls.length}`}
+                  >
+                    <Image src={url} alt="" width={120} height={120} />
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="pd-info">
