@@ -903,9 +903,9 @@
 
 .dir-tiendas-results-bar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   padding: 12px 0 4px;
   margin: 0;
   font-size: 14px;
@@ -916,6 +916,19 @@
 
 .dir-tiendas-results-bar__count {
   margin: 0;
+}
+
+.dir-tiendas-results-bar__scope {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--dir-hint, #64748b);
+}
+
+.dir-tiendas-results-bar__scope strong {
+  font-weight: 600;
+  color: var(--dir-text, #0f172a);
 }
 
 .dir-tiendas-zones {
@@ -1111,11 +1124,15 @@
   overflow: hidden;
 }
 
-.dir-store-card__biz {
+.dir-store-card__meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 5px;
+  gap: 4px 6px;
   min-width: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--dir-text-secondary);
 }
 
 .dir-store-card__biz-icon {
@@ -1124,11 +1141,26 @@
 }
 
 .dir-store-card__biz-label {
-  font-size: 12px;
-  color: var(--dir-text-secondary);
+  flex-shrink: 1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.dir-store-card__meta-sep {
+  color: #cbd5e1;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.dir-store-card__zone-inline,
+.dir-store-card__distance-inline {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .dir-store-card__zone {
@@ -3303,4 +3335,23 @@
   }
 }
 
+/* Ruta /catalog: main sin padding horizontal para que .dir-mp cubra todo el ancho (evita franja lateral) */
+.store-main.store-main--flush-x {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (max-width: 959px) {
+  .store-main.store-main--flush-x {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .store-main.store-main--flush-x {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
 

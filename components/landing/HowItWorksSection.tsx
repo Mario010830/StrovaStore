@@ -2,23 +2,23 @@ import { SectionHeader } from "@/components/landing/SectionHeader";
 
 const STEPS = [
   {
-    title: "Descubrí tiendas cercanas",
+    title: "Descubre tiendas cercanas",
     description:
-      "Entrá al catálogo, filtrá por categoría y encontrá opciones locales en pocos segundos.",
+      "Entra al catálogo, filtra por categoría y encuentra opciones locales en pocos segundos.",
     cta: "Ir a tiendas",
     href: "/catalog",
   },
   {
-    title: "Elegí productos y armá tu pedido",
+    title: "Elige productos y arma tu pedido",
     description:
-      "Compará precios, revisá disponibilidad y agregá al carrito lo que realmente necesitás.",
+      "Compara precios, revisa disponibilidad y agrega al carrito lo que realmente necesitas.",
     cta: "Ver productos",
     href: "/catalog?tab=productos",
   },
   {
-    title: "Confirmá por WhatsApp",
+    title: "Confirma por WhatsApp",
     description:
-      "Finalizá con un mensaje prearmado y coordiná entrega/pago directo con el comercio.",
+      "Finaliza con un mensaje prearmado y coordina entrega y pago directo con el comercio.",
     cta: "Cómo comprar",
     href: "/catalog",
   },
@@ -30,7 +30,7 @@ export function HowItWorksSection() {
       <SectionHeader
         eyebrow="Cómo funciona"
         title="Paso a paso para comprar mejor"
-        subtitle="Diseñado para ser claro: descubrís, elegís y confirmás en un flujo simple y rápido."
+        subtitle="Diseñado para ser claro: descubres, eliges y confirmas en un flujo simple y rápido."
       />
 
       <div className="landing-how-it__steps">

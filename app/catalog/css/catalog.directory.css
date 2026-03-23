@@ -1,26 +1,102 @@
 /* ═══════════════════════════════════════════════════════════════
-   Directorio marketplace — shell 2 columnas, grid, sidebar
+   Directorio — minimal: superficie única, rail estrecho, sin ruido
    ═══════════════════════════════════════════════════════════════ */
 
+.dir-shell {
+  width: min(1400px, calc(100% - 40px));
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+@media (max-width: 599px) {
+  .dir-shell {
+    width: calc(100% - 24px);
+  }
+}
+
 .dir-mp {
-  --dir-mp-bg: #f1f5f9;
+  --dir-mp-bg: #fafafa;
   --dir-mp-surface: #ffffff;
   --dir-mp-elevated: #ffffff;
-  --dir-mp-sidebar-w: 272px;
-  --dir-mp-radius: 14px;
-  --dir-mp-shadow: 0 4px 24px rgba(15, 23, 42, 0.07);
-  --dir-mp-border: #e2e8f0;
+  --dir-mp-sidebar-w: 220px;
+  --dir-mp-radius: 10px;
+  --dir-mp-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --dir-mp-border: #e8ecf0;
+  --dir-mp-text-muted: #64748b;
   background: var(--dir-mp-bg);
 }
 
 .dir-page.dir-mp {
-  margin: -16px -20px -60px;
+  /* Sin márgenes horizontales negativos: el main usa .store-main--flush-x en /catalog */
+  margin: -16px 0 -60px 0;
 }
 
 .dir-mp__shell {
-  padding-top: 8px;
+  padding-top: 20px;
   padding-bottom: 48px;
   box-sizing: border-box;
+}
+
+/* Hero compacto: una sola lectura + búsqueda */
+.dir-hero-minimal {
+  background: var(--dir-mp-surface);
+  border-bottom: 1px solid var(--dir-mp-border);
+  padding: 20px 0 22px;
+}
+
+.dir-hero-minimal__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+@media (min-width: 960px) {
+  .dir-hero-minimal__title {
+    font-size: 1.75rem;
+  }
+}
+
+.dir-hero-minimal__lead {
+  margin: 6px 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--dir-mp-text-muted);
+  max-width: 42em;
+}
+
+.dir-hero-minimal__search-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.dir-hero-minimal__search-row .dir-tiendas-search {
+  margin-top: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.dir-hero-minimal .dir-tiendas-search__input {
+  height: 48px;
+  background: #ffffff;
+  border: 1px solid var(--dir-mp-border);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.dir-hero-minimal .dir-tiendas-search__input:focus {
+  box-shadow: 0 0 0 2px rgba(24, 95, 165, 0.2);
+  border-color: rgba(24, 95, 165, 0.35);
+}
+
+.dir-tiendas-sticky--minimal {
+  background: transparent;
+  box-shadow: none;
 }
 
 .dir-mp__main {
@@ -44,7 +120,7 @@
 @media (min-width: 960px) {
   .dir-mp__layout {
     grid-template-columns: var(--dir-mp-sidebar-w) minmax(0, 1fr);
-    gap: 28px;
+    gap: 32px;
   }
 }
 
@@ -67,8 +143,140 @@
   border: 1px solid var(--dir-mp-border);
   border-radius: var(--dir-mp-radius);
   box-shadow: var(--dir-mp-shadow);
-  padding: 18px 16px 20px;
+  padding: 16px 14px 18px;
   box-sizing: border-box;
+}
+
+/* Categoría del comercio: bloque con jerarquía clara (marketplace / B2B) */
+.dir-mp-sidebar__group--biz-category {
+  margin-bottom: 20px;
+}
+
+.dir-mp-cat-block {
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border: 1px solid var(--dir-mp-border);
+  border-radius: 12px;
+  padding: 14px 12px 12px;
+  box-sizing: border-box;
+}
+
+.dir-mp-cat-block__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.dir-mp-cat-block__icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(24, 95, 165, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dir-primary, #185fa5);
+}
+
+.dir-mp-cat-block__icon-inner {
+  font-size: 20px !important;
+  line-height: 1;
+}
+
+.dir-mp-cat-block__titles {
+  min-width: 0;
+  flex: 1;
+}
+
+.dir-mp-cat-block__titles .dir-mp-sidebar__label {
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.dir-mp-cat-block__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--dir-mp-text-muted);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.dir-mp-cat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: min(48vh, 320px);
+  overflow-y: auto;
+  padding: 4px 2px 2px 0;
+  margin: 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.dir-mp-cat-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dir-mp-cat-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.dir-mp-cat-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #334155;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.dir-mp-cat-link--all {
+  font-weight: 600;
+  color: #0f172a;
+  border: 1px dashed var(--dir-mp-border);
+  background: #fff;
+  margin-bottom: 4px;
+}
+
+.dir-mp-cat-link--all:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.dir-mp-cat-link--all.dir-mp-cat-link--active {
+  border-style: solid;
+  border-color: rgba(24, 95, 165, 0.35);
+}
+
+.dir-mp-cat-link:hover {
+  background: #f1f5f9;
+}
+
+.dir-mp-cat-link--active {
+  background: rgba(24, 95, 165, 0.1);
+  color: var(--dir-primary, #185fa5);
+  font-weight: 600;
+}
+
+.dir-mp-cat-link:focus-visible {
+  box-shadow: 0 0 0 2px rgba(24, 95, 165, 0.35);
 }
 
 .dir-mp-sidebar__title {
@@ -210,26 +418,6 @@
   box-shadow: var(--dir-focus-ring, 0 0 0 3px rgba(24, 95, 165, 0.45));
 }
 
-/* Toolbar principal */
-.dir-mp-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.dir-mp-toolbar__seg {
-  display: none;
-}
-
-@media (min-width: 960px) {
-  .dir-mp-toolbar__seg {
-    display: flex;
-  }
-}
-
 /* Grid marketplace */
 .dir-mp-grid {
   display: grid;
@@ -251,14 +439,14 @@
   flex: 1 1 auto;
 }
 
-/* Tarjeta elevada (refuerzo visual) */
 .dir-mp .dir-store-card {
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  border-radius: var(--dir-mp-radius);
+  box-shadow: var(--dir-mp-shadow);
+  border-color: var(--dir-mp-border);
 }
 
 .dir-mp .dir-store-card:hover {
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
 }
 
 /* Skeleton grid */

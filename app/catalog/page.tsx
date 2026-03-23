@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LayoutGrid, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import {
   QUERY_POLLING_OPTIONS,
@@ -16,7 +16,6 @@ import AllProductsView from "./AllProductsView";
 import { useCatalogCtx } from "./layout";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getRtkErrorInfo } from "@/lib/rtk-error";
-import { getBusinessCategoryLucideIcon } from "@/utils/businessCategoryIcons";
 import { buildCatalogZoneHref } from "@/app/lib/landing-zones";
 import {
   filterByRadiusKm,
@@ -34,11 +33,14 @@ import {
   type DirectoryVistaUrl,
 } from "@/app/catalog/lib/directory-url";
 import { StoreCard } from "@/app/catalog/_components/directory/StoreCard";
-import { DirectoryFiltersForm } from "@/app/catalog/_components/directory/DirectoryFiltersForm";
+import {
+  DirectoryFiltersForm,
+  type DirectoryCategoryItem,
+} from "@/app/catalog/_components/directory/DirectoryFiltersForm";
 
 type PublicLocationSearch = PublicLocation & { _bizSearch: string };
 
-type DirBizCatItem = { key: string; name: string; slug: string };
+type DirBizCatItem = DirectoryCategoryItem;
 
 type MunicipioGroup = { municipality: string; locations: PublicLocation[] };
 type ProvinciaGroup = { province: string; municipios: MunicipioGroup[] };
@@ -137,7 +139,6 @@ function TiendasEmptyIllustration() {
 }
 
 export default function CatalogLocationsPage() {
-  const sortSelectId = useId();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -230,6 +231,11 @@ export default function CatalogLocationsPage() {
     return match?.id ?? null;
   }, [categorySlug, businessCategories]);
 
+  const activeBizCategoryLabel = useMemo(() => {
+    if (!categorySlug) return null;
+    return businessCategories.find((c) => c.slug === categorySlug)?.name ?? null;
+  }, [categorySlug, businessCategories]);
+
   const activeDirBizKey = activeBizCategoryId != null ? String(activeBizCategoryId) : "todos";
 
   const dirBizCategoryItems: DirBizCatItem[] = useMemo(() => {
@@ -237,7 +243,7 @@ export default function CatalogLocationsPage() {
       a.name.localeCompare(b.name, "es", { sensitivity: "base" }),
     );
     return [
-      { key: "todos", name: "Todos", slug: "" },
+      { key: "todos", name: "Todas las categorías", slug: "" },
       ...sorted.map((c) => ({ key: String(c.id), name: c.name, slug: c.slug })),
     ];
   }, [businessCategories]);
@@ -324,97 +330,51 @@ export default function CatalogLocationsPage() {
   if (showTiendas) {
     return (
       <div className="dir-page dir-mp">
-        <div className="dir-tiendas-sticky">
-          <header className="dir-tiendas-header">
-            <div className="landing-shell dir-tiendas-header__shell">
-              <div className="dir-tiendas-header__top">
-                <div className="dir-tiendas-header__headline">
-                  <h1 className="dir-tiendas-title">Tiendas locales en tu ciudad</h1>
+        <div className="dir-tiendas-sticky dir-tiendas-sticky--minimal">
+          <header className="dir-hero-minimal">
+            <div className="dir-shell">
+              <h1 className="dir-hero-minimal__title">Tiendas locales</h1>
+              <p className="dir-hero-minimal__lead">Busca por nombre o rubro; filtra y ordena desde el panel.</p>
+              <div className="dir-hero-minimal__search-row">
+                <div className="dir-tiendas-search">
+                  <Icon name="search" />
+                  <input
+                    ref={searchInputRef}
+                    type="search"
+                    className="dir-tiendas-search__input"
+                    placeholder="Buscar tiendas por nombre o rubro..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    aria-label="Buscar tiendas por nombre o rubro"
+                  />
                 </div>
-                <div className="dir-tiendas-header__actions">
-                  <div className="dir-tiendas-sort-wrap">
-                    <label className="dir-tiendas-sort-label" htmlFor={sortSelectId}>
-                      Ordenar listado
-                    </label>
-                    <select
-                      id={sortSelectId}
-                      className="dir-tiendas-sort-select"
-                      value={sortKey}
-                      onChange={(e) => onSortChange(e.target.value as DirectorySortUrl)}
-                    >
-                      <option value="cercanos">{sortUrlToLabel("cercanos")}</option>
-                      <option value="populares">{sortUrlToLabel("populares")}</option>
-                      <option value="nuevos">{sortUrlToLabel("nuevos")}</option>
-                    </select>
-                  </div>
-                  <button
-                    type="button"
-                    className="dir-tiendas-filters-trigger dir-tiendas-filters-trigger--mobile-only"
-                    aria-expanded={filtersOpen}
-                    aria-controls="dir-tiendas-filters-panel"
-                    onClick={() => setFiltersOpen(true)}
-                  >
-                    <Icon name="filter_list" />
-                    Filtros
-                  </button>
-                </div>
-              </div>
-              <p className="dir-tiendas-subtitle">
-                Descubrí negocios cerca tuyo y pedí por WhatsApp. Por defecto ves todas en rejilla; podés
-                agrupar por zona, filtrar por rubro, distancia y horario.
-              </p>
-              <div className="dir-tiendas-search">
-                <Icon name="search" />
-                <input
-                  ref={searchInputRef}
-                  type="search"
-                  className="dir-tiendas-search__input"
-                  placeholder="Buscar tiendas por nombre o rubro..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  aria-label="Buscar tiendas por nombre o rubro"
-                />
+                <button
+                  type="button"
+                  className="dir-tiendas-filters-trigger dir-tiendas-filters-trigger--mobile-only"
+                  aria-expanded={filtersOpen}
+                  aria-controls="dir-tiendas-filters-panel"
+                  onClick={() => setFiltersOpen(true)}
+                >
+                  <Icon name="filter_list" />
+                  Filtros
+                </button>
               </div>
             </div>
           </header>
-
-          <div className="landing-desktop-category-strip dir-tiendas-cat-strip">
-            <div className="landing-shell landing-desktop-category-strip__inner">
-              <div className="landing-desktop-categories" role="tablist" aria-label="Categorías de negocio">
-                {dirBizCategoryItems.map((item) => {
-                  const active = activeDirBizKey === item.key;
-                  const LucideIcon =
-                    item.key === "todos" ? LayoutGrid : getBusinessCategoryLucideIcon(item.name);
-                  return (
-                    <button
-                      key={item.key}
-                      type="button"
-                      role="tab"
-                      aria-selected={active}
-                      className={`landing-desktop-cat${active ? " landing-desktop-cat--active" : ""}`}
-                      onClick={() => selectDirBizCategory(item)}
-                    >
-                      <span className="landing-desktop-cat__icon" aria-hidden>
-                        <LucideIcon size={16} strokeWidth={2} />
-                      </span>
-                      <span className="landing-desktop-cat__label">{item.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
         </div>
 
-        <div className="landing-shell dir-mp__shell">
+        <div className="dir-shell dir-mp__shell">
           <div className="dir-mp__layout">
             <aside className="dir-mp__sidebar" aria-label="Filtros del directorio">
               <div className="dir-mp-sidebar">
                 <p className="dir-mp-sidebar__title">Filtros</p>
                 <DirectoryFiltersForm
-                  showSort={false}
+                  showSort
                   sortKey={sortKey}
                   onSortChange={onSortChange}
+                  categories={dirBizCategoryItems}
+                  activeCategoryKey={activeDirBizKey}
+                  onSelectCategory={selectDirBizCategory}
                   openOnly={openOnly}
                   onOpenOnlyChange={onOpenOnlyChange}
                   radiusKm={radiusKm}
@@ -444,29 +404,13 @@ export default function CatalogLocationsPage() {
                       ? "1 tienda encontrada"
                       : `${directoryList.length} tiendas encontradas`}
                   </p>
+                  {activeBizCategoryLabel ? (
+                    <p className="dir-tiendas-results-bar__scope">
+                      Categoría del comercio: <strong>{activeBizCategoryLabel}</strong>
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
-
-              <div className="dir-mp-toolbar">
-                <div className="dir-mp-toolbar__seg" role="group" aria-label="Vista en escritorio">
-                  <button
-                    type="button"
-                    className={`dir-mp-seg__btn${vista === "grid" ? " dir-mp-seg__btn--active" : ""}`}
-                    aria-pressed={vista === "grid"}
-                    onClick={() => onVistaChange("grid")}
-                  >
-                    Rejilla
-                  </button>
-                  <button
-                    type="button"
-                    className={`dir-mp-seg__btn${vista === "zonas" ? " dir-mp-seg__btn--active" : ""}`}
-                    aria-pressed={vista === "zonas"}
-                    onClick={() => onVistaChange("zonas")}
-                  >
-                    Por zona
-                  </button>
-                </div>
-              </div>
 
               <div className={`dir-tiendas-zones${vista === "grid" ? " dir-tiendas-zones--grid-mode" : ""}`}>
                 {isLoading && (vista === "grid" ? <DirGridSkeleton /> : <DirZonesSkeleton />)}
@@ -505,7 +449,7 @@ export default function CatalogLocationsPage() {
                       <TiendasEmptyIllustration />
                       <p className="dir-tiendas-empty__title">No encontramos tiendas con estos filtros</p>
                       <p className="dir-tiendas-empty__hint">
-                        Probá ampliar la distancia, quitar &quot;Solo abiertas&quot; o limpiar filtros.
+                        Prueba ampliar la distancia, quitar &quot;Solo abiertas&quot; o limpiar filtros.
                       </p>
                       {search.trim() ? (
                         <button type="button" className="dir-tiendas-empty__clear" onClick={clearSearch}>
@@ -627,6 +571,12 @@ export default function CatalogLocationsPage() {
                   sortKey={sortKey}
                   onSortChange={(k) => {
                     onSortChange(k);
+                    setFiltersOpen(false);
+                  }}
+                  categories={dirBizCategoryItems}
+                  activeCategoryKey={activeDirBizKey}
+                  onSelectCategory={(item) => {
+                    selectDirBizCategory(item);
                     setFiltersOpen(false);
                   }}
                   openOnly={openOnly}

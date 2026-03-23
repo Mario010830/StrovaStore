@@ -1,7 +1,10 @@
 "use client";
 
 import { useId } from "react";
+import { Icon } from "@/components/ui/Icon";
 import type { DirectorySortUrl, DirectoryVistaUrl } from "@/app/catalog/lib/directory-url";
+
+export type DirectoryCategoryItem = { key: string; name: string; slug: string };
 
 type RadiusValue = 0 | 3 | 5 | 10;
 
@@ -9,6 +12,9 @@ export type DirectoryFiltersFormProps = {
   showSort?: boolean;
   sortKey: DirectorySortUrl;
   onSortChange: (key: DirectorySortUrl) => void;
+  categories: DirectoryCategoryItem[];
+  activeCategoryKey: string;
+  onSelectCategory: (item: DirectoryCategoryItem) => void;
   openOnly: boolean;
   onOpenOnlyChange: (value: boolean) => void;
   radiusKm: RadiusValue;
@@ -35,6 +41,9 @@ export function DirectoryFiltersForm({
   showSort,
   sortKey,
   onSortChange,
+  categories,
+  activeCategoryKey,
+  onSelectCategory,
   openOnly,
   onOpenOnlyChange,
   radiusKm,
@@ -48,6 +57,35 @@ export function DirectoryFiltersForm({
 
   return (
     <>
+      <div className="dir-mp-sidebar__group dir-mp-sidebar__group--biz-category">
+        <div className="dir-mp-cat-block">
+          <div className="dir-mp-cat-block__head">
+            <span className="dir-mp-cat-block__icon" aria-hidden>
+              <Icon name="storefront" className="dir-mp-cat-block__icon-inner" />
+            </span>
+            <div className="dir-mp-cat-block__titles">
+              <span className="dir-mp-sidebar__label" id={`${formUid}-biz-cat`}>
+                Categoría del comercio
+              </span>
+              <p className="dir-mp-cat-block__hint">Acota el listado por tipo de establecimiento.</p>
+            </div>
+          </div>
+          <nav className="dir-mp-cat-list" aria-labelledby={`${formUid}-biz-cat`}>
+            {categories.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className={`dir-mp-cat-link${item.key === "todos" ? " dir-mp-cat-link--all" : ""}${activeCategoryKey === item.key ? " dir-mp-cat-link--active" : ""}`}
+                aria-current={activeCategoryKey === item.key ? "true" : undefined}
+                onClick={() => onSelectCategory(item)}
+              >
+                {item.name}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+
       {showSort ? (
         <div className="dir-mp-sidebar__group">
           <span className="dir-mp-sidebar__label" id="dir-filters-sort-label">
@@ -82,7 +120,7 @@ export function DirectoryFiltersForm({
       <div className="dir-mp-sidebar__group">
         <span className="dir-mp-sidebar__label">Distancia</span>
         {!geoAvailable ? (
-          <p className="dir-mp-sidebar__hint">Activá la ubicación del navegador para filtrar por distancia.</p>
+          <p className="dir-mp-sidebar__hint">Activa la ubicación del navegador para filtrar por distancia.</p>
         ) : null}
         <div className="dir-mp-radio-list" role="radiogroup" aria-label="Filtrar por distancia máxima">
           {RADIUS_OPTIONS.map((o) => (

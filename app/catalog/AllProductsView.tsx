@@ -318,7 +318,7 @@ export default function AllProductsView() {
         <div className="mp-hero__text">
           <h1 className="mp-hero__title">Marketplace de Productos</h1>
           <p className="mp-hero__subtitle">
-            Explorá lo que ofrecen los negocios de tu ciudad
+            Explora lo que ofrecen los negocios de tu ciudad
           </p>
         </div>
         <div className="mp-hero__search-wrap">
@@ -327,7 +327,7 @@ export default function AllProductsView() {
             <input
               type="text"
               className="mp-hero__search"
-              placeholder="Buscá herramientas, café, libros..."
+              placeholder="Busca herramientas, café, libros..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -379,7 +379,7 @@ export default function AllProductsView() {
           <div className="mp-stats__divider" />
           <div className="mp-stats__item">
             <span className="mp-stats__value mp-stats__value--secondary">WhatsApp</span>
-            <span className="mp-stats__label">Acordá el envío</span>
+            <span className="mp-stats__label">Coordina el envío</span>
           </div>
         </div>
       </div>
@@ -445,9 +445,9 @@ export default function AllProductsView() {
         </div>
         <div className="mp-cta__inner">
           <div className="mp-cta__content">
-            <h2 className="mp-cta__title">¿Tenés un negocio local?</h2>
+            <h2 className="mp-cta__title">¿Tienes un negocio local?</h2>
             <p className="mp-cta__text">
-              Sumate a StrovaStore y empezá a recibir pedidos por WhatsApp hoy mismo. Tu catálogo online listo en minutos.
+              Únete a StrovaStore y empieza a recibir pedidos por WhatsApp hoy mismo. Tu catálogo online listo en minutos.
             </p>
             <div className="mp-cta__btns">
               <a

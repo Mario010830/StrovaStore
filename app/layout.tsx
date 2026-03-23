@@ -9,7 +9,7 @@ import "./catalog/css/catalog.css";
 
 export const metadata: Metadata = {
   title: "StrovaStore",
-  description: "Descubrí tiendas locales y explorá sus productos",
+  description: "Descubre tiendas locales y explora sus productos",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -32,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="h-full antialiased">
+    <html lang="es-US" className="h-full antialiased">
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap"

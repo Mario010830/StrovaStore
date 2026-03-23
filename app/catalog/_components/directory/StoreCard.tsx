@@ -7,12 +7,7 @@ import { LayoutGrid, Store } from "lucide-react";
 import type { PublicLocation } from "@/lib/dashboard-types";
 import { toImageProxyUrl } from "@/lib/image";
 import { getBusinessCategoryLucideIcon } from "@/utils/businessCategoryIcons";
-
-function formatDistanceKm(km: number): string {
-  if (km < 1) return `${Math.round(km * 1000)} m`;
-  if (km < 10) return `${km.toFixed(1)} km`;
-  return `${Math.round(km)} km`;
-}
+import { formatDistanceForCard } from "@/app/catalog/lib/directory-filters";
 
 export type StoreCardProps = {
   loc: PublicLocation;
@@ -29,6 +24,7 @@ function StoreCardInner({ loc, businessCategoryDisplay, distanceKm, zoneLabel }:
   const BizIcon = businessCategoryDisplay
     ? getBusinessCategoryLucideIcon(businessCategoryDisplay)
     : LayoutGrid;
+  const distanceText = formatDistanceForCard(distanceKm);
 
   return (
     <Link href={`/catalog/${loc.id}`} className="dir-store-card">
@@ -50,7 +46,7 @@ function StoreCardInner({ loc, businessCategoryDisplay, distanceKm, zoneLabel }:
       <div className="dir-store-card__body">
         <h3 className="dir-store-card__name">{loc.name}</h3>
         {businessCategoryDisplay ? (
-          <div className="dir-store-card__biz">
+          <div className="dir-store-card__meta">
             {createElement(BizIcon, {
               className: "dir-store-card__biz-icon",
               size: 12,
@@ -58,12 +54,29 @@ function StoreCardInner({ loc, businessCategoryDisplay, distanceKm, zoneLabel }:
               "aria-hidden": true,
             })}
             <span className="dir-store-card__biz-label">{businessCategoryDisplay}</span>
+            {zoneLabel ? (
+              <>
+                <span className="dir-store-card__meta-sep" aria-hidden>
+                  ·
+                </span>
+                <span className="dir-store-card__zone-inline">{zoneLabel}</span>
+              </>
+            ) : null}
+            {distanceText ? (
+              <>
+                <span className="dir-store-card__meta-sep" aria-hidden>
+                  ·
+                </span>
+                <span className="dir-store-card__distance-inline">{distanceText}</span>
+              </>
+            ) : null}
           </div>
-        ) : null}
-        {zoneLabel ? <p className="dir-store-card__zone">{zoneLabel}</p> : null}
-        {distanceKm != null ? (
-          <p className="dir-store-card__distance">{formatDistanceKm(distanceKm)}</p>
-        ) : null}
+        ) : (
+          <>
+            {zoneLabel ? <p className="dir-store-card__zone">{zoneLabel}</p> : null}
+            {distanceText ? <p className="dir-store-card__distance">{distanceText}</p> : null}
+          </>
+        )}
         <div
           className={`dir-store-card__bottom${showStatus ? "" : " dir-store-card__bottom--solo"}`}
         >
@@ -76,7 +89,7 @@ function StoreCardInner({ loc, businessCategoryDisplay, distanceKm, zoneLabel }:
               {isOpen ? "Abierto" : "Cerrado"}
             </span>
           ) : null}
-          <span className="dir-store-card__cta">Ver tienda →</span>
+          <span className="dir-store-card__cta">Ver tienda</span>
         </div>
       </div>
     </Link>

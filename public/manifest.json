@@ -1,7 +1,7 @@
 {
   "name": "StrovaStore",
   "short_name": "StrovaStore",
-  "description": "Descubrí tiendas locales y explorá sus productos",
+  "description": "Descubre tiendas locales y explora sus productos",
   "start_url": "/catalog",
   "scope": "/",
   "display": "standalone",

@@ -130,7 +130,7 @@ export function LandingFooter({ businessUrl }: LandingFooterProps) {
           </div>
 
           <div className="landing-footer__socials">
-            <span>Seguinos</span>
+            <span>Síguenos</span>
             {/* TODO: agregar URLs reales de redes sociales. */}
             <a href="#" aria-label="Instagram" className="landing-footer__social-link">
               <SocialInstagram className="landing-footer__social-icon" />

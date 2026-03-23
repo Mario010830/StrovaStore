@@ -25,7 +25,7 @@ export function PushDialog({
     <div className="push-dialog-overlay" role="dialog" aria-modal="true" aria-labelledby="push-dialog-title">
       <div className="push-dialog">
         <h2 id="push-dialog-title" className="push-dialog__title">
-          ¿Querés recibir ofertas?
+          ¿Quieres recibir ofertas?
         </h2>
         <p className="push-dialog__body">
           Te avisamos cuando <strong>{storeName}</strong> publique novedades o descuentos.

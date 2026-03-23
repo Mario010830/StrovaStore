@@ -1,6 +1,9 @@
 import { haversineKm } from "@/lib/geo";
 import type { PublicLocation } from "@/lib/dashboard-types";
 
+/** Por encima de esto no mostramos km en tarjeta (datos poco fiables para “cerca”). */
+export const MAX_DISTANCE_DISPLAY_KM = 200;
+
 export function distanceToStoreKm(
   loc: PublicLocation,
   user: { lat: number; lng: number },
@@ -51,4 +54,13 @@ export function filterByRadiusKm(
     const d = distanceToStoreKm(loc, userPos);
     return d != null && d <= maxKm;
   });
+}
+
+/** Texto para tarjeta o null si no conviene mostrar distancia. */
+export function formatDistanceForCard(km: number | null): string | null {
+  if (km == null || !Number.isFinite(km) || km < 0) return null;
+  if (km > MAX_DISTANCE_DISPLAY_KM) return null;
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  if (km < 10) return `${km.toFixed(1)} km`;
+  return `${Math.round(km)} km`;
 }

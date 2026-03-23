@@ -162,7 +162,7 @@ export default function LandingPage() {
   const activeStoreCount = locations.length;
   const socialProofLine =
     activeStoreCount > 0
-      ? `${activeStoreCount.toLocaleString("es-AR")} tiendas activas cerca de vos`
+      ? `${activeStoreCount.toLocaleString("es-US")} tiendas activas cerca de ti`
       : "Cientos de tiendas locales en tu ciudad";
 
   const topProducts = allProducts?.data?.length
@@ -412,15 +412,15 @@ export default function LandingPage() {
           <div className="landing-desktop-only">
             <SectionHeader
               eyebrow="Por ubicación"
-              title="Explorá por zona"
-              subtitle="Elegí municipio o provincia y descubrí las tiendas de esa zona."
+              title="Explora por zona"
+              subtitle="Elige municipio o provincia y descubre las tiendas de esa zona."
               actionHref="/catalog?tab=tiendas"
               actionLabel="Ver todas las tiendas"
             />
           </div>
           <div className="landing-mob-only">
             <div className="landing-mob-section-header">
-              <h2 className="landing-mob-section-header__title">Explorá por zona</h2>
+              <h2 className="landing-mob-section-header__title">Explora por zona</h2>
               <Link href="/catalog?tab=tiendas" className="landing-mob-section-header__action">
                 Ver todas →
               </Link>
@@ -605,7 +605,7 @@ export default function LandingPage() {
             <SectionHeader
               eyebrow="Productos destacados"
               title="Productos populares"
-              subtitle="Compará precio y tienda en una vista simple antes de ir al catálogo completo."
+              subtitle="Compara precio y tienda en una vista simple antes de ir al catálogo completo."
               actionHref="/catalog?tab=productos"
               actionLabel="Ver todos los productos"
             />
@@ -655,9 +655,9 @@ export default function LandingPage() {
 
       <section className="landing-business landing-shell landing-anim">
         <div className="landing-business__mob-banner landing-mob-only">
-          <h2 className="landing-business__mob-title">¿Tenés un negocio?</h2>
+          <h2 className="landing-business__mob-title">¿Tienes un negocio?</h2>
           <p className="landing-business__mob-line">
-            Sumá tu comercio al catálogo local y recibí pedidos por WhatsApp.
+            Agrega tu comercio al catálogo local y recibe pedidos por WhatsApp.
           </p>
           <a
             href={STROVA_BUSINESS_URL}
@@ -673,9 +673,9 @@ export default function LandingPage() {
           <div className="landing-business__grid">
             <div className="landing-business__content">
               <p className="landing-business__eyebrow">Para negocios</p>
-              <h2 className="landing-business__title">¿Tenés un negocio?</h2>
+              <h2 className="landing-business__title">¿Tienes un negocio?</h2>
               <p className="landing-business__subtitle">
-                Sumá tu comercio al catálogo local y recibí pedidos por WhatsApp con una vitrina simple.
+                Agrega tu comercio al catálogo local y recibe pedidos por WhatsApp con una vitrina simple.
               </p>
               <ul className="landing-business__list">
                 <li>
@@ -688,13 +688,13 @@ export default function LandingPage() {
                   <span className="landing-business__check" aria-hidden>
                     ✓
                   </span>
-                  Recibí pedidos directo por WhatsApp.
+                  Recibe pedidos directos por WhatsApp.
                 </li>
                 <li>
                   <span className="landing-business__check" aria-hidden>
                     ✓
                   </span>
-                  Gestioná stock y precios desde cualquier lugar.
+                  Gestiona stock y precios desde cualquier lugar.
                 </li>
               </ul>
               <a

@@ -116,7 +116,7 @@ export function SharedNavbar({
               rel="noopener noreferrer"
               className="landing-nav__link"
             >
-              ¿Tenés un negocio?
+              ¿Tienes un negocio?
             </a>
           </div>
         ) : (
@@ -139,7 +139,7 @@ export function SharedNavbar({
               rel="noopener noreferrer"
               className={`${prefix}__link`}
             >
-              ¿Tenés un negocio?
+              ¿Tienes un negocio?
             </a>
           </div>
         )}
@@ -201,7 +201,7 @@ export function SharedNavbar({
                   rel="noopener noreferrer"
                   onClick={closeMobileNav}
                 >
-                  ¿Tenés un negocio?
+                  ¿Tienes un negocio?
                 </a>
               </div>
             ) : null}
@@ -235,7 +235,7 @@ export function SharedNavbar({
               {activeInfoModal === "about" ? (
                 <>
                   <p className={`${modalPrefix}__lead`}>
-                    StrovaStore conecta comercios locales con su comunidad para descubrir productos cercanos y pedir directo por WhatsApp.
+                    StrovaStore conecta comercios locales con su comunidad para descubrir productos cercanos y pedir directamente por WhatsApp.
                   </p>
                   <ul className={`${modalPrefix}__list`}>
                     <li>
