@@ -1,7 +1,6 @@
 "use client";
 
 import { useId } from "react";
-import { Icon } from "@/components/ui/Icon";
 import type { DirectorySortUrl, DirectoryVistaUrl } from "@/app/catalog/lib/directory-url";
 
 export type DirectoryCategoryItem = { key: string; name: string; slug: string };
@@ -58,32 +57,29 @@ export function DirectoryFiltersForm({
   return (
     <>
       <div className="dir-mp-sidebar__group dir-mp-sidebar__group--biz-category">
-        <div className="dir-mp-cat-block">
-          <div className="dir-mp-cat-block__head">
-            <span className="dir-mp-cat-block__icon" aria-hidden>
-              <Icon name="storefront" className="dir-mp-cat-block__icon-inner" />
-            </span>
-            <div className="dir-mp-cat-block__titles">
-              <span className="dir-mp-sidebar__label" id={`${formUid}-biz-cat`}>
-                Categoría del comercio
-              </span>
-              <p className="dir-mp-cat-block__hint">Acota el listado por tipo de establecimiento.</p>
-            </div>
-          </div>
-          <nav className="dir-mp-cat-list" aria-labelledby={`${formUid}-biz-cat`}>
-            {categories.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                className={`dir-mp-cat-link${item.key === "todos" ? " dir-mp-cat-link--all" : ""}${activeCategoryKey === item.key ? " dir-mp-cat-link--active" : ""}`}
-                aria-current={activeCategoryKey === item.key ? "true" : undefined}
-                onClick={() => onSelectCategory(item)}
-              >
-                {item.name}
-              </button>
-            ))}
-          </nav>
-        </div>
+        <label className="dir-mp-sidebar__label" htmlFor={`${formUid}-biz-cat`} id={`${formUid}-biz-cat-label`}>
+          Categoría del comercio
+        </label>
+        <p className="dir-mp-sidebar__microcopy" id={`${formUid}-biz-cat-hint`}>
+          Filtra por tipo de establecimiento.
+        </p>
+        <select
+          id={`${formUid}-biz-cat`}
+          className="dir-tiendas-sort-select dir-mp-filters-sort dir-mp-filters-sort--category"
+          aria-labelledby={`${formUid}-biz-cat-label`}
+          aria-describedby={`${formUid}-biz-cat-hint`}
+          value={activeCategoryKey}
+          onChange={(e) => {
+            const item = categories.find((c) => c.key === e.target.value);
+            if (item) onSelectCategory(item);
+          }}
+        >
+          {categories.map((item) => (
+            <option key={item.key} value={item.key}>
+              {item.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {showSort ? (

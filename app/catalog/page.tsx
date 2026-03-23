@@ -334,7 +334,7 @@ export default function CatalogLocationsPage() {
           <header className="dir-hero-minimal">
             <div className="dir-shell">
               <h1 className="dir-hero-minimal__title">Tiendas locales</h1>
-              <p className="dir-hero-minimal__lead">Busca por nombre o rubro; filtra y ordena desde el panel.</p>
+              <p className="dir-hero-minimal__lead">Busca por nombre o categoría; filtra y ordena desde el panel.</p>
               <div className="dir-hero-minimal__search-row">
                 <div className="dir-tiendas-search">
                   <Icon name="search" />
@@ -342,10 +342,10 @@ export default function CatalogLocationsPage() {
                     ref={searchInputRef}
                     type="search"
                     className="dir-tiendas-search__input"
-                    placeholder="Buscar tiendas por nombre o rubro..."
+                    placeholder="Buscar tiendas por nombre o categoría..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    aria-label="Buscar tiendas por nombre o rubro"
+                    aria-label="Buscar tiendas por nombre o categoría"
                   />
                 </div>
                 <button

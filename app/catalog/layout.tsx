@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 import { usePathname } from "next/navigation";
+import { isCatalogIndexPath } from "@/lib/path-utils";
 
 interface CatalogCtx {
   search: string;
@@ -18,7 +19,7 @@ export const useCatalogCtx = () => useContext(CatalogContext);
 export default function CatalogLayout({ children }: { children: React.ReactNode }) {
   const [search, setSearch] = useState("");
   const pathname = usePathname();
-  const isCatalogRoot = pathname === "/catalog";
+  const isCatalogRoot = isCatalogIndexPath(pathname);
 
   return (
     <CatalogContext.Provider value={{ search, setSearch }}>
