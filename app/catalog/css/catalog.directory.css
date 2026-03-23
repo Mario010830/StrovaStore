@@ -103,7 +103,7 @@
   min-width: 0;
   padding-bottom: 0;
   position: relative;
-  z-index: 0;
+  z-index: 1;
 }
 
 @media (max-width: 959px) {
@@ -136,8 +136,9 @@
     display: block;
     position: sticky;
     top: 80px;
-    z-index: 50;
+    z-index: 60;
     isolation: isolate;
+    pointer-events: auto;
   }
 }
 
