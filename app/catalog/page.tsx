@@ -1,10 +1,9 @@
 "use client";
 
-import { createElement, useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
-import { LayoutGrid, MapPin, Store } from "lucide-react";
+import { LayoutGrid, MapPin } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import {
   QUERY_POLLING_OPTIONS,
@@ -15,14 +14,27 @@ import { useFuseSearch } from "@/hooks/useFuseSearch";
 import type { PublicLocation } from "@/lib/dashboard-types";
 import AllProductsView from "./AllProductsView";
 import { useCatalogCtx } from "./layout";
-import { toImageProxyUrl } from "@/lib/image";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getRtkErrorInfo } from "@/lib/rtk-error";
 import { getBusinessCategoryLucideIcon } from "@/utils/businessCategoryIcons";
 import { buildCatalogZoneHref } from "@/app/lib/landing-zones";
-import { haversineKm } from "@/lib/geo";
-
-const SORT_OPTIONS = ["Más cercanos", "Más populares", "Nuevos"] as const;
+import {
+  filterByRadiusKm,
+  filterOpenOnly,
+  sortLocations,
+  distanceToStoreKm,
+} from "@/app/catalog/lib/directory-filters";
+import {
+  parseSortParam,
+  parseVistaParam,
+  parseOpenOnlyParam,
+  parseRadiusKmParam,
+  sortUrlToLabel,
+  type DirectorySortUrl,
+  type DirectoryVistaUrl,
+} from "@/app/catalog/lib/directory-url";
+import { StoreCard } from "@/app/catalog/_components/directory/StoreCard";
+import { DirectoryFiltersForm } from "@/app/catalog/_components/directory/DirectoryFiltersForm";
 
 type PublicLocationSearch = PublicLocation & { _bizSearch: string };
 
@@ -41,42 +53,6 @@ function isExcludedDirectoryLocation(loc: PublicLocation): boolean {
 
 function hasZoneData(loc: PublicLocation): boolean {
   return !!(loc.province?.trim() || loc.municipality?.trim());
-}
-
-function distanceToStoreKm(
-  loc: PublicLocation,
-  user: { lat: number; lng: number },
-): number | null {
-  const lat = loc.latitude;
-  const lon = loc.longitude;
-  if (lat == null || lon == null) return null;
-  if (typeof lat !== "number" || typeof lon !== "number") return null;
-  return haversineKm(user.lat, user.lng, lat, lon);
-}
-
-function sortLocations(
-  list: PublicLocation[],
-  sort: string,
-  userPos: { lat: number; lng: number } | null,
-): PublicLocation[] {
-  const next = [...list];
-  if (sort === "Más cercanos" && userPos) {
-    return next.sort((a, b) => {
-      const da = distanceToStoreKm(a, userPos);
-      const db = distanceToStoreKm(b, userPos);
-      if (da != null && db != null) return da - db;
-      if (da != null) return -1;
-      if (db != null) return 1;
-      return (a.name ?? "").localeCompare(b.name ?? "", "es");
-    });
-  }
-  if (sort === "Nuevos") {
-    return next.sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
-  }
-  if (sort === "Más populares") {
-    return next.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "", "es"));
-  }
-  return next.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "", "es"));
 }
 
 function groupByProvinceMunicipality(locations: PublicLocation[]): ProvinciaGroup[] {
@@ -105,82 +81,25 @@ function groupByProvinceMunicipality(locations: PublicLocation[]): ProvinciaGrou
   });
 }
 
-function formatDistanceKm(km: number): string {
-  if (km < 1) return `${Math.round(km * 1000)} m`;
-  if (km < 10) return `${km.toFixed(1)} km`;
-  return `${Math.round(km)} km`;
+function zoneLine(loc: PublicLocation): string | null {
+  const m = (loc.municipality ?? "").trim();
+  const p = (loc.province ?? "").trim();
+  if (!m && !p) return null;
+  if (m && p) return `${m}, ${p}`;
+  return m || p;
 }
 
-function DirectoryCard({
-  loc,
-  businessCategoryDisplay,
-  distanceKm,
-}: {
-  loc: PublicLocation;
-  businessCategoryDisplay: string | null;
-  distanceKm: number | null;
-}) {
-  const hasHours = !!loc.businessHours;
-  const showStatus = hasHours && loc.isOpenNow != null;
-  const isOpen = loc.isOpenNow === true;
-  const proxiedImageUrl = toImageProxyUrl(loc.photoUrl);
-  const BizIcon = businessCategoryDisplay
-    ? getBusinessCategoryLucideIcon(businessCategoryDisplay)
-    : LayoutGrid;
-
+function DirGridSkeleton() {
   return (
-    <Link href={`/catalog/${loc.id}`} className="dir-store-card">
-      <div className="dir-store-card__media">
-        {proxiedImageUrl ? (
-          <Image
-            src={proxiedImageUrl}
-            alt={loc.name}
-            fill
-            className="dir-store-card__img"
-            sizes="(max-width: 599px) 160px, 220px"
-          />
-        ) : (
-          <div className="dir-store-card__placeholder">
-            <Store className="dir-store-card__placeholder-icon" size={32} strokeWidth={1.5} aria-hidden />
-          </div>
-        )}
-      </div>
-      <div className="dir-store-card__body">
-        <h3 className="dir-store-card__name">{loc.name}</h3>
-        {businessCategoryDisplay ? (
-          <div className="dir-store-card__biz">
-            {createElement(BizIcon, {
-              className: "dir-store-card__biz-icon",
-              size: 12,
-              strokeWidth: 2,
-              "aria-hidden": true,
-            })}
-            <span className="dir-store-card__biz-label">{businessCategoryDisplay}</span>
-          </div>
-        ) : null}
-        {distanceKm != null ? (
-          <p className="dir-store-card__distance">{formatDistanceKm(distanceKm)}</p>
-        ) : null}
-        <div
-          className={`dir-store-card__bottom${showStatus ? "" : " dir-store-card__bottom--solo"}`}
-        >
-          {showStatus ? (
-            <span className="dir-store-card__status">
-              <span
-                className={`dir-store-card__dot${isOpen ? " dir-store-card__dot--open" : " dir-store-card__dot--closed"}`}
-                aria-hidden
-              />
-              {isOpen ? "Abierto" : "Cerrado"}
-            </span>
-          ) : null}
-          <span className="dir-store-card__cta">Ver tienda →</span>
-        </div>
-      </div>
-    </Link>
+    <div className="dir-mp-grid dir-mp-grid--skeleton" aria-busy="true">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="dir-mp-skeleton-card" />
+      ))}
+    </div>
   );
 }
 
-function DirSkeletons() {
+function DirZonesSkeleton() {
   return (
     <div className="dir-tiendas-skeleton" aria-busy="true">
       {[0, 1].map((i) => (
@@ -219,12 +138,18 @@ function TiendasEmptyIllustration() {
 
 export default function CatalogLocationsPage() {
   const sortSelectId = useId();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
   const tab = searchParams.get("tab") ?? "tiendas";
   const zonaProvincia = searchParams.get("provincia")?.trim() ?? "";
   const zonaMunicipio = searchParams.get("municipio")?.trim() ?? "";
   const categorySlug = searchParams.get("category")?.trim() ?? "";
+
+  const sortKey = parseSortParam(searchParams.get("orden"));
+  const vista = parseVistaParam(searchParams.get("vista"));
+  const openOnly = parseOpenOnlyParam(searchParams.get("abierto"));
+  const radiusKm = parseRadiusKmParam(searchParams.get("radio"));
 
   const { data: locations, isLoading, isError, error, refetch } = useGetPublicLocationsQuery(
     undefined,
@@ -235,9 +160,21 @@ export default function CatalogLocationsPage() {
     QUERY_POLLING_OPTIONS.general,
   );
   const { search, setSearch } = useCatalogCtx();
-  const [directorySort, setDirectorySort] = useState<string>("Más cercanos");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  const patchParams = useCallback(
+    (patch: Record<string, string | null | undefined>) => {
+      const sp = new URLSearchParams(searchParams.toString());
+      for (const [k, v] of Object.entries(patch)) {
+        if (v == null || v === "") sp.delete(k);
+        else sp.set(k, v);
+      }
+      if (!sp.get("tab")) sp.set("tab", "tiendas");
+      router.replace(`/catalog?${sp.toString()}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
@@ -321,10 +258,47 @@ export default function CatalogLocationsPage() {
     if (activeBizCategoryId != null) {
       list = list.filter((loc) => loc.businessCategoryId === activeBizCategoryId);
     }
-    return sortLocations(list, directorySort, userCoords);
-  }, [fuseFiltered, activeBizCategoryId, directorySort, userCoords]);
+    if (openOnly) list = filterOpenOnly(list);
+    list = filterByRadiusKm(list, radiusKm, userCoords);
+    const sortLabel = sortUrlToLabel(sortKey);
+    return sortLocations(list, sortLabel, userCoords);
+  }, [fuseFiltered, activeBizCategoryId, openOnly, radiusKm, sortKey, userCoords]);
 
   const groupedZones = useMemo(() => groupByProvinceMunicipality(directoryList), [directoryList]);
+
+  const geoAvailable = userCoords != null;
+
+  const onSortChange = useCallback(
+    (k: DirectorySortUrl) => {
+      patchParams({ orden: k === "cercanos" ? null : k });
+    },
+    [patchParams],
+  );
+
+  const onOpenOnlyChange = useCallback(
+    (v: boolean) => {
+      patchParams({ abierto: v ? "1" : null });
+    },
+    [patchParams],
+  );
+
+  const onRadiusKmChange = useCallback(
+    (km: 0 | 3 | 5 | 10) => {
+      patchParams({ radio: km === 0 ? null : String(km) });
+    },
+    [patchParams],
+  );
+
+  const onVistaChange = useCallback(
+    (v: DirectoryVistaUrl) => {
+      patchParams({ vista: v === "grid" ? null : "zonas" });
+    },
+    [patchParams],
+  );
+
+  const clearClientFilters = useCallback(() => {
+    patchParams({ abierto: null, radio: null, category: null });
+  }, [patchParams]);
 
   useEffect(() => {
     if (!filtersOpen) return;
@@ -337,14 +311,19 @@ export default function CatalogLocationsPage() {
 
   const clearSearch = useCallback(() => setSearch(""), [setSearch]);
 
+  const focusSearch = useCallback(() => {
+    searchInputRef.current?.focus();
+    searchInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
+
   const showTiendas = tab === "tiendas";
   const errorInfo = getRtkErrorInfo(error);
+  const hideProvinciaVerTodas = zonaProvincia.length > 0 && zonaMunicipio.length === 0;
+  const hasActiveFilters = openOnly || radiusKm > 0 || !!categorySlug;
 
   if (showTiendas) {
-    const hideProvinciaVerTodas = zonaProvincia.length > 0 && zonaMunicipio.length === 0;
-
     return (
-      <div className="dir-page dir-page--zones">
+      <div className="dir-page dir-mp">
         <div className="dir-tiendas-sticky">
           <header className="dir-tiendas-header">
             <div className="landing-shell dir-tiendas-header__shell">
@@ -360,14 +339,12 @@ export default function CatalogLocationsPage() {
                     <select
                       id={sortSelectId}
                       className="dir-tiendas-sort-select"
-                      value={directorySort}
-                      onChange={(e) => setDirectorySort(e.target.value)}
+                      value={sortKey}
+                      onChange={(e) => onSortChange(e.target.value as DirectorySortUrl)}
                     >
-                      {SORT_OPTIONS.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
+                      <option value="cercanos">{sortUrlToLabel("cercanos")}</option>
+                      <option value="populares">{sortUrlToLabel("populares")}</option>
+                      <option value="nuevos">{sortUrlToLabel("nuevos")}</option>
                     </select>
                   </div>
                   <button
@@ -383,12 +360,13 @@ export default function CatalogLocationsPage() {
                 </div>
               </div>
               <p className="dir-tiendas-subtitle">
-                Descubrí los mejores negocios cerca tuyo y pedí directamente por WhatsApp. El listado se
-                agrupa por zona; podés filtrar por rubro y búsqueda.
+                Descubrí negocios cerca tuyo y pedí por WhatsApp. Por defecto ves todas en rejilla; podés
+                agrupar por zona, filtrar por rubro, distancia y horario.
               </p>
               <div className="dir-tiendas-search">
                 <Icon name="search" />
                 <input
+                  ref={searchInputRef}
                   type="search"
                   className="dir-tiendas-search__input"
                   placeholder="Buscar tiendas por nombre o rubro..."
@@ -428,17 +406,192 @@ export default function CatalogLocationsPage() {
           </div>
         </div>
 
-        {!isLoading && !isError && prepared.base.length > 0 ? (
-          <div className="landing-shell">
-            <div className="dir-tiendas-results-bar" role="status" aria-live="polite">
-              <p className="dir-tiendas-results-bar__count">
-                {directoryList.length === 1
-                  ? "1 tienda encontrada"
-                  : `${directoryList.length} tiendas encontradas`}
-              </p>
+        <div className="landing-shell dir-mp__shell">
+          <div className="dir-mp__layout">
+            <aside className="dir-mp__sidebar" aria-label="Filtros del directorio">
+              <div className="dir-mp-sidebar">
+                <p className="dir-mp-sidebar__title">Filtros</p>
+                <DirectoryFiltersForm
+                  showSort={false}
+                  sortKey={sortKey}
+                  onSortChange={onSortChange}
+                  openOnly={openOnly}
+                  onOpenOnlyChange={onOpenOnlyChange}
+                  radiusKm={radiusKm}
+                  onRadiusKmChange={onRadiusKmChange}
+                  vista={vista}
+                  onVistaChange={onVistaChange}
+                  geoAvailable={geoAvailable}
+                />
+                {hasActiveFilters ? (
+                  <button type="button" className="dir-mp-clear" onClick={clearClientFilters}>
+                    Limpiar filtros
+                  </button>
+                ) : null}
+              </div>
+            </aside>
+
+            <div className="dir-mp__main">
+              {!isLoading && !isError && prepared.base.length > 0 ? (
+                <div
+                  className="dir-tiendas-results-bar"
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  <p className="dir-tiendas-results-bar__count">
+                    {directoryList.length === 1
+                      ? "1 tienda encontrada"
+                      : `${directoryList.length} tiendas encontradas`}
+                  </p>
+                </div>
+              ) : null}
+
+              <div className="dir-mp-toolbar">
+                <div className="dir-mp-toolbar__seg" role="group" aria-label="Vista en escritorio">
+                  <button
+                    type="button"
+                    className={`dir-mp-seg__btn${vista === "grid" ? " dir-mp-seg__btn--active" : ""}`}
+                    aria-pressed={vista === "grid"}
+                    onClick={() => onVistaChange("grid")}
+                  >
+                    Rejilla
+                  </button>
+                  <button
+                    type="button"
+                    className={`dir-mp-seg__btn${vista === "zonas" ? " dir-mp-seg__btn--active" : ""}`}
+                    aria-pressed={vista === "zonas"}
+                    onClick={() => onVistaChange("zonas")}
+                  >
+                    Por zona
+                  </button>
+                </div>
+              </div>
+
+              <div className={`dir-tiendas-zones${vista === "grid" ? " dir-tiendas-zones--grid-mode" : ""}`}>
+                {isLoading && (vista === "grid" ? <DirGridSkeleton /> : <DirZonesSkeleton />)}
+
+                {isError && (
+                  <EmptyState
+                    icon={<Icon name="wifi_off" />}
+                    message={`${errorInfo.title}: ${errorInfo.message}`}
+                    action={
+                      errorInfo.retryable ? (
+                        <button type="button" className="store-empty__btn" onClick={refetch}>
+                          <Icon name="refresh" /> Reintentar
+                        </button>
+                      ) : null
+                    }
+                  />
+                )}
+
+                {!isLoading && !isError && locations && locations.length === 0 && (
+                  <EmptyState icon={<Icon name="store" />} message="No hay locales disponibles" />
+                )}
+
+                {!isLoading &&
+                  !isError &&
+                  locations &&
+                  locations.length > 0 &&
+                  prepared.base.length === 0 && (
+                    <EmptyState icon={<Icon name="store" />} message="No hay tiendas para mostrar en esta vista." />
+                  )}
+
+                {!isLoading &&
+                  !isError &&
+                  prepared.base.length > 0 &&
+                  directoryList.length === 0 && (
+                    <div className="dir-tiendas-empty">
+                      <TiendasEmptyIllustration />
+                      <p className="dir-tiendas-empty__title">No encontramos tiendas con estos filtros</p>
+                      <p className="dir-tiendas-empty__hint">
+                        Probá ampliar la distancia, quitar &quot;Solo abiertas&quot; o limpiar filtros.
+                      </p>
+                      {search.trim() ? (
+                        <button type="button" className="dir-tiendas-empty__clear" onClick={clearSearch}>
+                          Limpiar búsqueda
+                        </button>
+                      ) : null}
+                      {hasActiveFilters ? (
+                        <button type="button" className="dir-tiendas-empty__clear" onClick={clearClientFilters}>
+                          Quitar filtros
+                        </button>
+                      ) : null}
+                    </div>
+                  )}
+
+                {!isLoading && !isError && vista === "grid" && directoryList.length > 0 && (
+                  <div className="dir-mp-grid">
+                    {directoryList.map((loc) => (
+                      <StoreCard
+                        key={loc.id}
+                        loc={loc}
+                        businessCategoryDisplay={resolveLocationBizName(loc)}
+                        distanceKm={userCoords ? distanceToStoreKm(loc, userCoords) : null}
+                        zoneLabel={zoneLine(loc)}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {!isLoading && !isError && vista === "zonas" && groupedZones.length > 0 && (
+                  <div className="dir-tiendas-zones__inner">
+                    {groupedZones.map(({ province, municipios }) => (
+                      <section key={province} className="dir-zone-provincia">
+                        <div className="dir-zone-provincia__head">
+                          <div className="dir-zone-provincia__title-row">
+                            <MapPin className="dir-zone-provincia__pin" size={20} strokeWidth={2} aria-hidden />
+                            <h2 className="dir-zone-provincia__title">{province}</h2>
+                          </div>
+                          {!hideProvinciaVerTodas ? (
+                            <Link href={buildCatalogZoneHref(province, null)} className="dir-zone-provincia__link">
+                              Ver todas →
+                            </Link>
+                          ) : null}
+                        </div>
+                        <div className="dir-zone-provincia__divider" aria-hidden />
+
+                        {municipios.map(({ municipality, locations: locs }) => (
+                          <div key={`${province}::${municipality}`} className="dir-zone-municipio">
+                            <h3 className="dir-zone-municipio__label">{municipality}</h3>
+                            <div className="dir-zone-card-row">
+                              {locs.map((loc) => (
+                                <StoreCard
+                                  key={loc.id}
+                                  loc={loc}
+                                  businessCategoryDisplay={resolveLocationBizName(loc)}
+                                  distanceKm={userCoords ? distanceToStoreKm(loc, userCoords) : null}
+                                  zoneLabel={null}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </section>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        ) : null}
+        </div>
+
+        <div className="dir-mp-mobile-bar" role="toolbar" aria-label="Acciones del directorio">
+          <button type="button" className="dir-mp-mobile-bar__btn" onClick={focusSearch}>
+            <Icon name="search" />
+            Buscar
+          </button>
+          <button
+            type="button"
+            className="dir-mp-mobile-bar__btn dir-mp-mobile-bar__btn--primary"
+            aria-expanded={filtersOpen}
+            aria-controls="dir-tiendas-filters-panel"
+            onClick={() => setFiltersOpen(true)}
+          >
+            <Icon name="filter_list" />
+            Filtros
+          </button>
+        </div>
 
         {filtersOpen ? (
           <>
@@ -468,108 +621,38 @@ export default function CatalogLocationsPage() {
                   <Icon name="close" />
                 </button>
               </div>
-              <p className="dir-tiendas-filters-panel__section-label">Ordenar por</p>
-              <ul className="dir-tiendas-sort-list">
-                {SORT_OPTIONS.map((opt) => (
-                  <li key={opt}>
-                    <button
-                      type="button"
-                      className={`dir-tiendas-sort-option${directorySort === opt ? " dir-tiendas-sort-option--active" : ""}`}
-                      onClick={() => {
-                        setDirectorySort(opt);
-                        setFiltersOpen(false);
-                      }}
-                    >
-                      {opt}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </>
-        ) : null}
-
-        <div className="dir-tiendas-zones">
-          {isLoading && <DirSkeletons />}
-
-          {isError && (
-            <EmptyState
-              icon={<Icon name="wifi_off" />}
-              message={`${errorInfo.title}: ${errorInfo.message}`}
-              action={
-                errorInfo.retryable ? (
-                  <button type="button" className="store-empty__btn" onClick={refetch}>
-                    <Icon name="refresh" /> Reintentar
-                  </button>
-                ) : null
-              }
-            />
-          )}
-
-          {!isLoading && !isError && locations && locations.length === 0 && (
-            <EmptyState icon={<Icon name="store" />} message="No hay locales disponibles" />
-          )}
-
-          {!isLoading &&
-            !isError &&
-            locations &&
-            locations.length > 0 &&
-            prepared.base.length === 0 && (
-              <EmptyState icon={<Icon name="store" />} message="No hay tiendas para mostrar en esta vista." />
-            )}
-
-          {!isLoading &&
-            !isError &&
-            prepared.base.length > 0 &&
-            directoryList.length === 0 && (
-              <div className="dir-tiendas-empty">
-                <TiendasEmptyIllustration />
-                <p className="dir-tiendas-empty__title">No encontramos tiendas</p>
-                {search.trim() ? (
-                  <button type="button" className="dir-tiendas-empty__clear" onClick={clearSearch}>
-                    Limpiar búsqueda
+              <div className="dir-tiendas-filters-panel__body">
+                <DirectoryFiltersForm
+                  showSort
+                  sortKey={sortKey}
+                  onSortChange={(k) => {
+                    onSortChange(k);
+                    setFiltersOpen(false);
+                  }}
+                  openOnly={openOnly}
+                  onOpenOnlyChange={onOpenOnlyChange}
+                  radiusKm={radiusKm}
+                  onRadiusKmChange={onRadiusKmChange}
+                  vista={vista}
+                  onVistaChange={onVistaChange}
+                  geoAvailable={geoAvailable}
+                />
+                {hasActiveFilters ? (
+                  <button
+                    type="button"
+                    className="dir-mp-clear"
+                    onClick={() => {
+                      clearClientFilters();
+                      setFiltersOpen(false);
+                    }}
+                  >
+                    Limpiar filtros
                   </button>
                 ) : null}
               </div>
-            )}
-
-          {!isLoading && !isError && groupedZones.length > 0 && (
-            <div className="dir-tiendas-zones__inner landing-shell">
-              {groupedZones.map(({ province, municipios }) => (
-                <section key={province} className="dir-zone-provincia">
-                  <div className="dir-zone-provincia__head">
-                    <div className="dir-zone-provincia__title-row">
-                      <MapPin className="dir-zone-provincia__pin" size={20} strokeWidth={2} aria-hidden />
-                      <h2 className="dir-zone-provincia__title">{province}</h2>
-                    </div>
-                    {!hideProvinciaVerTodas ? (
-                      <Link href={buildCatalogZoneHref(province, null)} className="dir-zone-provincia__link">
-                        Ver todas →
-                      </Link>
-                    ) : null}
-                  </div>
-                  <div className="dir-zone-provincia__divider" aria-hidden />
-
-                  {municipios.map(({ municipality, locations: locs }) => (
-                    <div key={`${province}::${municipality}`} className="dir-zone-municipio">
-                      <h3 className="dir-zone-municipio__label">{municipality}</h3>
-                      <div className="dir-zone-card-row">
-                        {locs.map((loc) => (
-                          <DirectoryCard
-                            key={loc.id}
-                            loc={loc}
-                            businessCategoryDisplay={resolveLocationBizName(loc)}
-                            distanceKm={userCoords ? distanceToStoreKm(loc, userCoords) : null}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </section>
-              ))}
             </div>
-          )}
-        </div>
+          </>
+        ) : null}
       </div>
     );
   }

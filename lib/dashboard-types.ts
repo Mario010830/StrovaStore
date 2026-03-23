@@ -20,6 +20,10 @@ export interface BusinessCategory {
   slug: string;
 }
 
+/**
+ * Local público en el directorio. Extensiones posibles vía API (no implementadas en UI aún):
+ * rating, reviewCount, isVerified, productCount, hasPromo — normalizar en catalogApi cuando existan.
+ */
 export interface PublicLocation {
   id: number;
   name: string;

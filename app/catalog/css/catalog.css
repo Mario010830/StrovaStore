@@ -2,6 +2,7 @@
    ║  STROVA STORE — Professional E-commerce                     ║
    ╚══════════════════════════════════════════════════════════════╝ */
 
+@import "./catalog.directory.css";
 @import "./catalog.responsive.css";
 @import "./catalog.marketplace.css";
 @import "./catalog.allproducts.css";
@@ -1128,6 +1129,18 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.dir-store-card__zone {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--dir-text-secondary);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .dir-store-card__distance {
