@@ -231,8 +231,10 @@
 .landing-desktop-cat {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   flex-shrink: 0;
+  min-height: 44px;
   padding: 8px 16px;
   border: none;
   border-radius: 999px;
@@ -244,6 +246,11 @@
   color: #0f172a;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.2s ease, color 0.2s ease, opacity 0.25s ease;
+  outline: none;
+}
+
+.landing-desktop-cat:focus-visible {
+  box-shadow: 0 0 0 3px rgba(24, 95, 165, 0.45);
 }
 
 .landing-desktop-cat:hover:not(.landing-desktop-cat--active) {

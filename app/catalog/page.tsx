@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { createElement, useCallback, useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, MapPin, Store } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
-import { BusinessCategoryPill } from "@/components/ui/BusinessCategoryPill";
 import {
   QUERY_POLLING_OPTIONS,
   useGetBusinessCategoriesQuery,
@@ -16,75 +15,165 @@ import { useFuseSearch } from "@/hooks/useFuseSearch";
 import type { PublicLocation } from "@/lib/dashboard-types";
 import AllProductsView from "./AllProductsView";
 import { useCatalogCtx } from "./layout";
-import { getBusinessUrl } from "@/lib/runtime-config";
 import { toImageProxyUrl } from "@/lib/image";
-import { SectionHeader } from "@/components/ui/SectionHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { FilterChip } from "@/components/ui/FilterChip";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { getRtkErrorInfo } from "@/lib/rtk-error";
 import { getBusinessCategoryLucideIcon } from "@/utils/businessCategoryIcons";
-
-const STROVA_BUSINESS_URL = getBusinessUrl();
-
-const DIRECTORY_CATEGORIES = [
-  { id: "todos", label: "Todos", icon: "apps" },
-  { id: "alimentacion", label: "Alimentación", icon: "restaurant" },
-  { id: "ferreteria", label: "Ferretería", icon: "build" },
-  { id: "libreria", label: "Librería", icon: "menu_book" },
-  { id: "hogar", label: "Hogar", icon: "home" },
-  { id: "electronica", label: "Electrónica", icon: "devices" },
-  { id: "ropa", label: "Ropa", icon: "checkroom" },
-] as const;
+import { buildCatalogZoneHref } from "@/app/lib/landing-zones";
+import { haversineKm } from "@/lib/geo";
 
 const SORT_OPTIONS = ["Más cercanos", "Más populares", "Nuevos"] as const;
+
+type PublicLocationSearch = PublicLocation & { _bizSearch: string };
+
+type DirBizCatItem = { key: string; name: string; slug: string };
+
+type MunicipioGroup = { municipality: string; locations: PublicLocation[] };
+type ProvinciaGroup = { province: string; municipios: MunicipioGroup[] };
+
+function isExcludedDirectoryLocation(loc: PublicLocation): boolean {
+  const name = (loc.name ?? "").trim().toLowerCase();
+  const org = (loc.organizationName ?? "").trim().toLowerCase();
+  if (name === "almacén principal" || name === "almacen principal") return true;
+  if (org === "organización principal" || org === "organizacion principal") return true;
+  return false;
+}
+
+function hasZoneData(loc: PublicLocation): boolean {
+  return !!(loc.province?.trim() || loc.municipality?.trim());
+}
+
+function distanceToStoreKm(
+  loc: PublicLocation,
+  user: { lat: number; lng: number },
+): number | null {
+  const lat = loc.latitude;
+  const lon = loc.longitude;
+  if (lat == null || lon == null) return null;
+  if (typeof lat !== "number" || typeof lon !== "number") return null;
+  return haversineKm(user.lat, user.lng, lat, lon);
+}
+
+function sortLocations(
+  list: PublicLocation[],
+  sort: string,
+  userPos: { lat: number; lng: number } | null,
+): PublicLocation[] {
+  const next = [...list];
+  if (sort === "Más cercanos" && userPos) {
+    return next.sort((a, b) => {
+      const da = distanceToStoreKm(a, userPos);
+      const db = distanceToStoreKm(b, userPos);
+      if (da != null && db != null) return da - db;
+      if (da != null) return -1;
+      if (db != null) return 1;
+      return (a.name ?? "").localeCompare(b.name ?? "", "es");
+    });
+  }
+  if (sort === "Nuevos") {
+    return next.sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
+  }
+  if (sort === "Más populares") {
+    return next.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "", "es"));
+  }
+  return next.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "", "es"));
+}
+
+function groupByProvinceMunicipality(locations: PublicLocation[]): ProvinciaGroup[] {
+  const provinceMap = new Map<string, Map<string, PublicLocation[]>>();
+
+  for (const loc of locations) {
+    const p = (loc.province ?? "").trim() || "Sin provincia";
+    const m = (loc.municipality ?? "").trim() || "Sin municipio";
+    if (!provinceMap.has(p)) provinceMap.set(p, new Map());
+    const mMap = provinceMap.get(p)!;
+    if (!mMap.has(m)) mMap.set(m, []);
+    mMap.get(m)!.push(loc);
+  }
+
+  const provinces = [...provinceMap.keys()].sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+
+  return provinces.map((province) => {
+    const mMap = provinceMap.get(province)!;
+    const municipios = [...mMap.keys()]
+      .sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }))
+      .map((municipality) => ({
+        municipality,
+        locations: mMap.get(municipality)!,
+      }));
+    return { province, municipios };
+  });
+}
+
+function formatDistanceKm(km: number): string {
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  if (km < 10) return `${km.toFixed(1)} km`;
+  return `${Math.round(km)} km`;
+}
 
 function DirectoryCard({
   loc,
   businessCategoryDisplay,
+  distanceKm,
 }: {
   loc: PublicLocation;
   businessCategoryDisplay: string | null;
+  distanceKm: number | null;
 }) {
   const hasHours = !!loc.businessHours;
-  const showBadge = hasHours && loc.isOpenNow != null;
+  const showStatus = hasHours && loc.isOpenNow != null;
   const isOpen = loc.isOpenNow === true;
-  const categoryLine = loc.organizationName || "—";
-
   const proxiedImageUrl = toImageProxyUrl(loc.photoUrl);
+  const BizIcon = businessCategoryDisplay
+    ? getBusinessCategoryLucideIcon(businessCategoryDisplay)
+    : LayoutGrid;
 
   return (
-    <Link href={`/catalog/${loc.id}`} className="dir-card">
-      <div className="dir-card__img-wrap">
+    <Link href={`/catalog/${loc.id}`} className="dir-store-card">
+      <div className="dir-store-card__media">
         {proxiedImageUrl ? (
-          <Image src={proxiedImageUrl} alt={loc.name} width={480} height={320} />
+          <Image
+            src={proxiedImageUrl}
+            alt={loc.name}
+            fill
+            className="dir-store-card__img"
+            sizes="(max-width: 599px) 160px, 220px"
+          />
         ) : (
-          <div className="dir-card__placeholder">
-            <Icon name="storefront" />
+          <div className="dir-store-card__placeholder">
+            <Store className="dir-store-card__placeholder-icon" size={32} strokeWidth={1.5} aria-hidden />
           </div>
         )}
-        {showBadge && (
-          <StatusBadge
-            label={isOpen ? "Abierto" : "Cerrado"}
-            className="dir-card__badge"
-            active={isOpen}
-            inactiveClassName="dir-card__badge--closed"
-            icon={<span className="dir-card__badge-dot" />}
-          />
-        )}
       </div>
-      <div className="dir-card__body">
-        <h3 className="dir-card__name">{loc.name}</h3>
-        <p className="dir-card__category">{categoryLine}</p>
-        <div className="dir-card__biz-pill">
-          <BusinessCategoryPill name={businessCategoryDisplay} />
-        </div>
-        <div className="dir-card__footer">
-          <span className="dir-card__location">
-            <Icon name="location_on" />
-            — km
-          </span>
-          <span className="dir-card__cta">Ver tienda</span>
+      <div className="dir-store-card__body">
+        <h3 className="dir-store-card__name">{loc.name}</h3>
+        {businessCategoryDisplay ? (
+          <div className="dir-store-card__biz">
+            {createElement(BizIcon, {
+              className: "dir-store-card__biz-icon",
+              size: 12,
+              strokeWidth: 2,
+              "aria-hidden": true,
+            })}
+            <span className="dir-store-card__biz-label">{businessCategoryDisplay}</span>
+          </div>
+        ) : null}
+        {distanceKm != null ? (
+          <p className="dir-store-card__distance">{formatDistanceKm(distanceKm)}</p>
+        ) : null}
+        <div
+          className={`dir-store-card__bottom${showStatus ? "" : " dir-store-card__bottom--solo"}`}
+        >
+          {showStatus ? (
+            <span className="dir-store-card__status">
+              <span
+                className={`dir-store-card__dot${isOpen ? " dir-store-card__dot--open" : " dir-store-card__dot--closed"}`}
+                aria-hidden
+              />
+              {isOpen ? "Abierto" : "Cerrado"}
+            </span>
+          ) : null}
+          <span className="dir-store-card__cta">Ver tienda →</span>
         </div>
       </div>
     </Link>
@@ -93,16 +182,15 @@ function DirectoryCard({
 
 function DirSkeletons() {
   return (
-    <div className="dir-grid">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="dir-card" style={{ pointerEvents: "none", opacity: 0.7 }}>
-          <div className="dir-card__img-wrap" />
-          <div className="dir-card__body">
-            <div className="dir-card__name" style={{ height: 20, background: "#e2e8f0", borderRadius: 4 }} />
-            <div className="dir-card__category" style={{ height: 14, background: "#e2e8f0", borderRadius: 4, width: "60%" }} />
-            <div className="dir-card__footer" style={{ marginTop: 8 }}>
-              <span style={{ height: 14, background: "#e2e8f0", borderRadius: 4, width: 48 }} />
-            </div>
+    <div className="dir-tiendas-skeleton" aria-busy="true">
+      {[0, 1].map((i) => (
+        <div key={i} className="dir-tiendas-skeleton__prov">
+          <div className="dir-tiendas-skeleton__prov-head" />
+          <div className="dir-tiendas-skeleton__muni-label" />
+          <div className="dir-zone-card-row dir-zone-card-row--skeleton">
+            {[0, 1, 2, 3].map((j) => (
+              <div key={j} className="dir-tiendas-skeleton__card" />
+            ))}
           </div>
         </div>
       ))}
@@ -110,9 +198,27 @@ function DirSkeletons() {
   );
 }
 
-type DirBizCatItem = { key: string; name: string; slug: string };
+function TiendasEmptyIllustration() {
+  return (
+    <div className="dir-tiendas-empty__art" aria-hidden>
+      <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="dir-tiendas-empty__svg">
+        <circle cx="60" cy="60" r="52" fill="#F1F5F9" />
+        <path
+          d="M38 52h44v36H38V52zm6-14h32l4 14H40l4-14z"
+          stroke="#94A3B8"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+          fill="#fff"
+        />
+        <circle cx="60" cy="72" r="6" fill="#CBD5E1" />
+        <path d="M44 44h32" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    </div>
+  );
+}
 
 export default function CatalogLocationsPage() {
+  const sortSelectId = useId();
   const searchParams = useSearchParams();
   const router = useRouter();
   const tab = searchParams.get("tab") ?? "tiendas";
@@ -129,19 +235,65 @@ export default function CatalogLocationsPage() {
     QUERY_POLLING_OPTIONS.general,
   );
   const { search, setSearch } = useCatalogCtx();
-  const [directoryCategory, setDirectoryCategory] = useState<string>("todos");
   const [directorySort, setDirectorySort] = useState<string>("Más cercanos");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
-  const filtered = useFuseSearch(
-    locations ?? [],
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      () => setUserCoords(null),
+      { enableHighAccuracy: false, maximumAge: 300_000, timeout: 10_000 },
+    );
+  }, []);
+
+  const resolveLocationBizName = useCallback(
+    (loc: PublicLocation): string | null => {
+      if (loc.businessCategoryName?.trim()) return loc.businessCategoryName.trim();
+      if (loc.businessCategoryId == null) return null;
+      const c = businessCategories.find((x) => x.id === loc.businessCategoryId);
+      return c?.name ?? null;
+    },
+    [businessCategories],
+  );
+
+  const prepared = useMemo(() => {
+    if (!locations) return { base: [] as PublicLocation[], forSearch: [] as PublicLocationSearch[] };
+    let base = locations.filter((loc) => !isExcludedDirectoryLocation(loc) && hasZoneData(loc));
+    if (zonaProvincia) {
+      base = base.filter((loc) => (loc.province ?? "").trim() === zonaProvincia);
+    }
+    if (zonaMunicipio) {
+      base = base.filter((loc) => (loc.municipality ?? "").trim() === zonaMunicipio);
+    }
+    const forSearch: PublicLocationSearch[] = base.map((loc) => ({
+      ...loc,
+      _bizSearch: resolveLocationBizName(loc) ?? "",
+    }));
+    return { base, forSearch };
+  }, [locations, zonaProvincia, zonaMunicipio, resolveLocationBizName]);
+
+  const fuseFiltered = useFuseSearch(
+    prepared.forSearch,
     [
-      { name: "name" as const, weight: 0.5 },
-      { name: "organizationName" as const, weight: 0.2 },
-      { name: "province" as const, weight: 0.15 },
-      { name: "municipality" as const, weight: 0.15 },
+      { name: "name" as const, weight: 0.45 },
+      { name: "_bizSearch" as const, weight: 0.45 },
+      { name: "province" as const, weight: 0.05 },
+      { name: "municipality" as const, weight: 0.05 },
     ],
     search,
   );
+
+  const activeBizCategoryId = useMemo(() => {
+    if (!categorySlug) return null;
+    const match = businessCategories.find((c) => c.slug === categorySlug);
+    return match?.id ?? null;
+  }, [categorySlug, businessCategories]);
+
+  const activeDirBizKey = activeBizCategoryId != null ? String(activeBizCategoryId) : "todos";
 
   const dirBizCategoryItems: DirBizCatItem[] = useMemo(() => {
     const sorted = [...businessCategories].sort((a, b) =>
@@ -152,14 +304,6 @@ export default function CatalogLocationsPage() {
       ...sorted.map((c) => ({ key: String(c.id), name: c.name, slug: c.slug })),
     ];
   }, [businessCategories]);
-
-  const activeBizCategoryId = useMemo(() => {
-    if (!categorySlug) return null;
-    const match = businessCategories.find((c) => c.slug === categorySlug);
-    return match?.id ?? null;
-  }, [categorySlug, businessCategories]);
-
-  const activeDirBizKey = activeBizCategoryId != null ? String(activeBizCategoryId) : "todos";
 
   const selectDirBizCategory = useCallback(
     (item: DirBizCatItem) => {
@@ -172,146 +316,180 @@ export default function CatalogLocationsPage() {
     [router, searchParams],
   );
 
-  const resolveLocationBizName = useCallback(
-    (loc: PublicLocation): string | null => {
-      if (loc.businessCategoryName?.trim()) return loc.businessCategoryName.trim();
-      if (loc.businessCategoryId == null) return null;
-      const c = businessCategories.find((x) => x.id === loc.businessCategoryId);
-      return c?.name ?? null;
-    },
-    [businessCategories],
-  );
-
-  const categoryFilterLabel = useMemo(() => {
-    if (!categorySlug) return null;
-    return businessCategories.find((c) => c.slug === categorySlug)?.name ?? null;
-  }, [categorySlug, businessCategories]);
-
   const directoryList = useMemo(() => {
-    let list = [...filtered];
-    if (zonaProvincia) {
-      list = list.filter((loc) => (loc.province ?? "").trim() === zonaProvincia);
-    }
-    if (zonaMunicipio) {
-      list = list.filter((loc) => (loc.municipality ?? "").trim() === zonaMunicipio);
-    }
+    let list: PublicLocation[] = [...fuseFiltered];
     if (activeBizCategoryId != null) {
       list = list.filter((loc) => loc.businessCategoryId === activeBizCategoryId);
     }
-    if (directoryCategory !== "todos") {
-      const term = directoryCategory.toLowerCase();
-      list = list.filter(
-        (loc) =>
-          (loc.organizationName?.toLowerCase() || "").includes(term) ||
-          (loc.name?.toLowerCase() || "").includes(term),
-      );
-    }
-    if (directorySort === "Nuevos") {
-      list = [...list].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
-    } else if (directorySort === "Más populares") {
-      list = [...list].sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-    } else {
-      list = [...list].sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-    }
-    return list;
-  }, [
-    filtered,
-    directoryCategory,
-    directorySort,
-    zonaProvincia,
-    zonaMunicipio,
-    activeBizCategoryId,
-  ]);
+    return sortLocations(list, directorySort, userCoords);
+  }, [fuseFiltered, activeBizCategoryId, directorySort, userCoords]);
+
+  const groupedZones = useMemo(() => groupByProvinceMunicipality(directoryList), [directoryList]);
+
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFiltersOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [filtersOpen]);
+
+  const clearSearch = useCallback(() => setSearch(""), [setSearch]);
 
   const showTiendas = tab === "tiendas";
   const errorInfo = getRtkErrorInfo(error);
 
   if (showTiendas) {
+    const hideProvinciaVerTodas = zonaProvincia.length > 0 && zonaMunicipio.length === 0;
+
     return (
-      <div className="dir-page">
-        <header className="dir-header">
-          <div className="dir-header__inner">
-            <SectionHeader
-              title="Tiendas locales en tu ciudad"
-              subtitle="Descubrí los mejores negocios cerca tuyo y pedí directamente por WhatsApp."
-            />
-            <div className="dir-header__row">
-              <div className="dir-search-box dir-search-wrap">
+      <div className="dir-page dir-page--zones">
+        <div className="dir-tiendas-sticky">
+          <header className="dir-tiendas-header">
+            <div className="landing-shell dir-tiendas-header__shell">
+              <div className="dir-tiendas-header__top">
+                <div className="dir-tiendas-header__headline">
+                  <h1 className="dir-tiendas-title">Tiendas locales en tu ciudad</h1>
+                </div>
+                <div className="dir-tiendas-header__actions">
+                  <div className="dir-tiendas-sort-wrap">
+                    <label className="dir-tiendas-sort-label" htmlFor={sortSelectId}>
+                      Ordenar listado
+                    </label>
+                    <select
+                      id={sortSelectId}
+                      className="dir-tiendas-sort-select"
+                      value={directorySort}
+                      onChange={(e) => setDirectorySort(e.target.value)}
+                    >
+                      {SORT_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    className="dir-tiendas-filters-trigger dir-tiendas-filters-trigger--mobile-only"
+                    aria-expanded={filtersOpen}
+                    aria-controls="dir-tiendas-filters-panel"
+                    onClick={() => setFiltersOpen(true)}
+                  >
+                    <Icon name="filter_list" />
+                    Filtros
+                  </button>
+                </div>
+              </div>
+              <p className="dir-tiendas-subtitle">
+                Descubrí los mejores negocios cerca tuyo y pedí directamente por WhatsApp. El listado se
+                agrupa por zona; podés filtrar por rubro y búsqueda.
+              </p>
+              <div className="dir-tiendas-search">
                 <Icon name="search" />
                 <input
-                  type="text"
-                  className="dir-search"
+                  type="search"
+                  className="dir-tiendas-search__input"
                   placeholder="Buscar tiendas por nombre o rubro..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
+                  aria-label="Buscar tiendas por nombre o rubro"
                 />
               </div>
-              <select
-                className="dir-sort"
-                value={directorySort}
-                onChange={(e) => setDirectorySort(e.target.value)}
-                aria-label="Ordenar por"
-              >
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
+            </div>
+          </header>
+
+          <div className="landing-desktop-category-strip dir-tiendas-cat-strip">
+            <div className="landing-shell landing-desktop-category-strip__inner">
+              <div className="landing-desktop-categories" role="tablist" aria-label="Categorías de negocio">
+                {dirBizCategoryItems.map((item) => {
+                  const active = activeDirBizKey === item.key;
+                  const LucideIcon =
+                    item.key === "todos" ? LayoutGrid : getBusinessCategoryLucideIcon(item.name);
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      className={`landing-desktop-cat${active ? " landing-desktop-cat--active" : ""}`}
+                      onClick={() => selectDirBizCategory(item)}
+                    >
+                      <span className="landing-desktop-cat__icon" aria-hidden>
+                        <LucideIcon size={16} strokeWidth={2} />
+                      </span>
+                      <span className="landing-desktop-cat__label">{item.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </header>
-
-        <div className="dir-biz-category-strip">
-          <div className="dir-biz-category-strip__scroll" role="tablist" aria-label="Tipo de negocio">
-            {dirBizCategoryItems.map((item) => {
-              const active = activeDirBizKey === item.key;
-              const LucideIcon =
-                item.key === "todos" ? LayoutGrid : getBusinessCategoryLucideIcon(item.name);
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={active}
-                  className={`dir-biz-cat-pill${active ? " dir-biz-cat-pill--active" : ""}`}
-                  onClick={() => selectDirBizCategory(item)}
-                >
-                  <span className="dir-biz-cat-pill__icon" aria-hidden>
-                    <LucideIcon size={16} strokeWidth={2} />
-                  </span>
-                  <span>{item.name}</span>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
-        <div className="dir-chips">
-          {DIRECTORY_CATEGORIES.map((cat) => (
-            <FilterChip
-              key={cat.id}
-              label={cat.label}
-              iconName={cat.icon}
-              active={directoryCategory === cat.id}
-              onClick={() => setDirectoryCategory(cat.id)}
-              className="dir-chip"
-              activeClassName="dir-chip--active"
+        {!isLoading && !isError && prepared.base.length > 0 ? (
+          <div className="landing-shell">
+            <div className="dir-tiendas-results-bar" role="status" aria-live="polite">
+              <p className="dir-tiendas-results-bar__count">
+                {directoryList.length === 1
+                  ? "1 tienda encontrada"
+                  : `${directoryList.length} tiendas encontradas`}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        {filtersOpen ? (
+          <>
+            <button
+              type="button"
+              className="dir-tiendas-filters-backdrop"
+              aria-label="Cerrar filtros"
+              onClick={() => setFiltersOpen(false)}
             />
-          ))}
-        </div>
+            <div
+              id="dir-tiendas-filters-panel"
+              className="dir-tiendas-filters-panel"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="dir-tiendas-filters-title"
+            >
+              <div className="dir-tiendas-filters-panel__head">
+                <h2 id="dir-tiendas-filters-title" className="dir-tiendas-filters-panel__title">
+                  Filtros
+                </h2>
+                <button
+                  type="button"
+                  className="dir-tiendas-filters-panel__close"
+                  onClick={() => setFiltersOpen(false)}
+                  aria-label="Cerrar"
+                >
+                  <Icon name="close" />
+                </button>
+              </div>
+              <p className="dir-tiendas-filters-panel__section-label">Ordenar por</p>
+              <ul className="dir-tiendas-sort-list">
+                {SORT_OPTIONS.map((opt) => (
+                  <li key={opt}>
+                    <button
+                      type="button"
+                      className={`dir-tiendas-sort-option${directorySort === opt ? " dir-tiendas-sort-option--active" : ""}`}
+                      onClick={() => {
+                        setDirectorySort(opt);
+                        setFiltersOpen(false);
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        ) : null}
 
-        <div className="dir-content">
-          <div className="dir-results-bar">
-            <span className="dir-results-count">
-              {directoryList.length} tiendas encontradas
-            </span>
-            <button type="button" className="dir-filters-btn">
-              <Icon name="filter_list" />
-              Filtros
-            </button>
-          </div>
-
+        <div className="dir-tiendas-zones">
           {isLoading && <DirSkeletons />}
 
           {isError && (
@@ -334,48 +512,64 @@ export default function CatalogLocationsPage() {
 
           {!isLoading &&
             !isError &&
-            directoryList.length === 0 &&
             locations &&
-            locations.length > 0 && (
-              <EmptyState
-                icon={<Icon name="search_off" />}
-                message={`No se encontraron tiendas para "${search}"${directoryCategory !== "todos" ? ` en ${DIRECTORY_CATEGORIES.find((c) => c.id === directoryCategory)?.label}` : ""}${categoryFilterLabel ? ` · ${categoryFilterLabel}` : ""}`}
-              />
+            locations.length > 0 &&
+            prepared.base.length === 0 && (
+              <EmptyState icon={<Icon name="store" />} message="No hay tiendas para mostrar en esta vista." />
             )}
 
-          {!isLoading && !isError && directoryList.length > 0 && (
-            <div className="dir-grid">
-              {directoryList.map((loc) => (
-                <DirectoryCard
-                  key={loc.id}
-                  loc={loc}
-                  businessCategoryDisplay={resolveLocationBizName(loc)}
-                />
+          {!isLoading &&
+            !isError &&
+            prepared.base.length > 0 &&
+            directoryList.length === 0 && (
+              <div className="dir-tiendas-empty">
+                <TiendasEmptyIllustration />
+                <p className="dir-tiendas-empty__title">No encontramos tiendas</p>
+                {search.trim() ? (
+                  <button type="button" className="dir-tiendas-empty__clear" onClick={clearSearch}>
+                    Limpiar búsqueda
+                  </button>
+                ) : null}
+              </div>
+            )}
+
+          {!isLoading && !isError && groupedZones.length > 0 && (
+            <div className="dir-tiendas-zones__inner landing-shell">
+              {groupedZones.map(({ province, municipios }) => (
+                <section key={province} className="dir-zone-provincia">
+                  <div className="dir-zone-provincia__head">
+                    <div className="dir-zone-provincia__title-row">
+                      <MapPin className="dir-zone-provincia__pin" size={20} strokeWidth={2} aria-hidden />
+                      <h2 className="dir-zone-provincia__title">{province}</h2>
+                    </div>
+                    {!hideProvinciaVerTodas ? (
+                      <Link href={buildCatalogZoneHref(province, null)} className="dir-zone-provincia__link">
+                        Ver todas →
+                      </Link>
+                    ) : null}
+                  </div>
+                  <div className="dir-zone-provincia__divider" aria-hidden />
+
+                  {municipios.map(({ municipality, locations: locs }) => (
+                    <div key={`${province}::${municipality}`} className="dir-zone-municipio">
+                      <h3 className="dir-zone-municipio__label">{municipality}</h3>
+                      <div className="dir-zone-card-row">
+                        {locs.map((loc) => (
+                          <DirectoryCard
+                            key={loc.id}
+                            loc={loc}
+                            businessCategoryDisplay={resolveLocationBizName(loc)}
+                            distanceKm={userCoords ? distanceToStoreKm(loc, userCoords) : null}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </section>
               ))}
             </div>
           )}
         </div>
-
-        <section className="dir-banner">
-          <div className="dir-banner__content">
-            <h2 className="dir-banner__title">¿Tenés un negocio?</h2>
-            <p className="dir-banner__text">
-              Sumate a StrovaStore y empezá a recibir pedidos por WhatsApp hoy mismo. Tu catálogo online en minutos.
-            </p>
-            <a
-              href={STROVA_BUSINESS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="dir-banner__cta"
-            >
-              Registrar mi negocio
-            </a>
-          </div>
-          <div className="dir-banner__icon" aria-hidden>
-            <Icon name="rocket_launch" />
-          </div>
-        </section>
-
       </div>
     );
   }

@@ -1,20 +1,19 @@
 "use client";
 
-import { useLayoutEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 /**
- * Media query en cliente. Primer render en false (igual que SSR); useLayoutEffect actualiza antes del paint.
+ * Media query en cliente. SSR: false; tras hidratar, coincide con window.matchMedia.
  */
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
-
-  useLayoutEffect(() => {
-    const mq = window.matchMedia(query);
-    setMatches(mq.matches);
-    const onChange = () => setMatches(mq.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, [query]);
-
-  return matches;
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === "undefined") return () => {};
+      const mq = window.matchMedia(query);
+      mq.addEventListener("change", onStoreChange);
+      return () => mq.removeEventListener("change", onStoreChange);
+    },
+    () => (typeof window !== "undefined" ? window.matchMedia(query).matches : false),
+    () => false,
+  );
 }
