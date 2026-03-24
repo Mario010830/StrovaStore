@@ -380,8 +380,8 @@
   }
 
   .sp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+    gap: 14px;
   }
 }
 
@@ -432,11 +432,11 @@
   }
 
   .sp-card__img-wrap {
-    height: 220px;
+    height: 200px;
   }
 
   .sp-card__img {
-    height: 220px;
+    height: 200px;
   }
 
   .sp-card__body {

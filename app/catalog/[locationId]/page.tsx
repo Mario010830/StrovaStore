@@ -138,14 +138,14 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
         <h3 className="sp-card__name" title={item.name}>
           {item.name}
         </h3>
-        {subtitle ? (
-          <p className="sp-card__desc">{subtitle}</p>
-        ) : null}
         <PriceText value={item.precio} className="sp-card__price" />
         {!sold ? (
           <p className="sp-card__stock-ok" role="status">
             En stock
           </p>
+        ) : null}
+        {subtitle ? (
+          <p className="sp-card__desc">{subtitle}</p>
         ) : null}
         {sold ? (
           <div className="sp-card__sold-actions">
