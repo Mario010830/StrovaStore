@@ -97,7 +97,7 @@
   width: 100%;
   margin-top: 24px;
   padding: 14px 20px;
-  background: var(--dir-secondary);
+  background: var(--dir-primary);
   color: #fff;
   border: none;
   border-radius: var(--dir-radius-lg);
@@ -109,7 +109,7 @@
 }
 
 .sp-wa-btn:hover {
-  opacity: 0.95;
+  background: #185fa9;
 }
 
 .sp-wa-btn .material-icons {
@@ -365,6 +365,21 @@
   right: 12px;
 }
 
+.sp-card__fav.card-fav-btn {
+  background: rgba(51, 65, 85, 0.88);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
+}
+
+.sp-card__fav.card-fav-btn:hover {
+  background: rgba(71, 85, 105, 0.95);
+  color: #fff;
+}
+
+.sp-card__fav.card-fav-btn[aria-pressed="true"] {
+  color: #fda4af;
+}
+
 .sp-card:hover {
   border-color: var(--dir-primary);
   box-shadow: 0 4px 16px rgba(24, 95, 165, 0.15);
@@ -394,20 +409,29 @@
   transform: scale(1.05);
 }
 
-.sp-card__sold-overlay {
+.sp-card__sold-badge {
   position: absolute;
-  inset: 0;
-  z-index: 3;
+  top: 50%;
+  left: 50%;
+  z-index: 4;
+  transform: translate(-50%, -50%);
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(15, 23, 42, 0.58);
+  background: #dc2626;
   color: #fff;
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  text-align: center;
   text-transform: uppercase;
+  padding: 10px;
   pointer-events: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
 }
 
 .sp-card__cat-pill {
@@ -415,45 +439,47 @@
   top: 10px;
   left: 10px;
   z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   max-width: calc(100% - 52px);
-  padding: 4px 10px;
+  padding: 5px 11px 5px 8px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--dir-text);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+  color: #fff;
+  background: rgba(51, 65, 85, 0.92);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.sp-card__cat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
 .sp-card__stock-pill {
   position: absolute;
   bottom: 10px;
   left: 10px;
-  right: 10px;
   z-index: 2;
-  text-align: center;
-  padding: 5px 8px;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
   font-weight: 700;
-  color: #9a3412;
-  background: rgba(255, 237, 213, 0.95);
-  border: 1px solid rgba(234, 88, 12, 0.35);
-}
-
-.sp-card__pre-qty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding: 8px 10px;
-  border: 1px solid var(--dir-divider);
-  border-radius: var(--dir-radius-md);
-  background: rgba(255, 255, 255, 0.8);
+  color: #0f172a;
+  background: #fef9c3;
+  border: 1px solid #b45309;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  max-width: calc(100% - 20px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sp-card__sold-actions {
@@ -483,11 +509,18 @@
 }
 
 .sp-card__price {
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
-  color: var(--dir-primary);
+  color: #0f172a;
+}
+
+.sp-card__stock-ok {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #16a34a;
 }
 
 .sp-card__desc {
@@ -525,6 +558,21 @@
 
 .sp-card__add .material-icons {
   font-size: 18px;
+}
+
+.sp-card__add.sp-card__add--cta {
+  margin-top: auto;
+  padding: 12px 16px;
+  background: var(--dir-primary);
+  color: #fff;
+  border: none;
+  font-size: 15px;
+}
+
+.sp-card__add.sp-card__add--cta:hover {
+  background: #185fa9;
+  color: #fff;
+  filter: brightness(1.02);
 }
 
 .sp-card__add--disabled {

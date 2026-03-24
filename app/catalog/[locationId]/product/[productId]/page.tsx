@@ -15,6 +15,7 @@ import {
   useGetPublicCatalogQuery,
   useGetPublicLocationsQuery,
 } from "../../../_service/catalogApi";
+import { getProductCardSubtitle } from "@/lib/catalog-display";
 
 function getInitials(name: string): string {
   return name
@@ -160,7 +161,7 @@ export default function ProductDetailPage() {
             <div className="pd-desc-block">
               <h2 className="pd-desc-title">Descripción del producto</h2>
               <p className="pd-desc-text">
-                {product.description || "Sin descripción."}
+                {getProductCardSubtitle(product) ?? "Sin descripción."}
               </p>
             </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useSyncExternalStore } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -27,6 +27,16 @@ import { BusinessCategoryPill } from "@/components/ui/BusinessCategoryPill";
 import { CardFavoriteButton } from "@/components/ui/CardFavoriteButton";
 import { useFavoriteProduct } from "@/hooks/useFavorites";
 import { useOpenCart } from "@/components/ui/CartUiContext";
+import { getFavoriteProductSortKey, subscribeFavorites } from "@/lib/favorites";
+import { getProductCardSubtitle } from "@/lib/catalog-display";
+
+/** Color estable por nombre de categoría (punto en chip estilo mockup). */
+function categoryDotColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  const hue = Math.abs(h) % 360;
+  return `hsl(${hue} 72% 48%)`;
+}
 
 const PRODUCT_FUSE_KEYS = [
   { name: "name" as const, weight: 0.5 },
@@ -60,21 +70,16 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
   );
   const isElaborado = item.tipo === "elaborado";
   const sold = isElaborado ? false : item.stockAtLocation === 0;
-  const maxBuy = isElaborado ? 999 : item.stockAtLocation;
-  const [draftQty, setDraftQty] = useState(1);
-
-  useEffect(() => {
-    setDraftQty(1);
-  }, [item.id]);
 
   const lowStock =
     !isElaborado && item.stockAtLocation > 0 && item.stockAtLocation <= 5;
+
+  const subtitle = getProductCardSubtitle(item);
 
   const add = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (sold) return;
-    const q = Math.min(Math.max(1, draftQty), maxBuy);
     dispatch(
       addItem({
         productId: item.id,
@@ -86,9 +91,6 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
         tipo: item.tipo,
       })
     );
-    if (q > 1) {
-      dispatch(updateQuantity({ productId: item.id, quantity: q }));
-    }
   };
 
   const qty = (delta: number) => (e: React.MouseEvent) => {
@@ -102,16 +104,23 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
       <Link href={`/catalog/${locationId}/product/${item.id}`} className="sp-card__link">
       <div className="sp-card__img-wrap">
         {sold ? (
-          <span className="sp-card__sold-overlay" aria-hidden>
-            Sin stock
+          <span className="sp-card__sold-badge" aria-hidden>
+            AGOTADO
           </span>
         ) : null}
         {item.categoryName ? (
-          <span className="sp-card__cat-pill">{item.categoryName}</span>
+          <span className="sp-card__cat-pill">
+            <span
+              className="sp-card__cat-dot"
+              style={{ background: categoryDotColor(item.categoryName) }}
+              aria-hidden
+            />
+            {item.categoryName}
+          </span>
         ) : null}
         {lowStock ? (
-          <span className="sp-card__stock-pill" aria-label={`Últimas ${item.stockAtLocation} unidades`}>
-            Últimas {item.stockAtLocation} u.
+          <span className="sp-card__stock-pill" aria-label={`Quedan ${item.stockAtLocation} unidades`}>
+            ¡Quedan {item.stockAtLocation}!
           </span>
         ) : null}
         {item.imagenUrl ? (() => {
@@ -129,10 +138,15 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
         <h3 className="sp-card__name" title={item.name}>
           {item.name}
         </h3>
+        {subtitle ? (
+          <p className="sp-card__desc">{subtitle}</p>
+        ) : null}
         <PriceText value={item.precio} className="sp-card__price" />
-        {item.description && (
-          <p className="sp-card__desc">{item.description}</p>
-        )}
+        {!sold ? (
+          <p className="sp-card__stock-ok" role="status">
+            En stock
+          </p>
+        ) : null}
         {sold ? (
           <div className="sp-card__sold-actions">
             <StatusBadge
@@ -157,41 +171,12 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
             </button>
           </div>
         ) : (
-          <>
-            <div className="sp-card__pre-qty" onClick={(e) => e.preventDefault()}>
-              <button
-                type="button"
-                className="sp-card__qty-btn"
-                aria-label="Menos cantidad"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDraftQty((q) => Math.max(1, q - 1));
-                }}
-              >
-                −
-              </button>
-              <span className="sp-card__qty-val">{draftQty}</span>
-              <button
-                type="button"
-                className="sp-card__qty-btn"
-                aria-label="Más cantidad"
-                disabled={draftQty >= maxBuy}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDraftQty((q) => Math.min(maxBuy, q + 1));
-                }}
-              >
-                +
-              </button>
-            </div>
-            <IconActionButton
-              label="Agregar al pedido"
-              iconName="add"
-              className="sp-card__add"
-              onClick={add}
-              icon={<Icon name="add" />}
-            />
-          </>
+          <IconActionButton
+            label="Agregar"
+            className="sp-card__add sp-card__add--cta"
+            onClick={add}
+            icon={<Icon name="shopping_cart" />}
+          />
         )}
       </div>
       </Link>
@@ -289,6 +274,25 @@ export default function CatalogProductsPage() {
     if (!cat) return filteredBySearch;
     return filteredBySearch.filter((p) => p.categoryName === cat);
   }, [filteredBySearch, cat]);
+
+  const favSortKey = useSyncExternalStore(
+    subscribeFavorites,
+    () => getFavoriteProductSortKey(locationId),
+    () => "",
+  );
+
+  const sortedFiltered = useMemo(() => {
+    const ids = favSortKey
+      ? favSortKey.split(",").map((x) => Number(x)).filter((n) => Number.isInteger(n) && n > 0)
+      : [];
+    const favSet = new Set(ids);
+    return [...filtered].sort((a, b) => {
+      const fa = favSet.has(a.id);
+      const fb = favSet.has(b.id);
+      if (fa !== fb) return fa ? -1 : 1;
+      return 0;
+    });
+  }, [filtered, favSortKey]);
 
   const hasProducts = !isLoading && !isError && products && products.length > 0;
   const errorInfo = getRtkErrorInfo(error);
@@ -462,7 +466,7 @@ export default function CatalogProductsPage() {
 
         {hasProducts && filtered.length > 0 && (
           <div className="sp-grid">
-            {filtered.map((item) => (
+            {sortedFiltered.map((item) => (
               <StoreProductCard key={item.id} item={item} locationId={locationId} />
             ))}
           </div>

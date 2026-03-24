@@ -100,3 +100,25 @@ export function getFavoriteStoreSnapshot(id: number): boolean {
 export function getFavoriteProductSnapshot(locationId: number, productId: number): boolean {
   return isFavoriteProduct(locationId, productId);
 }
+
+/** IDs de productos favoritos para una tienda (para ordenar el grid). */
+export function getFavoriteProductIdsForLocation(locationId: number): number[] {
+  if (typeof window === "undefined") return [];
+  const keys = parseProductKeys(localStorage.getItem(LS_PRODUCTS));
+  const out: number[] = [];
+  for (const k of keys) {
+    const parts = k.split(":");
+    if (parts.length !== 2) continue;
+    const loc = Number(parts[0]);
+    const pid = Number(parts[1]);
+    if (loc === locationId && Number.isInteger(pid) && pid > 0) out.push(pid);
+  }
+  return out;
+}
+
+/** Clave estable para `useSyncExternalStore` al cambiar favoritos. */
+export function getFavoriteProductSortKey(locationId: number): string {
+  return getFavoriteProductIdsForLocation(locationId)
+    .sort((a, b) => a - b)
+    .join(",");
+}

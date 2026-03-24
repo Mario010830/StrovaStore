@@ -78,6 +78,49 @@ function normalizeCatalogImages(item: Record<string, unknown>): PublicCatalogIma
   return list;
 }
 
+/** Texto descriptivo: el API puede usar distintos nombres o casing. */
+function pickProductDescription(item: Record<string, unknown>): string | null {
+  const keys = [
+    "description",
+    "Description",
+    "descripcion",
+    "Descripcion",
+    "shortDescription",
+    "ShortDescription",
+  ] as const;
+  for (const k of keys) {
+    const v = item[k];
+    if (typeof v === "string") {
+      const t = v.trim();
+      if (t.length > 0) return t;
+    }
+  }
+  return null;
+}
+
+function normalizeProductTags(item: Record<string, unknown>): PublicCatalogItem["tags"] | undefined {
+  const raw = item.tags;
+  if (!Array.isArray(raw)) return undefined;
+  const out: NonNullable<PublicCatalogItem["tags"]> = [];
+  for (const el of raw) {
+    const rec = asRecord(el);
+    if (!rec) continue;
+    const id = asPositiveInt(rec.id);
+    const name = asString(rec.name, "").trim();
+    if (!id || !name) continue;
+    const slugRaw = asString(rec.slug, "").trim();
+    const slug = slugRaw || `tag-${id}`;
+    const color = asNullableString(rec.color);
+    out.push({
+      id,
+      name,
+      slug,
+      ...(color ? { color } : {}),
+    });
+  }
+  return out.length ? out : undefined;
+}
+
 /** Asegura tagIds en cada ítem: el backend puede enviar "tags" (objetos) en lugar de "tagIds". */
 function normalizePublicItem(item: Record<string, unknown>): PublicCatalogItem {
   const tags = Array.isArray(item.tags) ? (item.tags as { id: number }[]) : undefined;
@@ -85,11 +128,13 @@ function normalizePublicItem(item: Record<string, unknown>): PublicCatalogItem {
     (Array.isArray(item.tagIds) ? (item.tagIds as number[]) : undefined) ??
     (Array.isArray(tags) ? tags.map((t) => t.id) : []);
 
+  const tagsNormalized = normalizeProductTags(item);
+
   return {
     id: asPositiveInt(item.id),
     code: asString(item.code),
     name: asString(item.name, "Producto"),
-    description: asNullableString(item.description),
+    description: pickProductDescription(item),
     precio: parseNumber(item.precio, 0),
     imagenUrl: asNullableString(item.imagenUrl),
     images: normalizeCatalogImages(item),
@@ -102,6 +147,7 @@ function normalizePublicItem(item: Record<string, unknown>): PublicCatalogItem {
     locationId: item.locationId == null ? null : asPositiveInt(item.locationId),
     locationName: asNullableString(item.locationName),
     tagIds: tagIds.filter((id) => Number.isInteger(id)),
+    tags: tagsNormalized,
   } as PublicCatalogItem;
 }
 

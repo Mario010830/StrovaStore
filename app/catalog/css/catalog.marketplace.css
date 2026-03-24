@@ -245,6 +245,17 @@
   overflow: hidden;
 }
 
+.mp-card__desc {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--dir-text-secondary);
+  margin: -4px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .mp-card__store {
   display: inline-flex;
   align-items: center;

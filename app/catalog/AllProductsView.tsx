@@ -19,6 +19,7 @@ import { FilterChip } from "@/components/ui/FilterChip";
 import { PriceText } from "@/components/ui/PriceText";
 import { IconActionButton } from "@/components/ui/IconActionButton";
 import { getRtkErrorInfo } from "@/lib/rtk-error";
+import { getProductCardSubtitle } from "@/lib/catalog-display";
 
 const STROVA_BUSINESS_URL = getBusinessUrl();
 
@@ -52,6 +53,7 @@ function MarketplaceProductCard({
 }) {
   const proxiedImageUrl = toImageProxyUrl(item.imagenUrl);
   const soldOut = item.tipo === "inventariable" && item.stockAtLocation <= 0;
+  const subtitle = getProductCardSubtitle(item);
 
   const handleActivate = () => {
     if (!soldOut) onPedir();
@@ -87,6 +89,9 @@ function MarketplaceProductCard({
         <h3 className="mp-card__name" title={item.name}>
           {item.name}
         </h3>
+        {subtitle ? (
+          <p className="mp-card__desc">{subtitle}</p>
+        ) : null}
         {item.locationName && (
           <span className="mp-card__store">
             <Icon name="store" />
