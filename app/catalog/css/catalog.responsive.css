@@ -380,8 +380,8 @@
   }
 
   .sp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
   }
 }
 
@@ -427,7 +427,7 @@
   }
 
   .sp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(162px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
     gap: 12px;
   }
 

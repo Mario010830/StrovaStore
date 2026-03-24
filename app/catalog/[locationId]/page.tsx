@@ -103,11 +103,6 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
     <div className={`sp-card${sold ? " sp-card--sold" : ""}`}>
       <Link href={`/catalog/${locationId}/product/${item.id}`} className="sp-card__link">
       <div className="sp-card__img-wrap">
-        {sold ? (
-          <span className="sp-card__sold-badge" aria-hidden>
-            AGOTADO
-          </span>
-        ) : null}
         {item.categoryName ? (
           <span className="sp-card__cat-pill">
             <span
@@ -281,17 +276,19 @@ export default function CatalogProductsPage() {
     () => "",
   );
 
-  const sortedFiltered = useMemo(() => {
+  /** Favoritos en una fila aparte encima; el resto del catálogo sin duplicar. */
+  const { favoriteItems, restItems } = useMemo(() => {
     const ids = favSortKey
       ? favSortKey.split(",").map((x) => Number(x)).filter((n) => Number.isInteger(n) && n > 0)
       : [];
     const favSet = new Set(ids);
-    return [...filtered].sort((a, b) => {
-      const fa = favSet.has(a.id);
-      const fb = favSet.has(b.id);
-      if (fa !== fb) return fa ? -1 : 1;
-      return 0;
-    });
+    const favoriteItems: PublicCatalogItem[] = [];
+    const restItems: PublicCatalogItem[] = [];
+    for (const p of filtered) {
+      if (favSet.has(p.id)) favoriteItems.push(p);
+      else restItems.push(p);
+    }
+    return { favoriteItems, restItems };
   }, [filtered, favSortKey]);
 
   const hasProducts = !isLoading && !isError && products && products.length > 0;
@@ -349,7 +346,7 @@ export default function CatalogProductsPage() {
               : "Abrir carrito para armar tu pedido"
           }
         >
-          <Icon name="chat" />
+          <Icon name="shopping_cart" />
           {cartCount > 0 ? `Revisar pedido (${cartCount})` : "Abrir carrito"}
         </button>
         <p className="sp-wa-sidebar-hint">
@@ -465,10 +462,36 @@ export default function CatalogProductsPage() {
         )}
 
         {hasProducts && filtered.length > 0 && (
-          <div className="sp-grid">
-            {sortedFiltered.map((item) => (
-              <StoreProductCard key={item.id} item={item} locationId={locationId} />
-            ))}
+          <div className="sp-catalog-grids">
+            {favoriteItems.length > 0 ? (
+              <section className="sp-catalog-section sp-catalog-section--fav" aria-labelledby="sp-fav-heading">
+                <h2 id="sp-fav-heading" className="sp-catalog-section__title">
+                  Favoritos
+                </h2>
+                <div className="sp-grid">
+                  {favoriteItems.map((item) => (
+                    <StoreProductCard key={item.id} item={item} locationId={locationId} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+            {restItems.length > 0 ? (
+              <section
+                className="sp-catalog-section"
+                aria-labelledby={favoriteItems.length > 0 ? "sp-rest-heading" : undefined}
+              >
+                {favoriteItems.length > 0 ? (
+                  <h2 id="sp-rest-heading" className="sp-catalog-section__title">
+                    Productos
+                  </h2>
+                ) : null}
+                <div className="sp-grid">
+                  {restItems.map((item) => (
+                    <StoreProductCard key={item.id} item={item} locationId={locationId} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
         )}
 
