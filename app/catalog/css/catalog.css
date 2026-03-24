@@ -3019,8 +3019,13 @@
 .cart-fab .material-icons { font-size: 22px; color: #fff; }
 
 .cart-fab--empty {
-  opacity: 0.72;
-  background: linear-gradient(135deg, #475569, #334155);
+  opacity: 0.92;
+  background: var(--dir-primary, #185fa5);
+}
+
+.cart-fab--empty:hover {
+  opacity: 1;
+  filter: brightness(1.05);
 }
 
 .cart-fab--has-items {

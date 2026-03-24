@@ -8,6 +8,7 @@ import type { PublicLocation } from "@/lib/dashboard-types";
 import { toImageProxyUrl } from "@/lib/image";
 import { getBusinessCategoryLucideIcon } from "@/utils/businessCategoryIcons";
 import { formatDistanceForCard } from "@/app/catalog/lib/directory-filters";
+import { buildLocationCatalogPath } from "@/lib/location-path";
 import { useFavoriteStore } from "@/hooks/useFavorites";
 import { CardFavoriteButton } from "@/components/ui/CardFavoriteButton";
 
@@ -31,7 +32,7 @@ function StoreCardInner({ loc, businessCategoryDisplay, distanceKm, zoneLabel }:
 
   return (
     <div className="dir-store-card">
-      <Link href={`/catalog/${loc.id}`} className="dir-store-card__link">
+      <Link href={buildLocationCatalogPath(loc)} className="dir-store-card__link">
       <div className="dir-store-card__media">
         {proxiedImageUrl ? (
           <Image

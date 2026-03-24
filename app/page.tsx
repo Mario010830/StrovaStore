@@ -28,6 +28,7 @@ import {
 import { getBusinessUrl } from "@/lib/runtime-config";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { getBusinessCategoryLucideIcon } from "@/utils/businessCategoryIcons";
+import { buildLocationCatalogPath, buildLocationProductPath } from "@/lib/location-path";
 
 const STROVA_BUSINESS_URL = getBusinessUrl();
 
@@ -200,7 +201,10 @@ export default function LandingPage() {
 
   const renderProductHref = (product: (typeof topProducts)[number]) =>
     typeof product.locationId === "number" && Number.isInteger(product.locationId)
-      ? `/catalog/${product.locationId}/product/${product.id}`
+      ? buildLocationProductPath(
+          { id: product.locationId, name: product.store },
+          product.id,
+        )
       : "/catalog?tab=productos";
 
   const mobileCatScrollRef = useRef<HTMLDivElement>(null);
@@ -474,7 +478,7 @@ export default function LandingPage() {
           ) : (
             <EcommerceCarousel variant="stores" ariaLabel="Tiendas populares">
               {displayStores.map((store) => (
-                <Link key={store.id} href={`/catalog/${store.id}`} className="landing-store-card">
+                <Link key={store.id} href={buildLocationCatalogPath(store)} className="landing-store-card">
                   <div className="landing-store-card__media">
                     <span
                       className={`landing-carousel-badge ${store.isOpen ? "landing-carousel-badge--open" : "landing-carousel-badge--closed"}`}
@@ -522,7 +526,7 @@ export default function LandingPage() {
               </p>
             ) : (
               displayStores.map((store) => (
-                <Link key={store.id} href={`/catalog/${store.id}`} className="landing-mob-store-item">
+                <Link key={store.id} href={buildLocationCatalogPath(store)} className="landing-mob-store-item">
                   <div className="landing-mob-store-item__avatar">
                     {store.imageUrl ? (
                       <Image

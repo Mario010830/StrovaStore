@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
@@ -19,7 +19,16 @@ import { FilterChip } from "@/components/ui/FilterChip";
 import { PriceText } from "@/components/ui/PriceText";
 import { IconActionButton } from "@/components/ui/IconActionButton";
 import { getRtkErrorInfo } from "@/lib/rtk-error";
-import { getProductCardSubtitle } from "@/lib/catalog-display";
+import { getProductCardSubtitle, categoryDotColor } from "@/lib/catalog-display";
+import type { Tag } from "@/lib/dashboard-types";
+import { CardFavoriteButton } from "@/components/ui/CardFavoriteButton";
+import { useFavoriteProduct } from "@/hooks/useFavorites";
+import {
+  getFavoriteProductKeysSortKey,
+  productFavoriteKey,
+  subscribeFavorites,
+} from "@/lib/favorites";
+import { buildLocationCatalogPath } from "@/lib/location-path";
 
 const STROVA_BUSINESS_URL = getBusinessUrl();
 
@@ -34,26 +43,58 @@ const MP_CHIP_ICONS: Record<string, string> = {
 };
 
 const PRODUCT_FUSE_KEYS = [
-  { name: "name" as const, weight: 0.5 },
-  { name: "categoryName" as const, weight: 0.25 },
-  { name: "description" as const, weight: 0.15 },
-  { name: "tags.name" as const, weight: 0.1 },
+  { name: "name" as const, weight: 0.45 },
+  { name: "description" as const, weight: 0.2 },
+  { name: "tags.name" as const, weight: 0.35 },
 ];
 
-type SortKey = "default" | "price-asc" | "price-desc" | "name-asc" | "name-desc";
+function shuffleCopy<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function tagLabelsForProduct(item: PublicCatalogItem, tagsStable: Tag[]): string[] {
+  if (item.tags?.length) {
+    return item.tags.map((t) => t.name).filter(Boolean);
+  }
+  const ids = item.tagIds ?? [];
+  return ids
+    .map((id) => tagsStable.find((t) => t.id === id)?.name)
+    .filter((n): n is string => Boolean(n));
+}
 
 const PAGE_SIZE = 50;
 
+function MpCardFavorite({ locationId, productId }: { locationId: number; productId: number }) {
+  const { isFavorite, toggle } = useFavoriteProduct(locationId, productId);
+  return (
+    <CardFavoriteButton
+      isFavorite={isFavorite}
+      onToggle={toggle}
+      labelOn="Quitar producto de favoritos"
+      labelOff="Guardar producto en favoritos"
+      className="mp-card__fav"
+    />
+  );
+}
+
 function MarketplaceProductCard({
   item,
+  tagLabels,
   onPedir,
 }: {
   item: PublicCatalogItem;
+  tagLabels: string[];
   onPedir: () => void;
 }) {
   const proxiedImageUrl = toImageProxyUrl(item.imagenUrl);
   const soldOut = item.tipo === "inventariable" && item.stockAtLocation <= 0;
   const subtitle = getProductCardSubtitle(item);
+  const lid = item.locationId;
 
   const handleActivate = () => {
     if (!soldOut) onPedir();
@@ -69,49 +110,57 @@ function MarketplaceProductCard({
       aria-disabled={soldOut}
     >
       <div className="mp-card__img-wrap">
-        {soldOut ? (
-          <span className="mp-card__sold-overlay" aria-hidden>
-            Sin stock
-          </span>
-        ) : null}
         {proxiedImageUrl ? (
           <Image src={proxiedImageUrl} alt={item.name} width={480} height={320} />
         ) : (
-          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #eef1f5 0%, #e2e8f0 100%)" }}>
+          <div className="mp-card__img-placeholder">
             <Icon name="inventory_2" />
           </div>
         )}
-        {item.categoryName && (
-          <span className="mp-card__cat-tag">{item.categoryName}</span>
-        )}
+        {tagLabels.length > 0 ? (
+          <div className="mp-card__tags-row" aria-label="Etiquetas">
+            {tagLabels.slice(0, 3).map((label, idx) => (
+              <span key={`${label}-${idx}`} className="mp-card__tag-pill">
+                <span
+                  className="mp-card__tag-dot"
+                  style={{ background: categoryDotColor(label) }}
+                  aria-hidden
+                />
+                {label}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {lid != null ? <MpCardFavorite locationId={lid} productId={item.id} /> : null}
       </div>
       <div className="mp-card__body">
         <h3 className="mp-card__name" title={item.name}>
           {item.name}
         </h3>
-        {subtitle ? (
-          <p className="mp-card__desc">{subtitle}</p>
+        <PriceText value={item.precio} className="mp-card__price" />
+        {!soldOut ? (
+          <p className="mp-card__stock-ok" role="status">
+            En stock
+          </p>
         ) : null}
-        {item.locationName && (
+        {subtitle ? <p className="mp-card__desc">{subtitle}</p> : null}
+        {item.locationName ? (
           <span className="mp-card__store">
             <Icon name="store" />
             {item.locationName}
           </span>
-        )}
-        <div className="mp-card__footer">
-          <PriceText value={item.precio} className="mp-card__price" />
-          <IconActionButton
-            label={soldOut ? "Sin stock" : "Pedir"}
-            className="mp-card__pedir"
-            disabled={soldOut}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (!soldOut) onPedir();
-            }}
-            icon={<Icon name="chat" />}
-          />
-        </div>
+        ) : null}
+        <IconActionButton
+          label={soldOut ? "Sin stock" : "Ver en la tienda"}
+          className="mp-card__cta"
+          disabled={soldOut}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!soldOut) onPedir();
+          }}
+          icon={<Icon name="store" />}
+        />
       </div>
     </div>
   );
@@ -123,7 +172,6 @@ export default function AllProductsView() {
   const { search, setSearch } = useCatalogCtx();
   const initializedQueryFromUrlRef = useRef(false);
   const initialQueryFromUrl = searchParams.get("q")?.trim() ?? "";
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTagSlugs, setSelectedTagSlugs] = useState<string[]>(() => {
     const rawTagParams = searchParams.getAll("tag");
     return rawTagParams
@@ -133,8 +181,8 @@ export default function AllProductsView() {
   });
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
   const [onlyInStock, setOnlyInStock] = useState(false);
-  const [sortKey, setSortKey] = useState<SortKey>("default");
   const [page, setPage] = useState(1);
+  const [randomReady, setRandomReady] = useState(false);
   const [items, setItems] = useState<PublicCatalogItem[]>([]);
 
   const {
@@ -163,7 +211,11 @@ export default function AllProductsView() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
-  }, [search, selectedCategory, selectedTagSlugs, priceRange, onlyInStock, sortKey]);
+  }, [search, selectedTagSlugs, priceRange, onlyInStock]);
+
+  useEffect(() => {
+    setRandomReady(true);
+  }, []);
 
   useEffect(() => {
     if (!data) return;
@@ -224,9 +276,6 @@ export default function AllProductsView() {
 
   const filtered = useMemo(() => {
     let list = [...filteredBySearch];
-    if (selectedCategory) {
-      list = list.filter((p) => p.categoryName === selectedCategory);
-    }
     if (selectedTagSlugs.length > 0) {
       list = list.filter((p) => {
         const productSlugs = (p.tagIds ?? [])
@@ -243,30 +292,40 @@ export default function AllProductsView() {
         (p) => p.tipo === "elaborado" || p.stockAtLocation > 0,
       );
     }
-    switch (sortKey) {
-      case "price-asc":
-        list.sort((a, b) => a.precio - b.precio);
-        break;
-      case "price-desc":
-        list.sort((a, b) => b.precio - a.precio);
-        break;
-      case "name-asc":
-        list.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "name-desc":
-        list.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-    }
     return list;
-  }, [
-    filteredBySearch,
-    selectedCategory,
-    selectedTagSlugs,
-    priceRange,
-    onlyInStock,
-    sortKey,
-    tagsStable,
-  ]);
+  }, [filteredBySearch, selectedTagSlugs, priceRange, onlyInStock, tagsStable]);
+
+  const favKeysSort = useSyncExternalStore(
+    subscribeFavorites,
+    () => getFavoriteProductKeysSortKey(),
+    () => "",
+  );
+
+  const { favoriteItems, restItems } = useMemo(() => {
+    const keys = favKeysSort ? favKeysSort.split(",").filter(Boolean) : [];
+    const favSet = new Set(keys);
+    const favoriteItems: PublicCatalogItem[] = [];
+    const restItems: PublicCatalogItem[] = [];
+    for (const p of filtered) {
+      const loc = p.locationId;
+      if (loc != null && favSet.has(productFavoriteKey(loc, p.id))) {
+        favoriteItems.push(p);
+      } else {
+        restItems.push(p);
+      }
+    }
+    return { favoriteItems, restItems };
+  }, [filtered, favKeysSort]);
+
+  const shuffledFavoriteItems = useMemo(() => {
+    if (!randomReady) return favoriteItems;
+    return shuffleCopy(favoriteItems);
+  }, [randomReady, favoriteItems]);
+
+  const shuffledRestItems = useMemo(() => {
+    if (!randomReady) return restItems;
+    return shuffleCopy(restItems);
+  }, [randomReady, restItems]);
 
   const totalProducts = filtered.length;
   const hasMore =
@@ -280,17 +339,20 @@ export default function AllProductsView() {
 
   const resetFilters = () => {
     setSearch("");
-    setSelectedCategory(null);
     setSelectedTagSlugs([]);
     setOnlyInStock(false);
-    setSortKey("default");
     setPriceRange(priceExtent);
   };
 
   const goToStore = useCallback(
-    (locationId: number | null) => {
+    (locationId: number | null, locationName: string | null) => {
       if (locationId == null) return;
-      router.push(`/catalog/${locationId}`);
+      router.push(
+        buildLocationCatalogPath({
+          id: locationId,
+          name: locationName?.trim() || `Tienda ${locationId}`,
+        }),
+      );
     },
     [router],
   );
@@ -357,7 +419,7 @@ export default function AllProductsView() {
 
       <div className="mp-chips">
         <FilterChip
-          label="Todos"
+          label={`Todos (${filteredBySearch.length})`}
           iconName="apps"
           active={selectedTagSlugs.length === 0}
           onClick={() => setSelectedTagSlugs([])}
@@ -367,7 +429,7 @@ export default function AllProductsView() {
         {tagsWithCount.map((t) => (
           <FilterChip
             key={t.slug}
-            label={t.name}
+            label={`${t.name} (${t.count})`}
             iconName={MP_CHIP_ICONS[t.name.toLowerCase()] ?? "label"}
             active={selectedTagSlugs.includes(t.slug)}
             onClick={() =>
@@ -421,28 +483,58 @@ export default function AllProductsView() {
       {loadingFirstPage ? (
         <div className="mp-grid">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="mp-card" style={{ opacity: 0.6 }}>
+            <div key={i} className="mp-card mp-card--skeleton" aria-hidden>
               <div className="mp-card__img-wrap" />
               <div className="mp-card__body">
-                <div style={{ height: 20, background: "#e2e8f0", borderRadius: 4 }} />
-                <div style={{ height: 14, background: "#e2e8f0", borderRadius: 4, width: "60%" }} />
-                <div className="mp-card__footer" style={{ marginTop: 12 }}>
-                  <div style={{ height: 24, width: 60, background: "#e2e8f0", borderRadius: 4 }} />
-                  <div style={{ height: 40, width: 80, background: "#e2e8f0", borderRadius: 12 }} />
-                </div>
+                <div className="mp-skel-line mp-skel-line--title" />
+                <div className="mp-skel-line mp-skel-line--price" />
+                <div className="mp-skel-line mp-skel-line--short" />
+                <div className="mp-skel-line mp-skel-line--cta" />
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="mp-grid">
-          {filtered.map((item) => (
-            <MarketplaceProductCard
-              key={`${item.id}-${item.locationId ?? "x"}`}
-              item={item}
-              onPedir={() => goToStore(item.locationId)}
-            />
-          ))}
+        <div className="mp-catalog-grids">
+          {favoriteItems.length > 0 ? (
+            <section className="mp-catalog-section" aria-labelledby="mp-fav-heading">
+              <h2 id="mp-fav-heading" className="mp-catalog-section__title">
+                Favoritos
+              </h2>
+              <div className="mp-grid">
+                {shuffledFavoriteItems.map((item) => (
+                  <MarketplaceProductCard
+                    key={`fav-${item.id}-${item.locationId ?? "x"}`}
+                    item={item}
+                    tagLabels={tagLabelsForProduct(item, tagsStable)}
+                    onPedir={() => goToStore(item.locationId, item.locationName)}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
+          {restItems.length > 0 ? (
+            <section
+              className="mp-catalog-section"
+              aria-labelledby={favoriteItems.length > 0 ? "mp-rest-heading" : undefined}
+            >
+              {favoriteItems.length > 0 ? (
+                <h2 id="mp-rest-heading" className="mp-catalog-section__title">
+                  Productos
+                </h2>
+              ) : null}
+              <div className="mp-grid">
+                {shuffledRestItems.map((item) => (
+                  <MarketplaceProductCard
+                    key={`${item.id}-${item.locationId ?? "x"}`}
+                    item={item}
+                    tagLabels={tagLabelsForProduct(item, tagsStable)}
+                    onPedir={() => goToStore(item.locationId, item.locationName)}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
       )}
 

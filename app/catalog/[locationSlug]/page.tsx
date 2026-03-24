@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useSyncExternalStore } from "react";
 import { useParams } from "next/navigation";
+import { skipToken } from "@reduxjs/toolkit/query";
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
@@ -28,15 +29,8 @@ import { CardFavoriteButton } from "@/components/ui/CardFavoriteButton";
 import { useFavoriteProduct } from "@/hooks/useFavorites";
 import { useOpenCart } from "@/components/ui/CartUiContext";
 import { getFavoriteProductSortKey, subscribeFavorites } from "@/lib/favorites";
-import { getProductCardSubtitle } from "@/lib/catalog-display";
-
-/** Color estable por nombre de categoría (punto en chip estilo mockup). */
-function categoryDotColor(name: string): string {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
-  const hue = Math.abs(h) % 360;
-  return `hsl(${hue} 72% 48%)`;
-}
+import { getProductCardSubtitle, categoryDotColor } from "@/lib/catalog-display";
+import { buildLocationCatalogPath, parseLocationRouteParam } from "@/lib/location-path";
 
 const PRODUCT_FUSE_KEYS = [
   { name: "name" as const, weight: 0.5 },
@@ -62,7 +56,15 @@ function Skeletons({ gridClass = "prod-grid" }: { gridClass?: string }) {
   );
 }
 
-function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locationId: number }) {
+function StoreProductCard({
+  item,
+  locationId,
+  catalogBasePath,
+}: {
+  item: PublicCatalogItem;
+  locationId: number;
+  catalogBasePath: string;
+}) {
   const { isFavorite, toggle } = useFavoriteProduct(locationId, item.id);
   const dispatch = useAppDispatch();
   const inCart = useAppSelector((s) =>
@@ -101,7 +103,7 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
 
   return (
     <div className={`sp-card${sold ? " sp-card--sold" : ""}`}>
-      <Link href={`/catalog/${locationId}/product/${item.id}`} className="sp-card__link">
+      <Link href={`${catalogBasePath}/product/${item.id}`} className="sp-card__link">
       <div className="sp-card__img-wrap">
         {item.categoryName ? (
           <span className="sp-card__cat-pill">
@@ -188,11 +190,17 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
 
 export default function CatalogProductsPage() {
   const params = useParams();
-  const locationId = Number(params.locationId);
+  const locationSlugParam = String(params.locationSlug ?? "");
+  const locationId = useMemo(
+    () => parseLocationRouteParam(locationSlugParam),
+    [locationSlugParam],
+  );
   const dispatch = useAppDispatch();
   const openCart = useOpenCart();
   const cartCount = useAppSelector((s) =>
-    s.cart.locationId === locationId ? s.cart.items.reduce((a, i) => a + i.quantity, 0) : 0,
+    locationId != null && s.cart.locationId === locationId
+      ? s.cart.items.reduce((a, i) => a + i.quantity, 0)
+      : 0,
   );
   const [cat, setCat] = useState<string | null>(null);
   const [storeSearch, setStoreSearch] = useState("");
@@ -200,7 +208,7 @@ export default function CatalogProductsPage() {
   const { requestPermissionAndSubscribe } = usePushNotifications();
 
   const { data: products, isLoading, isError, error, refetch } = useGetPublicCatalogQuery(
-    locationId,
+    locationId != null ? locationId : skipToken,
     QUERY_POLLING_OPTIONS.storeCatalog,
   );
   const { data: locations } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
@@ -208,7 +216,13 @@ export default function CatalogProductsPage() {
     undefined,
     QUERY_POLLING_OPTIONS.general,
   );
-  const loc = locations?.find((l) => l.id === locationId);
+  const loc = locationId != null ? locations?.find((l) => l.id === locationId) : undefined;
+
+  const catalogBasePath = useMemo(() => {
+    if (locationId == null) return "/catalog";
+    if (loc) return buildLocationCatalogPath(loc);
+    return `/catalog/${locationSlugParam}`;
+  }, [locationId, loc, locationSlugParam]);
 
   const storeBusinessCategoryName = useMemo(() => {
     if (!loc) return null;
@@ -218,6 +232,7 @@ export default function CatalogProductsPage() {
   }, [loc, businessCategories]);
 
   useEffect(() => {
+    if (locationId == null) return;
     const key = `push-asked-${locationId}`;
     if (localStorage.getItem(key)) return;
     const timer = setTimeout(() => {
@@ -272,7 +287,7 @@ export default function CatalogProductsPage() {
 
   const favSortKey = useSyncExternalStore(
     subscribeFavorites,
-    () => getFavoriteProductSortKey(locationId),
+    () => (locationId != null ? getFavoriteProductSortKey(locationId) : ""),
     () => "",
   );
 
@@ -293,6 +308,24 @@ export default function CatalogProductsPage() {
 
   const hasProducts = !isLoading && !isError && products && products.length > 0;
   const errorInfo = getRtkErrorInfo(error);
+
+  if (locationId == null) {
+    return (
+      <div className="sp-layout">
+        <main className="sp-main" style={{ maxWidth: 560, margin: "0 auto", padding: 32 }}>
+          <div className="store-empty">
+            <div className="store-empty__icon">
+              <Icon name="link_off" />
+            </div>
+            <p className="store-empty__text">Esta dirección de tienda no es válida.</p>
+            <Link href="/catalog" className="store-empty__btn">
+              Volver al directorio
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   const addressLine = [loc?.street, loc?.municipality].filter(Boolean).join(", ") || "—";
   const hoursLine = loc?.todayOpen != null && loc?.todayClose != null
@@ -470,7 +503,12 @@ export default function CatalogProductsPage() {
                 </h2>
                 <div className="sp-grid">
                   {favoriteItems.map((item) => (
-                    <StoreProductCard key={item.id} item={item} locationId={locationId} />
+                    <StoreProductCard
+                      key={item.id}
+                      item={item}
+                      locationId={locationId}
+                      catalogBasePath={catalogBasePath}
+                    />
                   ))}
                 </div>
               </section>
@@ -487,7 +525,12 @@ export default function CatalogProductsPage() {
                 ) : null}
                 <div className="sp-grid">
                   {restItems.map((item) => (
-                    <StoreProductCard key={item.id} item={item} locationId={locationId} />
+                    <StoreProductCard
+                      key={item.id}
+                      item={item}
+                      locationId={locationId}
+                      catalogBasePath={catalogBasePath}
+                    />
                   ))}
                 </div>
               </section>

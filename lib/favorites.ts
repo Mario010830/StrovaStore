@@ -122,3 +122,11 @@ export function getFavoriteProductSortKey(locationId: number): string {
     .sort((a, b) => a - b)
     .join(",");
 }
+
+/** Clave estable para marketplace (varias tiendas): todas las claves `locId:productId`. */
+export function getFavoriteProductKeysSortKey(): string {
+  if (typeof window === "undefined") return "";
+  return parseProductKeys(localStorage.getItem(LS_PRODUCTS))
+    .sort()
+    .join(",");
+}
