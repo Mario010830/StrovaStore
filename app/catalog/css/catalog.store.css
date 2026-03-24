@@ -275,7 +275,7 @@
 
 .sp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
   margin-bottom: 32px;
 }
@@ -302,14 +302,14 @@
 
 .sp-card__img {
   width: 100%;
-  height: 180px;
+  height: 260px;
   background: linear-gradient(135deg, #eef1f5 0%, #e2e8f0 100%);
   object-fit: cover;
 }
 
 .sp-card__img-wrap {
   width: 100%;
-  height: 180px;
+  height: 260px;
   background: linear-gradient(135deg, #eef1f5 0%, #e2e8f0 100%);
   display: flex;
   align-items: center;
@@ -486,7 +486,7 @@
   }
 
   .sp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     gap: 16px;
   }
 }
@@ -498,7 +498,7 @@
   }
 
   .sp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
     gap: 12px;
   }
 }

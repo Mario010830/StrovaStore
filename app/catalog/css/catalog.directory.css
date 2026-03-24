@@ -312,14 +312,14 @@
 /* Grid marketplace */
 .dir-mp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
   padding: 2px 0 8px;
 }
 
 @media (max-width: 599px) {
   .dir-mp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
     gap: 12px;
   }
 }
@@ -346,7 +346,7 @@
 }
 
 .dir-mp-skeleton-card {
-  height: 280px;
+  height: 320px;
   border-radius: 12px;
   background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
   background-size: 200% 100%;
@@ -460,7 +460,7 @@
 @media (min-width: 960px) {
   .dir-mp .dir-zone-card-row {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     overflow-x: visible;
   }
 }
