@@ -51,7 +51,10 @@ function CartDrawerWithSearchParams({
   const activeCatalogTab = tab === "productos" ? "productos" : "tiendas";
   const isLandingHome = pathname === "/";
   const hideCartOnTiendasDirectory = isCatalogIndexPath(pathname) && activeCatalogTab === "tiendas";
-  const showCart = !isLandingHome && !hideCartOnTiendasDirectory;
+  /** En el marketplace de productos el pedido se arma en cada tienda; el FAB confunde el flujo. */
+  const hideCartOnMarketplace = isCatalogIndexPath(pathname) && activeCatalogTab === "productos";
+  const showCart =
+    !isLandingHome && !hideCartOnTiendasDirectory && !hideCartOnMarketplace;
 
   if (!showCart) return null;
   return <CartDrawer open={cartOpen} onOpenChange={onOpenChange} />;
