@@ -24,16 +24,17 @@ function buildWaMessage(
   customer: CustomerInfo
 ): string {
   const lines = items
-    .map((i) => `- ${i.name} x ${i.quantity} — ${formatPrice(i.unitPrice)} c/u`)
-    .join("\n");
+    .map((i) => {
+      const sub = formatPrice(i.quantity * i.unitPrice);
+      return `${i.quantity}x ${i.name} ${sub}`;
+    })
+    .join(" | ");
   const total = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
   const parts = [
-    `Hola, quiero solicitar el siguiente pedido:`,
-    ``,
-    lines,
+    `Hola, quiero pedir: ${lines}.`,
     ``,
     `Total: ${formatPrice(total)}`,
-    `Ubicación: ${locationName}`,
+    `Tienda: ${locationName}`,
     `Ref. orden: ${folio}`,
   ];
   if (customer.name) parts.push(`Nombre: ${customer.name}`);

@@ -146,7 +146,7 @@
 
 .allprod-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(192px, 1fr));
   gap: 12px;
 }
 
@@ -162,7 +162,7 @@
     padding-left: 0;
   }
   .allprod-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
   }
   .allprod-gridbar {
     padding-inline: 16px;
@@ -177,7 +177,7 @@
     padding-inline: 12px;
   }
   .allprod-grid {
-    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
   }
   .allprod-gridbar {
     padding-inline: 12px;

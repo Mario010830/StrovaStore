@@ -8,6 +8,8 @@ import type { PublicLocation } from "@/lib/dashboard-types";
 import { toImageProxyUrl } from "@/lib/image";
 import { getBusinessCategoryLucideIcon } from "@/utils/businessCategoryIcons";
 import { formatDistanceForCard } from "@/app/catalog/lib/directory-filters";
+import { useFavoriteStore } from "@/hooks/useFavorites";
+import { CardFavoriteButton } from "@/components/ui/CardFavoriteButton";
 
 export type StoreCardProps = {
   loc: PublicLocation;
@@ -17,6 +19,7 @@ export type StoreCardProps = {
 };
 
 function StoreCardInner({ loc, businessCategoryDisplay, distanceKm, zoneLabel }: StoreCardProps) {
+  const { isFavorite, toggle } = useFavoriteStore(loc.id);
   const hasHours = !!loc.businessHours;
   const showStatus = hasHours && loc.isOpenNow != null;
   const isOpen = loc.isOpenNow === true;
@@ -27,7 +30,8 @@ function StoreCardInner({ loc, businessCategoryDisplay, distanceKm, zoneLabel }:
   const distanceText = formatDistanceForCard(distanceKm);
 
   return (
-    <Link href={`/catalog/${loc.id}`} className="dir-store-card">
+    <div className="dir-store-card">
+      <Link href={`/catalog/${loc.id}`} className="dir-store-card__link">
       <div className="dir-store-card__media">
         {proxiedImageUrl ? (
           <Image
@@ -92,7 +96,15 @@ function StoreCardInner({ loc, businessCategoryDisplay, distanceKm, zoneLabel }:
           <span className="dir-store-card__cta">Ver tienda</span>
         </div>
       </div>
-    </Link>
+      </Link>
+      <CardFavoriteButton
+        isFavorite={isFavorite}
+        onToggle={toggle}
+        labelOn="Quitar tienda de favoritos"
+        labelOff="Guardar tienda en favoritos"
+        className="dir-store-card__fav"
+      />
+    </div>
   );
 }
 

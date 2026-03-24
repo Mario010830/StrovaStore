@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { SharedNavbar } from "@/components/ui/SharedNavbar";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { CartDrawer } from "@/app/catalog/components/CartDrawer";
+import { CartUiProvider } from "@/components/ui/CartUiContext";
 import { getBusinessUrl } from "@/lib/runtime-config";
 import { isCatalogIndexPath } from "@/lib/path-utils";
 
@@ -36,10 +37,15 @@ function NavbarWithSearchParams() {
   );
 }
 
-function CartDrawerWithSearchParams() {
+function CartDrawerWithSearchParams({
+  cartOpen,
+  onOpenChange,
+}: {
+  cartOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [cartOpen, setCartOpen] = useState(false);
 
   const tab = searchParams.get("tab") ?? "tiendas";
   const activeCatalogTab = tab === "productos" ? "productos" : "tiendas";
@@ -48,20 +54,27 @@ function CartDrawerWithSearchParams() {
   const showCart = !isLandingHome && !hideCartOnTiendasDirectory;
 
   if (!showCart) return null;
-  return <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />;
+  return <CartDrawer open={cartOpen} onOpenChange={onOpenChange} />;
 }
 
 export function AppChrome({ children }: { children: React.ReactNode }) {
+  const [cartOpen, setCartOpen] = useState(false);
+  const openCart = useCallback(() => setCartOpen(true), []);
+  const cartUi = useMemo(
+    () => ({ openCart, cartOpen, setCartOpen }),
+    [openCart, cartOpen],
+  );
+
   return (
-    <>
+    <CartUiProvider value={cartUi}>
       <Suspense fallback={<NavbarPathnameOnly />}>
         <NavbarWithSearchParams />
       </Suspense>
       {children}
       <LandingFooter businessUrl={STROVA_BUSINESS_URL} />
       <Suspense fallback={null}>
-        <CartDrawerWithSearchParams />
+        <CartDrawerWithSearchParams cartOpen={cartOpen} onOpenChange={setCartOpen} />
       </Suspense>
-    </>
+    </CartUiProvider>
   );
 }

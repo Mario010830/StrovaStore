@@ -564,6 +564,10 @@ export default function LandingPage() {
                     key={product.id}
                     href={renderProductHref(product)}
                     className="landing-product-card landing-product-card--market-mob"
+                    onClick={(e) => {
+                      if (soldOut) e.preventDefault();
+                    }}
+                    aria-disabled={soldOut}
                   >
                     <div className="landing-product-card__media landing-product-card__media--market-mob">
                       {soldOut ? (
@@ -617,6 +621,10 @@ export default function LandingPage() {
                     key={product.id}
                     href={renderProductHref(product)}
                     className="landing-product-card"
+                    onClick={(e) => {
+                      if (soldOut) e.preventDefault();
+                    }}
+                    aria-disabled={soldOut}
                   >
                     <div className="landing-product-card__media">
                       {soldOut ? (

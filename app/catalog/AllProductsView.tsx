@@ -51,15 +51,27 @@ function MarketplaceProductCard({
   onPedir: () => void;
 }) {
   const proxiedImageUrl = toImageProxyUrl(item.imagenUrl);
+  const soldOut = item.tipo === "inventariable" && item.stockAtLocation <= 0;
+
+  const handleActivate = () => {
+    if (!soldOut) onPedir();
+  };
+
   return (
     <div
-      className="mp-card"
-      onClick={onPedir}
-      onKeyDown={(e) => e.key === "Enter" && onPedir()}
+      className={`mp-card${soldOut ? " mp-card--sold-out" : ""}`}
+      onClick={handleActivate}
+      onKeyDown={(e) => e.key === "Enter" && handleActivate()}
       role="button"
-      tabIndex={0}
+      tabIndex={soldOut ? -1 : 0}
+      aria-disabled={soldOut}
     >
       <div className="mp-card__img-wrap">
+        {soldOut ? (
+          <span className="mp-card__sold-overlay" aria-hidden>
+            Sin stock
+          </span>
+        ) : null}
         {proxiedImageUrl ? (
           <Image src={proxiedImageUrl} alt={item.name} width={480} height={320} />
         ) : (
@@ -72,7 +84,9 @@ function MarketplaceProductCard({
         )}
       </div>
       <div className="mp-card__body">
-        <h3 className="mp-card__name">{item.name}</h3>
+        <h3 className="mp-card__name" title={item.name}>
+          {item.name}
+        </h3>
         {item.locationName && (
           <span className="mp-card__store">
             <Icon name="store" />
@@ -82,12 +96,13 @@ function MarketplaceProductCard({
         <div className="mp-card__footer">
           <PriceText value={item.precio} className="mp-card__price" />
           <IconActionButton
-            label="Pedir"
+            label={soldOut ? "Sin stock" : "Pedir"}
             className="mp-card__pedir"
+            disabled={soldOut}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onPedir();
+              if (!soldOut) onPedir();
             }}
             icon={<Icon name="chat" />}
           />

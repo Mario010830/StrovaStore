@@ -67,13 +67,13 @@
   }
 
   .dir-store-card {
-    flex: 0 0 148px;
-    width: 148px;
+    flex: 0 0 156px;
+    width: 156px;
   }
 
   .dir-tiendas-skeleton__card {
-    flex: 0 0 148px;
-    width: 148px;
+    flex: 0 0 156px;
+    width: 156px;
   }
 
   .dir-zone-provincia__title {
@@ -259,7 +259,7 @@
   }
 
   .mp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
   }
 
@@ -305,7 +305,7 @@
   }
 
   .mp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
     gap: 12px;
   }
 
@@ -380,7 +380,7 @@
   }
 
   .sp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
   }
 }
@@ -427,7 +427,7 @@
   }
 
   .sp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(162px, 1fr));
     gap: 12px;
   }
 

@@ -116,6 +116,57 @@
   font-size: 20px;
 }
 
+.sp-wa-btn--disabled-hint {
+  filter: saturate(0.92);
+}
+
+.sp-wa-sidebar-hint {
+  font-size: 13px;
+  color: var(--dir-text-secondary);
+  margin: 10px 0 0;
+  line-height: 1.45;
+}
+
+.sp-sidebar__extras {
+  margin-top: 24px;
+  padding: 14px 14px 16px;
+  border-radius: var(--dir-radius-md);
+  background: rgba(24, 95, 165, 0.06);
+  border: 1px solid rgba(24, 95, 165, 0.12);
+}
+
+.sp-sidebar__extras-title {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dir-primary);
+}
+
+.sp-sidebar__extras-line {
+  margin: 0;
+  font-size: 14px;
+  color: var(--dir-text-secondary);
+  line-height: 1.45;
+}
+
+.sp-sidebar__extras-line strong {
+  color: var(--dir-text);
+  font-weight: 800;
+}
+
+.sp-sidebar__closed-note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--dir-text-secondary);
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
 .sp-about {
   margin-top: 32px;
 }
@@ -275,12 +326,13 @@
 
 .sp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
   gap: 20px;
   margin-bottom: 32px;
 }
 
 .sp-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   background: var(--dir-surface);
@@ -288,10 +340,29 @@
   border-radius: 24px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-  text-decoration: none;
   color: inherit;
-  cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.sp-card__link {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.sp-card__link:focus-visible {
+  outline: 2px solid var(--dir-primary);
+  outline-offset: 2px;
+}
+
+.sp-card__fav {
+  top: 12px;
+  right: 12px;
 }
 
 .sp-card:hover {
@@ -305,16 +376,91 @@
   height: 260px;
   background: linear-gradient(135deg, #eef1f5 0%, #e2e8f0 100%);
   object-fit: cover;
+  transition: transform 0.35s ease;
 }
 
 .sp-card__img-wrap {
+  position: relative;
   width: 100%;
   height: 260px;
   background: linear-gradient(135deg, #eef1f5 0%, #e2e8f0 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
+
+.sp-card__img-wrap:hover .sp-card__img {
+  transform: scale(1.05);
+}
+
+.sp-card__sold-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.58);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.sp-card__cat-pill {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  max-width: calc(100% - 52px);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dir-text);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sp-card__stock-pill {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 2;
+  text-align: center;
+  padding: 5px 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #9a3412;
+  background: rgba(255, 237, 213, 0.95);
+  border: 1px solid rgba(234, 88, 12, 0.35);
+}
+
+.sp-card__pre-qty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--dir-divider);
+  border-radius: var(--dir-radius-md);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.sp-card__sold-actions {
+  margin-top: auto;
+  padding-top: 4px;
+}
+
 
 .sp-card__body {
   padding: 16px;
@@ -325,20 +471,22 @@
 }
 
 .sp-card__name {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--dir-text);
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.35;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .sp-card__price {
-  font-size: 17px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
   color: var(--dir-primary);
 }
 
@@ -486,7 +634,7 @@
   }
 
   .sp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
   }
 }
@@ -498,7 +646,7 @@
   }
 
   .sp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
     gap: 12px;
   }
 }

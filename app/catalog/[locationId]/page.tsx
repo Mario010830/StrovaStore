@@ -24,6 +24,9 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { IconActionButton } from "@/components/ui/IconActionButton";
 import { getRtkErrorInfo } from "@/lib/rtk-error";
 import { BusinessCategoryPill } from "@/components/ui/BusinessCategoryPill";
+import { CardFavoriteButton } from "@/components/ui/CardFavoriteButton";
+import { useFavoriteProduct } from "@/hooks/useFavorites";
+import { useOpenCart } from "@/components/ui/CartUiContext";
 
 const PRODUCT_FUSE_KEYS = [
   { name: "name" as const, weight: 0.5 },
@@ -50,17 +53,28 @@ function Skeletons({ gridClass = "prod-grid" }: { gridClass?: string }) {
 }
 
 function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locationId: number }) {
+  const { isFavorite, toggle } = useFavoriteProduct(locationId, item.id);
   const dispatch = useAppDispatch();
   const inCart = useAppSelector((s) =>
     s.cart.items.find((i) => i.productId === item.id)
   );
   const isElaborado = item.tipo === "elaborado";
   const sold = isElaborado ? false : item.stockAtLocation === 0;
+  const maxBuy = isElaborado ? 999 : item.stockAtLocation;
+  const [draftQty, setDraftQty] = useState(1);
+
+  useEffect(() => {
+    setDraftQty(1);
+  }, [item.id]);
+
+  const lowStock =
+    !isElaborado && item.stockAtLocation > 0 && item.stockAtLocation <= 5;
 
   const add = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (sold) return;
+    const q = Math.min(Math.max(1, draftQty), maxBuy);
     dispatch(
       addItem({
         productId: item.id,
@@ -72,6 +86,9 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
         tipo: item.tipo,
       })
     );
+    if (q > 1) {
+      dispatch(updateQuantity({ productId: item.id, quantity: q }));
+    }
   };
 
   const qty = (delta: number) => (e: React.MouseEvent) => {
@@ -81,8 +98,22 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
   };
 
   return (
-    <Link href={`/catalog/${locationId}/product/${item.id}`} className={`sp-card${sold ? " sp-card--sold" : ""}`}>
+    <div className={`sp-card${sold ? " sp-card--sold" : ""}`}>
+      <Link href={`/catalog/${locationId}/product/${item.id}`} className="sp-card__link">
       <div className="sp-card__img-wrap">
+        {sold ? (
+          <span className="sp-card__sold-overlay" aria-hidden>
+            Sin stock
+          </span>
+        ) : null}
+        {item.categoryName ? (
+          <span className="sp-card__cat-pill">{item.categoryName}</span>
+        ) : null}
+        {lowStock ? (
+          <span className="sp-card__stock-pill" aria-label={`Últimas ${item.stockAtLocation} unidades`}>
+            Últimas {item.stockAtLocation} u.
+          </span>
+        ) : null}
         {item.imagenUrl ? (() => {
           const proxiedUrl = toImageProxyUrl(item.imagenUrl);
           return proxiedUrl ? (
@@ -95,18 +126,22 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
         )}
       </div>
       <div className="sp-card__body">
-        <h3 className="sp-card__name">{item.name}</h3>
+        <h3 className="sp-card__name" title={item.name}>
+          {item.name}
+        </h3>
         <PriceText value={item.precio} className="sp-card__price" />
         {item.description && (
           <p className="sp-card__desc">{item.description}</p>
         )}
         {sold ? (
-          <StatusBadge
-            label="No disponible"
-            className="sp-card__add"
-            active={false}
-            inactiveClassName="sp-card__add--disabled"
-          />
+          <div className="sp-card__sold-actions">
+            <StatusBadge
+              label="Sin stock"
+              className="sp-card__add"
+              active={false}
+              inactiveClassName="sp-card__add--disabled"
+            />
+          </div>
         ) : inCart ? (
           <div className="sp-card__qty" onClick={(e) => e.preventDefault()}>
             <button type="button" className="sp-card__qty-btn" onClick={qty(-1)} aria-label="Menos">−</button>
@@ -122,16 +157,52 @@ function StoreProductCard({ item, locationId }: { item: PublicCatalogItem; locat
             </button>
           </div>
         ) : (
-          <IconActionButton
-            label="Agregar al pedido"
-            iconName="add"
-            className="sp-card__add"
-            onClick={add}
-            icon={<Icon name="add" />}
-          />
+          <>
+            <div className="sp-card__pre-qty" onClick={(e) => e.preventDefault()}>
+              <button
+                type="button"
+                className="sp-card__qty-btn"
+                aria-label="Menos cantidad"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDraftQty((q) => Math.max(1, q - 1));
+                }}
+              >
+                −
+              </button>
+              <span className="sp-card__qty-val">{draftQty}</span>
+              <button
+                type="button"
+                className="sp-card__qty-btn"
+                aria-label="Más cantidad"
+                disabled={draftQty >= maxBuy}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDraftQty((q) => Math.min(maxBuy, q + 1));
+                }}
+              >
+                +
+              </button>
+            </div>
+            <IconActionButton
+              label="Agregar al pedido"
+              iconName="add"
+              className="sp-card__add"
+              onClick={add}
+              icon={<Icon name="add" />}
+            />
+          </>
         )}
       </div>
-    </Link>
+      </Link>
+      <CardFavoriteButton
+        isFavorite={isFavorite}
+        onToggle={toggle}
+        labelOn="Quitar producto de favoritos"
+        labelOff="Guardar producto en favoritos"
+        className="sp-card__fav"
+      />
+    </div>
   );
 }
 
@@ -139,6 +210,10 @@ export default function CatalogProductsPage() {
   const params = useParams();
   const locationId = Number(params.locationId);
   const dispatch = useAppDispatch();
+  const openCart = useOpenCart();
+  const cartCount = useAppSelector((s) =>
+    s.cart.locationId === locationId ? s.cart.items.reduce((a, i) => a + i.quantity, 0) : 0,
+  );
   const [cat, setCat] = useState<string | null>(null);
   const [storeSearch, setStoreSearch] = useState("");
   const [showPushDialog, setShowPushDialog] = useState(false);
@@ -201,6 +276,15 @@ export default function CatalogProductsPage() {
     return Array.from(m.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [filteredBySearch]);
 
+  const categoryCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of filteredBySearch) {
+      if (!p.categoryName) continue;
+      map.set(p.categoryName, (map.get(p.categoryName) ?? 0) + 1);
+    }
+    return map;
+  }, [filteredBySearch]);
+
   const filtered = useMemo(() => {
     if (!cat) return filteredBySearch;
     return filteredBySearch.filter((p) => p.categoryName === cat);
@@ -209,8 +293,6 @@ export default function CatalogProductsPage() {
   const hasProducts = !isLoading && !isError && products && products.length > 0;
   const errorInfo = getRtkErrorInfo(error);
 
-  const waNumber = loc?.whatsAppContact?.replace(/\D/g, "") ?? "";
-  const waHref = waNumber ? `https://wa.me/${waNumber}` : "#";
   const addressLine = [loc?.street, loc?.municipality].filter(Boolean).join(", ") || "—";
   const hoursLine = loc?.todayOpen != null && loc?.todayClose != null
     ? `Lun a Sáb: ${loc.todayOpen} - ${loc.todayClose}`
@@ -253,16 +335,24 @@ export default function CatalogProductsPage() {
           </div>
         </div>
 
-        <a
-          href={waHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="sp-wa-btn"
-          aria-label="Pedir por WhatsApp"
+        <button
+          type="button"
+          className={`sp-wa-btn${cartCount === 0 ? " sp-wa-btn--disabled-hint" : ""}`}
+          onClick={() => openCart()}
+          aria-label={
+            cartCount > 0
+              ? "Abrir carrito y enviar pedido por WhatsApp"
+              : "Abrir carrito para armar tu pedido"
+          }
         >
           <Icon name="chat" />
-          Pedir por WhatsApp
-        </a>
+          {cartCount > 0 ? `Revisar pedido (${cartCount})` : "Abrir carrito"}
+        </button>
+        <p className="sp-wa-sidebar-hint">
+          {cartCount > 0
+            ? "Desde el carrito confirma datos y envía el mensaje con ítems y total a WhatsApp."
+            : "Agrega productos al pedido; luego revisa y envía por WhatsApp con el resumen."}
+        </p>
 
         <div className="sp-about">
           <h2 className="sp-about__title">Sobre nosotros</h2>
@@ -282,11 +372,21 @@ export default function CatalogProductsPage() {
             <Icon name="schedule" />
             <span className="sp-meta__text">{hoursLine}</span>
           </div>
-          <div className="sp-meta__row">
-            <Icon name="star" />
-            <span className="sp-meta__text">—</span>
-          </div>
         </div>
+
+        {products && products.length > 0 ? (
+          <div className="sp-sidebar__extras">
+            <p className="sp-sidebar__extras-title">Catálogo</p>
+            <p className="sp-sidebar__extras-line">
+              <strong>{products.length}</strong> producto{products.length === 1 ? "" : "s"} en esta tienda
+            </p>
+            {loc?.isOpenNow === false ? (
+              <p className="sp-sidebar__closed-note" role="status">
+                La tienda puede estar cerrada ahora. Puedes armar el pedido y enviarlo cuando abran.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </aside>
 
       <main className="sp-main">
@@ -314,7 +414,7 @@ export default function CatalogProductsPage() {
 
         <div className="sp-chips">
           <FilterChip
-            label="Todos"
+            label={`Todos (${filteredBySearch.length})`}
             active={!cat}
             onClick={() => setCat(null)}
             className="sp-chip"
@@ -323,7 +423,7 @@ export default function CatalogProductsPage() {
           {categories.map((c) => (
             <FilterChip
               key={c.name}
-              label={c.name}
+              label={`${c.name} (${categoryCounts.get(c.name) ?? 0})`}
               active={cat === c.name}
               onClick={() => setCat(c.name)}
               className="sp-chip"

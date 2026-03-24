@@ -312,14 +312,14 @@
 /* Grid marketplace */
 .dir-mp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
   gap: 16px;
   padding: 2px 0 8px;
 }
 
 @media (max-width: 599px) {
   .dir-mp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
     gap: 12px;
   }
 }
@@ -460,7 +460,7 @@
 @media (min-width: 960px) {
   .dir-mp .dir-zone-card-row {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(192px, 1fr));
     overflow-x: visible;
   }
 }
