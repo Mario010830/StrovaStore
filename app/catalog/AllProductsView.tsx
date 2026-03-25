@@ -15,7 +15,6 @@ import type { PublicCatalogItem } from "@/lib/dashboard-types";
 import { getBusinessUrl } from "@/lib/runtime-config";
 import { toImageProxyUrl } from "@/lib/image";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { FilterChip } from "@/components/ui/FilterChip";
 import { PriceText } from "@/components/ui/PriceText";
 import { IconActionButton } from "@/components/ui/IconActionButton";
 import { getRtkErrorInfo } from "@/lib/rtk-error";
@@ -196,8 +195,8 @@ export default function AllProductsView() {
   const { search, setSearch } = useCatalogCtx();
   const initializedQueryFromUrlRef = useRef(false);
   const initialQueryFromUrl = searchParams.get("q")?.trim() ?? "";
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<MarketplaceSortKey>("random");
+  const [showAllTagCategories, setShowAllTagCategories] = useState(false);
   const [selectedTagSlugs, setSelectedTagSlugs] = useState<string[]>(() => {
     const rawTagParams = searchParams.getAll("tag");
     return rawTagParams
@@ -238,7 +237,7 @@ export default function AllProductsView() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
-  }, [search, selectedTagSlugs, selectedCategory, priceRange, onlyInStock, sortKey]);
+  }, [search, selectedTagSlugs, priceRange, onlyInStock, sortKey]);
 
   useEffect(() => {
     setRandomReady(true);
@@ -282,25 +281,9 @@ export default function AllProductsView() {
     return [Math.floor(mn), Math.ceil(mx)];
   }, [items]);
 
-  const productsForTagCounts = useMemo(() => {
-    if (!selectedCategory) return filteredBySearch;
-    return filteredBySearch.filter((p) => p.categoryName === selectedCategory);
-  }, [filteredBySearch, selectedCategory]);
-
-  const categoriesWithCount = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const p of filteredBySearch) {
-      if (!p.categoryName?.trim()) continue;
-      m.set(p.categoryName, (m.get(p.categoryName) ?? 0) + 1);
-    }
-    return Array.from(m.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
-  }, [filteredBySearch]);
-
   const tagsWithCount = useMemo(() => {
     const countBySlug = new Map<string, number>();
-    for (const p of productsForTagCounts) {
+    for (const p of filteredBySearch) {
       const slugs = (p.tagIds ?? []).map((id) => tagsStable.find((t) => t.id === id)?.slug).filter(Boolean) as string[];
       for (const slug of slugs) {
         countBySlug.set(slug, (countBySlug.get(slug) ?? 0) + 1);
@@ -316,13 +299,10 @@ export default function AllProductsView() {
         count: countBySlug.get(t.slug) ?? 0,
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [productsForTagCounts, tagsStable]);
+  }, [filteredBySearch, tagsStable]);
 
   const filtered = useMemo(() => {
     let list = [...filteredBySearch];
-    if (selectedCategory) {
-      list = list.filter((p) => p.categoryName === selectedCategory);
-    }
     if (selectedTagSlugs.length > 0) {
       list = list.filter((p) => {
         const productSlugs = (p.tagIds ?? [])
@@ -342,7 +322,7 @@ export default function AllProductsView() {
       );
     }
     return list;
-  }, [filteredBySearch, selectedCategory, selectedTagSlugs, priceRange, priceReady, onlyInStock, tagsStable]);
+  }, [filteredBySearch, selectedTagSlugs, priceRange, priceReady, onlyInStock, tagsStable]);
 
   const favKeysSort = useSyncExternalStore(
     subscribeFavorites,
@@ -381,7 +361,6 @@ export default function AllProductsView() {
 
   const resetFilters = () => {
     setSearch("");
-    setSelectedCategory(null);
     setSelectedTagSlugs([]);
     setOnlyInStock(false);
     setSortKey("random");
@@ -485,83 +464,56 @@ export default function AllProductsView() {
         </div>
       </section>
 
-      <div className="mp-filter-block">
-        <p className="mp-filter-block__label" id="mp-cat-label">
-          Categoría
-        </p>
-        <div
-          className="mp-chips mp-chips--categories"
-          role="group"
-          aria-labelledby="mp-cat-label"
-        >
-          <FilterChip
-            label={`Todas (${filteredBySearch.length})`}
-            iconName="apps"
-            active={selectedCategory === null}
-            onClick={() => setSelectedCategory(null)}
-            className="mp-chip"
-            activeClassName="mp-chip--active"
-          />
-          {categoriesWithCount.map((c) => (
-            <FilterChip
-              key={c.name}
-              label={`${c.name} (${c.count})`}
-              iconName={
-                MP_CHIP_ICONS[c.name.toLowerCase()] ?? "category"
-              }
-              active={selectedCategory === c.name}
-              onClick={() =>
-                setSelectedCategory((prev) =>
-                  prev === c.name ? null : c.name,
-                )
-              }
-              className="mp-chip"
-              activeClassName="mp-chip--active"
-            />
-          ))}
-        </div>
-      </div>
+      <div className="mp-market-layout">
+        <aside className="mp-market-sidebar" aria-label="Filtros del marketplace">
+          <div className="mp-market-sidebar__section">
+            <p className="mp-market-sidebar__label" id="mp-cat-label">
+              Categorías
+            </p>
 
-      <div className="mp-filter-block">
-        <p className="mp-filter-block__label" id="mp-tag-label">
-          Etiquetas
-        </p>
-        <div
-          className="mp-chips"
-          role="group"
-          aria-labelledby="mp-tag-label"
-        >
-          <FilterChip
-            label={`Todas (${productsForTagCounts.length})`}
-            iconName="label"
-            active={selectedTagSlugs.length === 0}
-            onClick={() => setSelectedTagSlugs([])}
-            className="mp-chip"
-            activeClassName="mp-chip--active"
-          />
-          {tagsWithCount.map((t) => (
-            <FilterChip
-              key={t.slug}
-              label={`${t.name} (${t.count})`}
-              iconName={MP_CHIP_ICONS[t.name.toLowerCase()] ?? "label"}
-              active={selectedTagSlugs.includes(t.slug)}
-              onClick={() =>
-                setSelectedTagSlugs((prev) =>
-                  prev.includes(t.slug)
-                    ? prev.filter((x) => x !== t.slug)
-                    : [...prev, t.slug],
-                )
-              }
-              className="mp-chip"
-              activeClassName="mp-chip--active"
-            />
-          ))}
-        </div>
-      </div>
+            <div
+              className="mp-market-sidebar__category-list"
+              role="group"
+              aria-labelledby="mp-cat-label"
+            >
+              <button
+                type="button"
+                className={`mp-market-cat-btn${selectedTagSlugs.length === 0 ? " mp-market-cat-btn--active" : ""}`}
+                onClick={() => setSelectedTagSlugs([])}
+              >
+                Todas
+              </button>
 
-      <div className="mp-toolbar" role="region" aria-label="Filtros y orden">
-        <div className="mp-toolbar__row">
-          <div className="mp-toolbar__group mp-toolbar__group--price">
+              {(showAllTagCategories ? tagsWithCount : tagsWithCount.slice(0, 5)).map((t) => (
+                <button
+                  key={t.slug}
+                  type="button"
+                  className={`mp-market-cat-btn${selectedTagSlugs.includes(t.slug) ? " mp-market-cat-btn--active" : ""}`}
+                  onClick={() =>
+                    setSelectedTagSlugs((prev) =>
+                      prev.includes(t.slug) ? prev.filter((x) => x !== t.slug) : [...prev, t.slug],
+                    )
+                  }
+                >
+                  <span className="mp-market-cat-btn__dot" style={{ background: t.color }} aria-hidden />
+                  <span className="mp-market-cat-btn__text">{t.name}</span>
+                  <span className="mp-market-cat-btn__count">({t.count})</span>
+                </button>
+              ))}
+            </div>
+
+            {tagsWithCount.length > 5 ? (
+              <button
+                type="button"
+                className="mp-market-sidebar__more"
+                onClick={() => setShowAllTagCategories((v) => !v)}
+              >
+                {showAllTagCategories ? "Ver menos" : "Ver más"}
+              </button>
+            ) : null}
+          </div>
+
+          <div className="mp-market-sidebar__section">
             <span className="mp-toolbar__field-label" id="mp-price-label">
               Precio ({priceReady ? `${priceExtent[0]}–${priceExtent[1]}` : "…"})
             </span>
@@ -593,17 +545,16 @@ export default function AllProductsView() {
               />
             </div>
           </div>
-          <div className="mp-toolbar__group">
-            <label className="mp-toolbar__field-label" htmlFor="mp-sort">
+
+          <div className="mp-market-sidebar__section">
+            <label className="mp-toolbar__field-label" htmlFor="mp-sort-sidebar">
               Ordenar por
             </label>
             <select
-              id="mp-sort"
+              id="mp-sort-sidebar"
               className="mp-toolbar__select"
               value={sortKey}
-              onChange={(e) =>
-                setSortKey(e.target.value as MarketplaceSortKey)
-              }
+              onChange={(e) => setSortKey(e.target.value as MarketplaceSortKey)}
             >
               <option value="random">Aleatorio</option>
               <option value="price-asc">Precio: menor a mayor</option>
@@ -612,106 +563,108 @@ export default function AllProductsView() {
               <option value="name-desc">Nombre: Z–A</option>
             </select>
           </div>
-          <label className="mp-toolbar__stock">
-            <input
-              type="checkbox"
-              checked={onlyInStock}
-              onChange={(e) => setOnlyInStock(e.target.checked)}
-            />
-            Solo con stock
-          </label>
-        </div>
-        <p className="mp-toolbar__meta">
-          {totalProducts === 1
-            ? "1 producto con los filtros actuales"
-            : `${totalProducts.toLocaleString()} productos con los filtros actuales`}
-        </p>
-      </div>
 
-      {!hasFilterResults && items.length > 0 && (
-        <div className="store-empty store-empty--compact">
-          <div className="store-empty__icon">
-            <Icon name="search_off" />
+          <div className="mp-market-sidebar__section">
+            <label className="mp-market-sidebar__stock">
+              <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} />
+              Solo con stock
+            </label>
           </div>
-          <p className="store-empty__text">
-            No se encontraron productos con esos filtros.
+        </aside>
+
+        <div className="mp-market-main">
+          <p className="mp-toolbar__meta">
+            {totalProducts === 1
+              ? "1 producto con los filtros actuales"
+              : `${totalProducts.toLocaleString()} productos con los filtros actuales`}
           </p>
-          <button type="button" className="store-empty__btn" onClick={resetFilters}>
-            Limpiar filtros
-          </button>
-        </div>
-      )}
 
-      {loadingFirstPage ? (
-        <div className="mp-grid">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="mp-card mp-card--skeleton" aria-hidden>
-              <div className="mp-card__img-wrap" />
-              <div className="mp-card__body">
-                <div className="mp-skel-line mp-skel-line--title" />
-                <div className="mp-skel-line mp-skel-line--price" />
-                <div className="mp-skel-line mp-skel-line--short" />
-                <div className="mp-skel-line mp-skel-line--cta" />
+          {!hasFilterResults && items.length > 0 && (
+            <div className="store-empty store-empty--compact">
+              <div className="store-empty__icon">
+                <Icon name="search_off" />
               </div>
+              <p className="store-empty__text">
+                No se encontraron productos con esos filtros.
+              </p>
+              <button type="button" className="store-empty__btn" onClick={resetFilters}>
+                Limpiar filtros
+              </button>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="mp-catalog-grids">
-          {favoriteItems.length > 0 ? (
-            <section className="mp-catalog-section" aria-labelledby="mp-fav-heading">
-              <h2 id="mp-fav-heading" className="mp-catalog-section__title">
-                Favoritos
-              </h2>
-              <div className="mp-grid">
-                {favoriteItems.map((item) => (
-                  <MarketplaceProductCard
-                    key={`fav-${item.id}-${item.locationId ?? "x"}`}
-                    item={item}
-                    tagLabels={tagLabelsForProduct(item, tagsStable)}
-                    onPedir={() => goToStore(item.locationId, item.locationName)}
-                  />
-                ))}
-              </div>
-            </section>
-          ) : null}
-          {restItems.length > 0 ? (
-            <section
-              className="mp-catalog-section"
-              aria-labelledby={favoriteItems.length > 0 ? "mp-rest-heading" : undefined}
-            >
-              {favoriteItems.length > 0 ? (
-                <h2 id="mp-rest-heading" className="mp-catalog-section__title">
-                  Productos
-                </h2>
-              ) : null}
-              <div className="mp-grid">
-                {restItems.map((item) => (
-                  <MarketplaceProductCard
-                    key={`${item.id}-${item.locationId ?? "x"}`}
-                    item={item}
-                    tagLabels={tagLabelsForProduct(item, tagsStable)}
-                    onPedir={() => goToStore(item.locationId, item.locationName)}
-                  />
-                ))}
-              </div>
-            </section>
-          ) : null}
-        </div>
-      )}
+          )}
 
-      {hasMore && !loadingFirstPage && !loadingMore && (
-        <div className="mp-more">
-          <button
-            type="button"
-            className="mp-more__btn"
-            onClick={loadMore}
-            disabled={loadingMore}
-          >
-            Ver más productos
-          </button>
+          {loadingFirstPage ? (
+            <div className="mp-grid">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="mp-card mp-card--skeleton" aria-hidden>
+                  <div className="mp-card__img-wrap" />
+                  <div className="mp-card__body">
+                    <div className="mp-skel-line mp-skel-line--title" />
+                    <div className="mp-skel-line mp-skel-line--price" />
+                    <div className="mp-skel-line mp-skel-line--short" />
+                    <div className="mp-skel-line mp-skel-line--cta" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mp-catalog-grids">
+              {favoriteItems.length > 0 ? (
+                <section className="mp-catalog-section" aria-labelledby="mp-fav-heading">
+                  <h2 id="mp-fav-heading" className="mp-catalog-section__title">
+                    Favoritos
+                  </h2>
+                  <div className="mp-grid">
+                    {favoriteItems.map((item) => (
+                      <MarketplaceProductCard
+                        key={`fav-${item.id}-${item.locationId ?? "x"}`}
+                        item={item}
+                        tagLabels={tagLabelsForProduct(item, tagsStable)}
+                        onPedir={() => goToStore(item.locationId, item.locationName)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+              {restItems.length > 0 ? (
+                <section
+                  className="mp-catalog-section"
+                  aria-labelledby={favoriteItems.length > 0 ? "mp-rest-heading" : undefined}
+                >
+                  {favoriteItems.length > 0 ? (
+                    <h2 id="mp-rest-heading" className="mp-catalog-section__title">
+                      Productos
+                    </h2>
+                  ) : null}
+                  <div className="mp-grid">
+                    {restItems.map((item) => (
+                      <MarketplaceProductCard
+                        key={`${item.id}-${item.locationId ?? "x"}`}
+                        item={item}
+                        tagLabels={tagLabelsForProduct(item, tagsStable)}
+                        onPedir={() => goToStore(item.locationId, item.locationName)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+            </div>
+          )}
+
+          {hasMore && !loadingFirstPage && !loadingMore && (
+            <div className="mp-more">
+              <button
+                type="button"
+                className="mp-more__btn"
+                onClick={loadMore}
+                disabled={loadingMore}
+              >
+                Ver más productos
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       <section className="mp-cta">
         <div className="mp-cta__bg-icon" aria-hidden>

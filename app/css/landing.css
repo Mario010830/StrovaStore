@@ -21,6 +21,9 @@
   letter-spacing: normal;
   min-height: 100vh;
   width: 100%;
+  /* Evita scroll horizontal por elementos decorativos animados
+     (translateX en vw que puede exceder el ancho del viewport). */
+  overflow-x: hidden;
   background: var(--lp-bg);
   color: var(--lp-text);
 }
