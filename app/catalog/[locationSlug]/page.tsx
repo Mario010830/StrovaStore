@@ -333,8 +333,9 @@ export default function CatalogProductsPage() {
     : "—";
 
   return (
+    <>
     <div className="sp-layout sp-layout--store-catalog">
-      <aside className="sp-sidebar">
+      <aside className="sp-sidebar sp-sidebar--store-profile">
         <div>
           {loc?.photoUrl ? (() => {
             const proxiedUrl = toImageProxyUrl(loc.photoUrl);
@@ -548,14 +549,14 @@ export default function CatalogProductsPage() {
           </div>
         </div>
       </main>
-
-      <PushDialog
-        open={showPushDialog}
-        onClose={() => setShowPushDialog(false)}
-        onActivate={() => requestPermissionAndSubscribe(locationId)}
-        storeName={loc?.name ?? "esta tienda"}
-        storePhotoUrl={loc?.photoUrl}
-      />
     </div>
+    <PushDialog
+      open={showPushDialog}
+      onClose={() => setShowPushDialog(false)}
+      onActivate={() => requestPermissionAndSubscribe(locationId)}
+      storeName={loc?.name ?? "esta tienda"}
+      storePhotoUrl={loc?.photoUrl}
+    />
+    </>
   );
 }
