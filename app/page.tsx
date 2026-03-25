@@ -194,9 +194,10 @@ export default function LandingPage() {
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmed = query.trim();
-    const params = new URLSearchParams({ tab: "productos" });
+    const params = new URLSearchParams();
     if (trimmed) params.set("q", trimmed);
-    router.push(`/catalog?${params.toString()}`);
+    const qs = params.toString();
+    router.push(qs ? `/catalog/productos?${qs}` : "/catalog/productos");
   };
 
   const renderProductHref = (product: (typeof topProducts)[number]) =>

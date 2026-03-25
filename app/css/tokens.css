@@ -28,4 +28,33 @@
   --lp-radius-sm: 10px;
   --lp-radius-md: 14px;
   --lp-radius-lg: 24px;
+
+  /* ───────────────────────────────────────────────
+     CYBER (cx-*) — tema para TODAS las vistas catálogo
+     Blanco + azul: azul SOLO para acciones/CTA/links
+     ─────────────────────────────────────────────── */
+  --cx-font: "Inter";
+
+  --cx-bg: #f6f7fb;
+  --cx-surface: #ffffff;
+  --cx-text: #0b1220;
+  --cx-text-2: #4b5563;
+  --cx-hint: #9aa3af;
+  --cx-divider: #e6e8ee;
+
+  --cx-primary: var(--brand-primary);
+  --cx-on-primary: #ffffff;
+  --cx-primary-soft: color-mix(in srgb, var(--cx-primary) 10%, transparent);
+  --cx-focus-ring: 0 0 0 3px color-mix(in srgb, var(--cx-primary) 25%, transparent);
+
+  --cx-success: #0a7a2a;
+  --cx-error: #b12704;
+
+  --cx-r-sm: 10px;
+  --cx-r-md: 14px;
+  --cx-r-lg: 18px;
+
+  --cx-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --cx-shadow-md: 0 8px 24px rgba(16, 24, 40, 0.08);
+  --cx-shadow-lg: 0 18px 40px rgba(16, 24, 40, 0.12);
 }

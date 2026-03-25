@@ -54,6 +54,11 @@ function parseNumber(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function asNullableNumber(value: unknown): number | null {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function normalizeCatalogImage(rec: Record<string, unknown>): PublicCatalogImageItem | null {
   const imageUrl = asNullableString(rec.imageUrl);
   if (!imageUrl?.trim()) return null;
@@ -148,6 +153,14 @@ function normalizePublicItem(item: Record<string, unknown>): PublicCatalogItem {
     locationName: asNullableString(item.locationName),
     tagIds: tagIds.filter((id) => Number.isInteger(id)),
     tags: tagsNormalized,
+
+    // Campos opcionales (si el backend los expone con diferentes nombres).
+    rating: asNullableNumber(
+      (item.rating ?? item.stars ?? item.starRating ?? item.productRating) as unknown,
+    ),
+    reviewCount: asNullableNumber(
+      (item.reviewCount ?? item.reviews ?? item.review_count ?? item.reviewCountTotal) as unknown,
+    ),
   } as PublicCatalogItem;
 }
 
