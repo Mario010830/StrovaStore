@@ -80,6 +80,11 @@ export interface PublicCatalogItem {
   isOpenNow: boolean | null;
   locationId: number | null;
   locationName: string | null;
+
+  /** Rating promedio (si el backend lo envía). */
+  rating?: number | null;
+  /** Cantidad de reseñas (si el backend lo envía). */
+  reviewCount?: number | null;
 }
 
 export interface PaginationMeta {
