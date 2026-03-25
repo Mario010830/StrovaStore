@@ -93,7 +93,7 @@ function zoneLine(loc: PublicLocation): string | null {
 
 function DirGridSkeleton() {
   return (
-    <div className="dir-mp-grid dir-mp-grid--skeleton" aria-busy="true">
+    <div className="sp-grid dir-mp-grid--skeleton" aria-busy="true">
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="dir-mp-skeleton-card" />
       ))}
@@ -329,43 +329,9 @@ export default function CatalogLocationsPage() {
 
   if (showTiendas) {
     return (
-      <div className="dir-page dir-mp">
-        <div className="dir-tiendas-sticky dir-tiendas-sticky--minimal">
-          <header className="dir-hero-minimal">
-            <div className="dir-shell">
-              <h1 className="dir-hero-minimal__title">Tiendas locales</h1>
-              <p className="dir-hero-minimal__lead">Busca por nombre o categoría; filtra y ordena desde el panel.</p>
-              <div className="dir-hero-minimal__search-row">
-                <div className="dir-tiendas-search">
-                  <Icon name="search" />
-                  <input
-                    ref={searchInputRef}
-                    type="search"
-                    className="dir-tiendas-search__input"
-                    placeholder="Buscar tiendas por nombre o categoría..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    aria-label="Buscar tiendas por nombre o categoría"
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="dir-tiendas-filters-trigger dir-tiendas-filters-trigger--mobile-only"
-                  aria-expanded={filtersOpen}
-                  aria-controls="dir-tiendas-filters-panel"
-                  onClick={() => setFiltersOpen(true)}
-                >
-                  <Icon name="filter_list" />
-                  Filtros
-                </button>
-              </div>
-            </div>
-          </header>
-        </div>
-
-        <div className="dir-shell dir-mp__shell">
-          <div className="dir-mp__layout">
-            <aside className="dir-mp__sidebar" aria-label="Filtros del directorio">
+      <>
+      <div className="sp-layout">
+            <aside className="sp-sidebar" aria-label="Filtros del directorio">
               <div className="dir-mp-sidebar">
                 <p className="dir-mp-sidebar__title">Filtros</p>
                 <DirectoryFiltersForm
@@ -391,7 +357,42 @@ export default function CatalogLocationsPage() {
               </div>
             </aside>
 
-            <div className="dir-mp__main">
+            <main className="sp-main">
+              <div className="sp-catalog-header">
+                <div className="sp-catalog-title-wrap">
+                  <h1 className="sp-catalog-title">Tiendas locales</h1>
+                  <p className="sp-catalog-subtitle">
+                    Busca por nombre o categoría; filtra y ordena desde el panel.
+                  </p>
+                </div>
+                <div className="sp-catalog-search-wrap sp-catalog-search-wrap--full">
+                  <div className="sp-catalog-search-row">
+                    <div className="sp-catalog-search-box">
+                      <Icon name="search" />
+                      <input
+                        ref={searchInputRef}
+                        type="search"
+                        className="sp-catalog-search"
+                        placeholder="Buscar tiendas por nombre o categoría..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        aria-label="Buscar tiendas por nombre o categoría"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className="dir-tiendas-filters-trigger dir-tiendas-filters-trigger--mobile-only"
+                      aria-expanded={filtersOpen}
+                      aria-controls="dir-tiendas-filters-panel"
+                      onClick={() => setFiltersOpen(true)}
+                    >
+                      <Icon name="filter_list" />
+                      Filtros
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {!isLoading && !isError && prepared.base.length > 0 ? (
                 <div
                   className="dir-tiendas-results-bar"
@@ -465,7 +466,7 @@ export default function CatalogLocationsPage() {
                   )}
 
                 {!isLoading && !isError && vista === "grid" && directoryList.length > 0 && (
-                  <div className="dir-mp-grid">
+                  <div className="sp-grid">
                     {directoryList.map((loc) => (
                       <StoreCard
                         key={loc.id}
@@ -516,9 +517,8 @@ export default function CatalogLocationsPage() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-        </div>
+            </main>
+      </div>
 
         <div className="dir-mp-mobile-bar" role="toolbar" aria-label="Acciones del directorio">
           <button type="button" className="dir-mp-mobile-bar__btn" onClick={focusSearch}>
@@ -603,7 +603,7 @@ export default function CatalogLocationsPage() {
             </div>
           </>
         ) : null}
-      </div>
+      </>
     );
   }
 

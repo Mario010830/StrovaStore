@@ -66,9 +66,10 @@
     padding-bottom: 48px;
   }
 
-  .dir-store-card {
+  .dir-zone-card-row > .sp-card--store {
     flex: 0 0 156px;
     width: 156px;
+    max-width: 156px;
   }
 
   .dir-tiendas-skeleton__card {

@@ -100,7 +100,7 @@ function MpCardFavorite({ locationId, productId }: { locationId: number; product
       onToggle={toggle}
       labelOn="Quitar producto de favoritos"
       labelOff="Guardar producto en favoritos"
-      className="mp-card__fav"
+      className="sp-card__fav"
     />
   );
 }
@@ -125,27 +125,33 @@ function MarketplaceProductCard({
 
   return (
     <div
-      className={`mp-card${soldOut ? " mp-card--sold-out" : ""}`}
+      className={`sp-card${soldOut ? " sp-card--sold" : ""}`}
       onClick={handleActivate}
       onKeyDown={(e) => e.key === "Enter" && handleActivate()}
       role="button"
       tabIndex={soldOut ? -1 : 0}
       aria-disabled={soldOut}
     >
-      <div className="mp-card__img-wrap">
+      <div className="sp-card__img-wrap">
         {proxiedImageUrl ? (
-          <Image src={proxiedImageUrl} alt={item.name} width={480} height={320} />
+          <Image
+            src={proxiedImageUrl}
+            alt={item.name}
+            width={480}
+            height={320}
+            className="sp-card__img"
+          />
         ) : (
-          <div className="mp-card__img-placeholder">
+          <div className="sp-card__img-placeholder">
             <Icon name="inventory_2" />
           </div>
         )}
         {tagLabels.length > 0 ? (
-          <div className="mp-card__tags-row" aria-label="Etiquetas">
+          <div className="sp-card__tags-row" aria-label="Etiquetas">
             {tagLabels.slice(0, 3).map((label, idx) => (
-              <span key={`${label}-${idx}`} className="mp-card__tag-pill">
+              <span key={`${label}-${idx}`} className="sp-card__tag-pill">
                 <span
-                  className="mp-card__tag-dot"
+                  className="sp-card__tag-dot"
                   style={{ background: categoryDotColor(label) }}
                   aria-hidden
                 />
@@ -156,26 +162,26 @@ function MarketplaceProductCard({
         ) : null}
         {lid != null ? <MpCardFavorite locationId={lid} productId={item.id} /> : null}
       </div>
-      <div className="mp-card__body">
+      <div className="sp-card__body">
         {item.locationName ? (
-          <p className="mp-card__store-name" title={item.locationName}>
+          <p className="sp-card__store-line" title={item.locationName}>
             <Icon name="store" />
             {item.locationName}
           </p>
         ) : null}
-        <h3 className="mp-card__name" title={item.name}>
+        <h3 className="sp-card__name sp-card__name--lines-2" title={item.name}>
           {item.name}
         </h3>
-        <PriceText value={item.precio} className="mp-card__price" />
+        <PriceText value={item.precio} className="sp-card__price" />
         {!soldOut ? (
-          <p className="mp-card__stock-ok" role="status">
+          <p className="sp-card__stock-ok" role="status">
             En stock
           </p>
         ) : null}
-        {subtitle ? <p className="mp-card__desc">{subtitle}</p> : null}
+        {subtitle ? <p className="sp-card__desc">{subtitle}</p> : null}
         <IconActionButton
           label={soldOut ? "Sin stock" : "Ver en la tienda"}
-          className="mp-card__cta mp-card__cta--outline"
+          className="sp-card__add sp-card__add--outline"
           disabled={soldOut}
           onClick={(e) => {
             e.preventDefault();
@@ -441,31 +447,9 @@ export default function AllProductsView() {
   const hasFilterResults = filtered.length > 0;
 
   return (
-    <div className="mp-page">
-      <section className="mp-hero mp-hero--centered">
-        <div className="mp-hero__text">
-          <h1 className="mp-hero__title">Marketplace de Productos</h1>
-          <p className="mp-hero__subtitle">
-            Explora lo que ofrecen los negocios de tu ciudad
-          </p>
-        </div>
-        <div className="mp-hero__search-wrap">
-          <div className="mp-hero__search-box">
-            <Icon name="search" />
-            <input
-              type="search"
-              className="mp-hero__search"
-              placeholder="Busca herramientas, café, libros…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label="Buscar en el catálogo"
-            />
-          </div>
-        </div>
-      </section>
-
-      <div className="mp-market-layout">
-        <aside className="mp-market-sidebar" aria-label="Filtros del marketplace">
+    <>
+    <div className="sp-layout">
+        <aside className="sp-sidebar" aria-label="Filtros del marketplace">
           <div className="mp-market-sidebar__section">
             <p className="mp-market-sidebar__label" id="mp-cat-label">
               Categorías
@@ -572,7 +556,29 @@ export default function AllProductsView() {
           </div>
         </aside>
 
-        <div className="mp-market-main">
+        <main className="sp-main">
+          <div className="sp-catalog-header">
+            <div className="sp-catalog-title-wrap">
+              <h1 className="sp-catalog-title">Marketplace de productos</h1>
+              <p className="sp-catalog-subtitle">
+                Explora lo que ofrecen los negocios de tu ciudad
+              </p>
+            </div>
+            <div className="sp-catalog-search-wrap">
+              <div className="sp-catalog-search-box">
+                <Icon name="search" />
+                <input
+                  type="search"
+                  className="sp-catalog-search"
+                  placeholder="Busca herramientas, café, libros…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  aria-label="Buscar en el catálogo"
+                />
+              </div>
+            </div>
+          </div>
+
           <p className="mp-toolbar__meta">
             {totalProducts === 1
               ? "1 producto con los filtros actuales"
@@ -594,27 +600,26 @@ export default function AllProductsView() {
           )}
 
           {loadingFirstPage ? (
-            <div className="mp-grid">
+            <div className="sp-grid">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="mp-card mp-card--skeleton" aria-hidden>
-                  <div className="mp-card__img-wrap" />
-                  <div className="mp-card__body">
-                    <div className="mp-skel-line mp-skel-line--title" />
-                    <div className="mp-skel-line mp-skel-line--price" />
-                    <div className="mp-skel-line mp-skel-line--short" />
-                    <div className="mp-skel-line mp-skel-line--cta" />
+                <div key={i} className="skel-card" aria-hidden>
+                  <div className="skel-card__img" />
+                  <div className="skel-card__body">
+                    <div className="skel-line skel-line--lg" />
+                    <div className="skel-line skel-line--md" />
+                    <div className="skel-line skel-line--price" />
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="mp-catalog-grids">
+            <div className="sp-catalog-grids">
               {favoriteItems.length > 0 ? (
-                <section className="mp-catalog-section" aria-labelledby="mp-fav-heading">
-                  <h2 id="mp-fav-heading" className="mp-catalog-section__title">
+                <section className="sp-catalog-section" aria-labelledby="mp-fav-heading">
+                  <h2 id="mp-fav-heading" className="sp-catalog-section__title">
                     Favoritos
                   </h2>
-                  <div className="mp-grid">
+                  <div className="sp-grid">
                     {favoriteItems.map((item) => (
                       <MarketplaceProductCard
                         key={`fav-${item.id}-${item.locationId ?? "x"}`}
@@ -628,15 +633,15 @@ export default function AllProductsView() {
               ) : null}
               {restItems.length > 0 ? (
                 <section
-                  className="mp-catalog-section"
+                  className="sp-catalog-section"
                   aria-labelledby={favoriteItems.length > 0 ? "mp-rest-heading" : undefined}
                 >
                   {favoriteItems.length > 0 ? (
-                    <h2 id="mp-rest-heading" className="mp-catalog-section__title">
+                    <h2 id="mp-rest-heading" className="sp-catalog-section__title">
                       Productos
                     </h2>
                   ) : null}
-                  <div className="mp-grid">
+                  <div className="sp-grid">
                     {restItems.map((item) => (
                       <MarketplaceProductCard
                         key={`${item.id}-${item.locationId ?? "x"}`}
@@ -652,10 +657,10 @@ export default function AllProductsView() {
           )}
 
           {hasMore && !loadingFirstPage && !loadingMore && (
-            <div className="mp-more">
+            <div className="sp-load-more">
               <button
                 type="button"
-                className="mp-more__btn"
+                className="sp-load-more__btn"
                 onClick={loadMore}
                 disabled={loadingMore}
               >
@@ -663,8 +668,8 @@ export default function AllProductsView() {
               </button>
             </div>
           )}
-        </div>
-      </div>
+        </main>
+    </div>
 
       <section className="mp-cta">
         <div className="mp-cta__bg-icon" aria-hidden>
@@ -700,7 +705,6 @@ export default function AllProductsView() {
           </div>
         </div>
       </section>
-
-    </div>
+    </>
   );
 }

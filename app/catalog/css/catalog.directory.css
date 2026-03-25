@@ -309,39 +309,19 @@
   box-shadow: var(--dir-focus-ring, 0 0 0 3px rgba(24, 95, 165, 0.45));
 }
 
-/* Grid marketplace */
-.dir-mp-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
-  gap: 16px;
+/* Grilla de tiendas: misma base que .sp-grid del catálogo */
+.sp-layout .sp-main .sp-grid {
   padding: 2px 0 8px;
 }
 
-@media (max-width: 599px) {
-  .dir-mp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
-    gap: 12px;
-  }
-}
-
-.dir-mp-grid .dir-store-card {
+.sp-grid .sp-card--store {
   width: 100%;
   max-width: none;
   flex: 1 1 auto;
 }
 
-.dir-mp .dir-store-card {
-  border-radius: var(--dir-mp-radius);
-  box-shadow: var(--dir-mp-shadow);
-  border-color: var(--dir-mp-border);
-}
-
-.dir-mp .dir-store-card:hover {
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
-}
-
 /* Skeleton grid */
-.dir-mp-grid--skeleton {
+.sp-grid.dir-mp-grid--skeleton {
   min-height: 200px;
 }
 
@@ -453,7 +433,7 @@
   padding-bottom: 8px;
 }
 
-.dir-mp .dir-zone-card-row .dir-store-card {
+.dir-tiendas-zones .dir-zone-card-row .sp-card--store {
   width: 100%;
 }
 
