@@ -12,6 +12,7 @@ import {
 } from "./_service/catalogApi";
 import { useFuseSearch } from "@/hooks/useFuseSearch";
 import type { PublicLocation } from "@/lib/dashboard-types";
+import AllProductsView from "./AllProductsView";
 import { useCatalogCtx } from "./layout";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getRtkErrorInfo } from "@/lib/rtk-error";
@@ -162,16 +163,6 @@ export default function CatalogLocationsPage() {
   const { search, setSearch } = useCatalogCtx();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
-
-  // Compat: links viejos /catalog?tab=productos -> /catalog/productos (preserva q si existe).
-  useEffect(() => {
-    if (tab !== "productos") return;
-    const q = searchParams.get("q")?.trim() ?? "";
-    const sp = new URLSearchParams();
-    if (q) sp.set("q", q);
-    const qs = sp.toString();
-    router.replace(qs ? `/catalog/productos?${qs}` : "/catalog/productos");
-  }, [router, searchParams, tab]);
 
   const patchParams = useCallback(
     (patch: Record<string, string | null | undefined>) => {
@@ -616,6 +607,5 @@ export default function CatalogLocationsPage() {
     );
   }
 
-  // Marketplace ahora vive en /catalog/productos
-  return null;
+  return <AllProductsView />;
 }

@@ -105,7 +105,7 @@ export function SharedNavbar({
               Tiendas
             </Link>
             <Link
-              href="/catalog/productos"
+              href="/catalog?tab=productos"
               className={`landing-nav__link ${activeCatalogTab && !isTiendas ? activeClass : ""}`.trim()}
             >
               Productos
@@ -128,7 +128,7 @@ export function SharedNavbar({
               Tiendas
             </Link>
             <Link
-              href="/catalog/productos"
+              href="/catalog?tab=productos"
               className={`${prefix}__link ${activeCatalogTab && !isTiendas ? activeClass : ""}`.trim()}
             >
               Productos
@@ -186,7 +186,7 @@ export function SharedNavbar({
                   Tiendas
                 </Link>
                 <Link
-                  href="/catalog/productos"
+                  href="/catalog?tab=productos"
                   role="menuitem"
                   className="landing-nav__mobile-link"
                   onClick={closeMobileNav}
