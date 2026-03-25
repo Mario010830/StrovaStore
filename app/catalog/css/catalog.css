@@ -201,6 +201,7 @@
 
 .cx-footer__links a:hover {
   color: var(--cx-primary);
+ 
   text-decoration: underline;
 }
 
