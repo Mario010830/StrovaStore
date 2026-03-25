@@ -48,7 +48,7 @@ const FALLBACK_PRODUCTS = [
 
 const HERO_QUICK_TAGS = [
   { label: "Seguro", href: "/catalog?tab=tiendas" },
-  { label: "Fácil", href: "/catalog?tab=productos" },
+  { label: "Fácil", href: "/catalog/productos" },
   { label: "Cerca", href: "/catalog" },
 ] as const;
 
@@ -194,9 +194,10 @@ export default function LandingPage() {
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmed = query.trim();
-    const params = new URLSearchParams({ tab: "productos" });
+    const params = new URLSearchParams();
     if (trimmed) params.set("q", trimmed);
-    router.push(`/catalog?${params.toString()}`);
+    const qs = params.toString();
+    router.push(qs ? `/catalog/productos?${qs}` : "/catalog/productos");
   };
 
   const renderProductHref = (product: (typeof topProducts)[number]) =>
@@ -205,7 +206,7 @@ export default function LandingPage() {
           { id: product.locationId, name: product.store },
           product.id,
         )
-      : "/catalog?tab=productos";
+      : "/catalog/productos";
 
   const mobileCatScrollRef = useRef<HTMLDivElement>(null);
   const [mobileCatScroll, setMobileCatScroll] = useState({ canLeft: false, canRight: false });

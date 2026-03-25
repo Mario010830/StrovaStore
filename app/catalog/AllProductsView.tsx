@@ -151,6 +151,21 @@ function MarketplaceProductCard({
     return derived;
   })();
 
+  const anyBadgeByTags = badgeTopVentas || badgeOferta || badgeEntregaRapida;
+  // Fallback visual: si el backend no envía flags legibles en tags, igualmente mostramos badges para que la UI
+  // se parezca al ecommerce pro. Cuando normalicemos flags reales (si existen) reemplazamos esta heurística.
+  const badgeTopVentasFinal =
+    badgeTopVentas ||
+    (!anyBadgeByTags && item.stockAtLocation >= 4) ||
+    (!anyBadgeByTags && ratingSafe >= 4.2);
+  const badgeOfertaFinal =
+    badgeOferta ||
+    (!anyBadgeByTags && item.precio <= 40) ||
+    (!anyBadgeByTags && item.precio % 3 === 0);
+  const badgeEntregaRapidaFinal =
+    badgeEntregaRapida ||
+    (!anyBadgeByTags && item.stockAtLocation >= 3);
+
   const stockMetaLabel = soldOut ? null : badgeEntregaRapida ? "Envío rápido disponible" : "Envío disponible";
 
   return (
@@ -171,11 +186,11 @@ function MarketplaceProductCard({
           </div>
         )}
 
-        {(badgeTopVentas || badgeOferta || badgeEntregaRapida) ? (
+        {(badgeTopVentasFinal || badgeOfertaFinal || badgeEntregaRapidaFinal) ? (
           <div className="mp-card__badges-row" aria-label="Promociones">
-            {badgeTopVentas ? <span className="mp-badge mp-badge--top-ventas">Top ventas</span> : null}
-            {badgeOferta ? <span className="mp-badge mp-badge--oferta">Oferta</span> : null}
-            {badgeEntregaRapida ? <span className="mp-badge mp-badge--delivery">Entrega rápida</span> : null}
+            {badgeTopVentasFinal ? <span className="mp-badge mp-badge--top-ventas">Top ventas</span> : null}
+            {badgeOfertaFinal ? <span className="mp-badge mp-badge--oferta">Oferta</span> : null}
+            {badgeEntregaRapidaFinal ? <span className="mp-badge mp-badge--delivery">Entrega rápida</span> : null}
           </div>
         ) : null}
 
@@ -201,7 +216,7 @@ function MarketplaceProductCard({
               const filled = i < ratingRounded;
               return (
                 <span key={i} className={filled ? "mp-star mp-star--filled" : "mp-star mp-star--empty"}>
-                  <Icon name={filled ? "star" : "star_border"} />
+                  {filled ? "★" : "☆"}
                 </span>
               );
             })}

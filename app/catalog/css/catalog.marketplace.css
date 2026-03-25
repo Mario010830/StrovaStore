@@ -760,13 +760,14 @@
 .mp-star {
   display: inline-flex;
   line-height: 1;
+  font-size: 16px;
 }
 
-.mp-star--filled .material-icons {
+.mp-star--filled {
   color: var(--mp-accent, #feb800);
 }
 
-.mp-star--empty .material-icons {
+.mp-star--empty {
   color: color-mix(in srgb, var(--mp-accent, #feb800) 35%, var(--mp-surface, #ffffff) 65%);
 }
 
