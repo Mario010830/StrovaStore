@@ -27,25 +27,25 @@
   min-height: calc(100vh - 80px);
   width: 100%;
   margin: -16px 0 -60px 0;
-  background: var(--cx-bg, var(--dir-bg));
+  background: var(--dir-bg);
   overflow-x: clip;
 }
 
 .sp-sidebar {
   width: 340px;
   flex-shrink: 0;
-  background: var(--cx-surface, var(--dir-surface));
-  border-right: 1px solid var(--cx-divider, var(--dir-divider));
+  background: var(--dir-surface);
+  border-right: 1px solid var(--dir-divider);
   padding: 32px 24px 32px 32px;
   overflow-y: auto;
-  font-family: var(--cx-font, "Inter"), system-ui, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
 .sp-profile__img {
   width: 80px;
   height: 80px;
-  border-radius: var(--cx-r-lg, var(--dir-radius-lg));
-  border: 1px solid var(--cx-divider, var(--dir-divider));
+  border-radius: var(--dir-radius-lg);
+  border: 1px solid var(--dir-divider);
   object-fit: cover;
   display: block;
 }
@@ -61,22 +61,22 @@
 .sp-profile__name {
   font-size: 22px;
   font-weight: 800;
-  color: var(--cx-text, var(--dir-text));
+  color: var(--dir-text);
   margin: 0;
 }
 
 .sp-profile__badge {
   font-size: 11px;
   font-weight: 700;
-  color: var(--cx-success, var(--dir-secondary));
-  background: color-mix(in srgb, var(--cx-success, #0a7a2a) 14%, var(--cx-surface, #fff));
+  color: var(--dir-secondary);
+  background: #E8F5E9;
   padding: 4px 8px;
-  border-radius: var(--cx-r-md, var(--dir-radius-md));
+  border-radius: var(--dir-radius-md);
 }
 
 .sp-profile__badge--closed {
-  color: var(--cx-text-2, var(--dir-text-secondary));
-  background: color-mix(in srgb, var(--cx-divider, #e6e8ee) 70%, var(--cx-surface, #fff));
+  color: var(--dir-text-secondary);
+  background: var(--dir-divider);
 }
 
 .sp-profile__category {

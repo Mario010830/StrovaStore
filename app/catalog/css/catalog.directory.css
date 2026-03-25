@@ -17,14 +17,14 @@
 
 .dir-mp {
   /* Mismo tono que el nav del catálogo (--dir-surface) y el footer (--lp-surface): #f8fafc */
-  --dir-mp-bg: var(--cx-bg, var(--dir-surface));
-  --dir-mp-surface: var(--cx-surface, var(--dir-surface));
-  --dir-mp-elevated: var(--cx-surface, #ffffff);
+  --dir-mp-bg: var(--dir-surface);
+  --dir-mp-surface: var(--dir-surface);
+  --dir-mp-elevated: #ffffff;
   --dir-mp-sidebar-w: 220px;
-  --dir-mp-radius: var(--cx-r-md, 14px);
-  --dir-mp-shadow: var(--cx-shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.06));
-  --dir-mp-border: var(--cx-divider, #e8ecf0);
-  --dir-mp-text-muted: var(--cx-text-2, #64748b);
+  --dir-mp-radius: 10px;
+  --dir-mp-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --dir-mp-border: #e8ecf0;
+  --dir-mp-text-muted: #64748b;
   background: var(--dir-mp-bg);
 }
 
@@ -53,7 +53,7 @@
   font-size: 1.5rem;
   font-weight: 650;
   letter-spacing: -0.03em;
-  color: var(--cx-text, #0f172a);
+  color: #0f172a;
   line-height: 1.2;
 }
 
@@ -67,7 +67,7 @@
   margin: 6px 0 0;
   font-size: 0.9375rem;
   line-height: 1.45;
-  color: var(--cx-text-2, var(--dir-mp-text-muted));
+  color: var(--dir-mp-text-muted);
   max-width: 42em;
 }
 
@@ -86,15 +86,15 @@
 
 .dir-hero-minimal .dir-tiendas-search__input {
   height: 48px;
-  background: var(--cx-surface, #ffffff);
+  background: #ffffff;
   border: 1px solid var(--dir-mp-border);
-  border-radius: var(--cx-r-md, 14px);
+  border-radius: 10px;
   box-shadow: none;
 }
 
 .dir-hero-minimal .dir-tiendas-search__input:focus {
-  box-shadow: var(--cx-focus-ring, 0 0 0 3px rgba(24, 95, 165, 0.25));
-  border-color: color-mix(in srgb, var(--cx-primary, #185fa5) 35%, var(--dir-mp-border));
+  box-shadow: 0 0 0 2px rgba(24, 95, 165, 0.2);
+  border-color: rgba(24, 95, 165, 0.35);
 }
 
 .dir-tiendas-sticky--minimal {
@@ -176,7 +176,7 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--cx-text-2, var(--dir-text-secondary, #475569));
+  color: var(--dir-text-secondary, #475569);
 }
 
 .dir-mp-sidebar__group {
@@ -216,7 +216,7 @@
 .dir-mp-toggle input {
   width: 18px;
   height: 18px;
-  accent-color: var(--cx-primary, var(--dir-primary, #185fa5));
+  accent-color: var(--dir-primary, #185fa5);
 }
 
 .dir-mp-radio-list {
@@ -236,7 +236,7 @@
 }
 
 .dir-mp-radio input {
-  accent-color: var(--cx-primary, var(--dir-primary, #185fa5));
+  accent-color: var(--dir-primary, #185fa5);
 }
 
 .dir-mp-radio--disabled {
@@ -255,8 +255,8 @@
   min-height: 40px;
   padding: 8px 12px;
   border: 1px solid var(--dir-mp-border);
-  border-radius: var(--cx-r-md, 14px);
-  background: color-mix(in srgb, var(--cx-text, #0b1220) 2.5%, var(--cx-surface, #ffffff));
+  border-radius: 10px;
+  background: #f8fafc;
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
@@ -267,18 +267,18 @@
 }
 
 .dir-mp-seg__btn:hover {
-  border-color: color-mix(in srgb, var(--cx-primary, #185fa5) 30%, var(--dir-mp-border));
-  background: var(--cx-primary-soft, rgba(24, 95, 165, 0.06));
+  border-color: var(--dir-primary, #185fa5);
+  background: rgba(24, 95, 165, 0.06);
 }
 
 .dir-mp-seg__btn--active {
-  border-color: color-mix(in srgb, var(--cx-primary, #185fa5) 35%, var(--dir-mp-border));
-  background: color-mix(in srgb, var(--cx-primary, #185fa5) 10%, var(--cx-surface, #ffffff));
-  color: var(--cx-primary, var(--dir-primary, #185fa5));
+  border-color: var(--dir-primary, #185fa5);
+  background: rgba(24, 95, 165, 0.1);
+  color: var(--dir-primary, #185fa5);
 }
 
 .dir-mp-seg__btn:focus-visible {
-  box-shadow: var(--cx-focus-ring, var(--dir-focus-ring, 0 0 0 3px rgba(24, 95, 165, 0.45)));
+  box-shadow: var(--dir-focus-ring, 0 0 0 3px rgba(24, 95, 165, 0.45));
 }
 
 .dir-mp-filters-sort {
@@ -291,22 +291,22 @@
   margin-top: 12px;
   padding: 10px 12px;
   border: 1px dashed var(--dir-mp-border);
-  border-radius: var(--cx-r-md, 14px);
+  border-radius: 10px;
   background: transparent;
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
-  color: var(--cx-primary, var(--dir-primary, #185fa5));
+  color: var(--dir-primary, #185fa5);
   cursor: pointer;
   outline: none;
 }
 
 .dir-mp-clear:hover {
-  background: var(--cx-primary-soft, rgba(24, 95, 165, 0.06));
+  background: rgba(24, 95, 165, 0.06);
 }
 
 .dir-mp-clear:focus-visible {
-  box-shadow: var(--cx-focus-ring, var(--dir-focus-ring, 0 0 0 3px rgba(24, 95, 165, 0.45)));
+  box-shadow: var(--dir-focus-ring, 0 0 0 3px rgba(24, 95, 165, 0.45));
 }
 
 /* Grid marketplace */
