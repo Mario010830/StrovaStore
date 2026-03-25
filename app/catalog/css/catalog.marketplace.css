@@ -887,28 +887,7 @@
   cursor: not-allowed;
 }
 
-@media (max-width: 1200px) {
-  .mp-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 17px;
-  }
-}
-
 @media (max-width: 768px) {
-  .mp-page {
-    padding: 0 20px 20px;
-  }
-
-  .mp-hero {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 24px 0;
-  }
-
-  .mp-hero__search-wrap {
-    width: 100%;
-  }
-
   .mp-toolbar__row {
     flex-direction: column;
     align-items: stretch;
@@ -925,11 +904,6 @@
 
   .mp-toolbar__price-inputs {
     flex-wrap: wrap;
-  }
-
-  .mp-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
   }
 
   .mp-cta__inner {

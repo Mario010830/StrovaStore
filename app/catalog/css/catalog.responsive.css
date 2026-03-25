@@ -219,51 +219,8 @@
 
 }
 
-/* ─── PÁGINA /catalog?tab=productos — Marketplace (mp-page) ─── */
+/* ─── CTA marketplace (bloque inferior; markup sigue usando .mp-cta) ─── */
 @media (max-width: 959px) {
-  .mp-page {
-    padding: 0 20px 24px;
-  }
-
-  .mp-hero {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 24px 0;
-    gap: 20px;
-  }
-
-  .mp-hero__title {
-    font-size: 24px;
-  }
-
-  .mp-hero__subtitle {
-    font-size: 15px;
-  }
-
-  .mp-hero__search-wrap {
-    width: 100%;
-    max-width: none;
-  }
-
-  .mp-stats__inner {
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .mp-stats__divider {
-    display: none;
-  }
-
-  .mp-chips {
-    padding-bottom: 12px;
-    margin-bottom: 16px;
-  }
-
-  .mp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-  }
-
   .mp-cta {
     padding: 24px 20px;
   }
@@ -276,65 +233,9 @@
   .mp-cta__icon {
     order: -1;
   }
-
 }
 
 @media (max-width: 599px) {
-  .mp-page {
-    padding: 0 12px 20px;
-  }
-
-  .mp-hero {
-    padding: 20px 0;
-  }
-
-  .mp-hero__title {
-    font-size: 20px;
-  }
-
-  .mp-hero__subtitle {
-    font-size: 14px;
-  }
-
-  .mp-hero__search {
-    height: 44px;
-  }
-
-  .mp-stats__inner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .mp-grid {
-    grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
-    gap: 12px;
-  }
-
-  .mp-card__img-wrap {
-    height: 220px;
-  }
-
-  .mp-card__body {
-    padding: 12px;
-  }
-
-  .mp-card__name {
-    font-size: 14px;
-  }
-
-  .mp-card__price {
-    font-size: 16px;
-  }
-
-  .mp-card__footer {
-    gap: 8px;
-    align-items: center;
-  }
-
-  .mp-card__pedir {
-    min-height: 36px;
-  }
-
   .mp-cta {
     padding: 20px 16px;
   }
@@ -524,6 +425,19 @@
 
   .pd-price {
     font-size: 24px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .pd-info {
+    gap: 18px;
+  }
+
+  .pd-wa-btn {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
   }
 
   .pd-seller {
@@ -593,9 +507,14 @@
     font-size: 16px;
   }
 
-  .mp-grid,
   .sp-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+
+  .sp-layout--marketplace .sp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 }
 

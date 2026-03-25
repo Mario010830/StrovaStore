@@ -1,6 +1,15 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback, useRef, useSyncExternalStore } from "react";
+import {
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useSyncExternalStore,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
@@ -69,6 +78,168 @@ function tagLabelsForProduct(item: PublicCatalogItem, tagsStable: Tag[]): string
 const PAGE_SIZE = 50;
 
 type MarketplaceSortKey = "random" | "price-asc" | "price-desc" | "name-asc" | "name-desc";
+
+type MarketplaceTagRow = {
+  id: number;
+  name: string;
+  slug: string;
+  color: string;
+  count: number;
+};
+
+type MarketplaceFiltersBodyProps = {
+  idPrefix: string;
+  tagsWithCount: MarketplaceTagRow[];
+  selectedTagSlugs: string[];
+  setSelectedTagSlugs: Dispatch<SetStateAction<string[]>>;
+  showAllTagCategories: boolean;
+  setShowAllTagCategories: Dispatch<SetStateAction<boolean>>;
+  priceExtent: [number, number];
+  priceReady: boolean;
+  priceRange: [number, number];
+  onPriceMinInput: (raw: string) => void;
+  onPriceMaxInput: (raw: string) => void;
+  sortKey: MarketplaceSortKey;
+  setSortKey: (k: MarketplaceSortKey) => void;
+  onlyInStock: boolean;
+  setOnlyInStock: (v: boolean) => void;
+};
+
+function MarketplaceFiltersBody({
+  idPrefix,
+  tagsWithCount,
+  selectedTagSlugs,
+  setSelectedTagSlugs,
+  showAllTagCategories,
+  setShowAllTagCategories,
+  priceExtent,
+  priceReady,
+  priceRange,
+  onPriceMinInput,
+  onPriceMaxInput,
+  sortKey,
+  setSortKey,
+  onlyInStock,
+  setOnlyInStock,
+}: MarketplaceFiltersBodyProps) {
+  const catLabelId = `${idPrefix}-cat-label`;
+  const priceLabelId = `${idPrefix}-price-label`;
+  const sortId = `${idPrefix}-sort`;
+
+  return (
+    <>
+      <div className="mp-market-sidebar__section">
+        <p className="mp-market-sidebar__label" id={catLabelId}>
+          Categorías
+        </p>
+
+        <div
+          className="mp-market-sidebar__category-list"
+          role="group"
+          aria-labelledby={catLabelId}
+        >
+          <button
+            type="button"
+            className={`mp-market-cat-btn${selectedTagSlugs.length === 0 ? " mp-market-cat-btn--active" : ""}`}
+            onClick={() => setSelectedTagSlugs([])}
+          >
+            Todas
+          </button>
+
+          {(showAllTagCategories ? tagsWithCount : tagsWithCount.slice(0, 5)).map((t) => (
+            <button
+              key={t.slug}
+              type="button"
+              className={`mp-market-cat-btn${selectedTagSlugs.includes(t.slug) ? " mp-market-cat-btn--active" : ""}`}
+              onClick={() =>
+                setSelectedTagSlugs((prev) =>
+                  prev.includes(t.slug) ? prev.filter((x) => x !== t.slug) : [...prev, t.slug],
+                )
+              }
+            >
+              <span className="mp-market-cat-btn__dot" style={{ background: t.color }} aria-hidden />
+              <span className="mp-market-cat-btn__text">{t.name}</span>
+              <span className="mp-market-cat-btn__count">({t.count})</span>
+            </button>
+          ))}
+        </div>
+
+        {tagsWithCount.length > 5 ? (
+          <button
+            type="button"
+            className="mp-market-sidebar__more"
+            onClick={() => setShowAllTagCategories((v) => !v)}
+          >
+            {showAllTagCategories ? "Ver menos" : "Ver más"}
+          </button>
+        ) : null}
+      </div>
+
+      <div className="mp-market-sidebar__section">
+        <span className="mp-toolbar__field-label" id={priceLabelId}>
+          Precio ({priceReady ? `${priceExtent[0]}–${priceExtent[1]}` : "…"})
+        </span>
+        <div className="mp-toolbar__price-inputs">
+          <input
+            type="number"
+            className="mp-toolbar__input"
+            min={priceExtent[0]}
+            max={priceExtent[1]}
+            value={priceReady ? priceRange[0] : ""}
+            onChange={(e) => onPriceMinInput(e.target.value)}
+            disabled={!priceReady}
+            aria-labelledby={priceLabelId}
+            aria-label="Precio mínimo"
+          />
+          <span className="mp-toolbar__dash" aria-hidden>
+            —
+          </span>
+          <input
+            type="number"
+            className="mp-toolbar__input"
+            min={priceExtent[0]}
+            max={priceExtent[1]}
+            value={priceReady ? priceRange[1] : ""}
+            onChange={(e) => onPriceMaxInput(e.target.value)}
+            disabled={!priceReady}
+            aria-labelledby={priceLabelId}
+            aria-label="Precio máximo"
+          />
+        </div>
+      </div>
+
+      <div className="mp-market-sidebar__section">
+        <label className="mp-toolbar__field-label" htmlFor={sortId}>
+          Ordenar por
+        </label>
+        <select
+          id={sortId}
+          className="mp-toolbar__select"
+          value={sortKey}
+          onChange={(e) => setSortKey(e.target.value as MarketplaceSortKey)}
+        >
+          <option value="random">Aleatorio</option>
+          <option value="price-asc">Precio: menor a mayor</option>
+          <option value="price-desc">Precio: mayor a menor</option>
+          <option value="name-asc">Nombre: A–Z</option>
+          <option value="name-desc">Nombre: Z–A</option>
+        </select>
+      </div>
+
+      <div className="mp-market-sidebar__section">
+        <label className="mp-market-sidebar__stock" htmlFor={`${idPrefix}-stock`}>
+          <input
+            id={`${idPrefix}-stock`}
+            type="checkbox"
+            checked={onlyInStock}
+            onChange={(e) => setOnlyInStock(e.target.checked)}
+          />
+          Solo con stock
+        </label>
+      </div>
+    </>
+  );
+}
 
 function sortProductList(
   list: PublicCatalogItem[],
@@ -216,6 +387,7 @@ export default function AllProductsView() {
   const [randomReady, setRandomReady] = useState(false);
   const [priceReady, setPriceReady] = useState(false);
   const [items, setItems] = useState<PublicCatalogItem[]>([]);
+  const [mpFiltersOpen, setMpFiltersOpen] = useState(false);
 
   const {
     data,
@@ -248,6 +420,15 @@ export default function AllProductsView() {
   useEffect(() => {
     setRandomReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!mpFiltersOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMpFiltersOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mpFiltersOpen]);
 
   useEffect(() => {
     if (!data) return;
@@ -446,114 +627,31 @@ export default function AllProductsView() {
 
   const hasFilterResults = filtered.length > 0;
 
+  const mpFilterBadgeCount = selectedTagSlugs.length + (onlyInStock ? 1 : 0);
+
+  const filtersBodyProps: MarketplaceFiltersBodyProps = {
+    idPrefix: "mp-sidebar",
+    tagsWithCount,
+    selectedTagSlugs,
+    setSelectedTagSlugs,
+    showAllTagCategories,
+    setShowAllTagCategories,
+    priceExtent,
+    priceReady,
+    priceRange,
+    onPriceMinInput,
+    onPriceMaxInput,
+    sortKey,
+    setSortKey,
+    onlyInStock,
+    setOnlyInStock,
+  };
+
   return (
     <>
-    <div className="sp-layout">
-        <aside className="sp-sidebar" aria-label="Filtros del marketplace">
-          <div className="mp-market-sidebar__section">
-            <p className="mp-market-sidebar__label" id="mp-cat-label">
-              Categorías
-            </p>
-
-            <div
-              className="mp-market-sidebar__category-list"
-              role="group"
-              aria-labelledby="mp-cat-label"
-            >
-              <button
-                type="button"
-                className={`mp-market-cat-btn${selectedTagSlugs.length === 0 ? " mp-market-cat-btn--active" : ""}`}
-                onClick={() => setSelectedTagSlugs([])}
-              >
-                Todas
-              </button>
-
-              {(showAllTagCategories ? tagsWithCount : tagsWithCount.slice(0, 5)).map((t) => (
-                <button
-                  key={t.slug}
-                  type="button"
-                  className={`mp-market-cat-btn${selectedTagSlugs.includes(t.slug) ? " mp-market-cat-btn--active" : ""}`}
-                  onClick={() =>
-                    setSelectedTagSlugs((prev) =>
-                      prev.includes(t.slug) ? prev.filter((x) => x !== t.slug) : [...prev, t.slug],
-                    )
-                  }
-                >
-                  <span className="mp-market-cat-btn__dot" style={{ background: t.color }} aria-hidden />
-                  <span className="mp-market-cat-btn__text">{t.name}</span>
-                  <span className="mp-market-cat-btn__count">({t.count})</span>
-                </button>
-              ))}
-            </div>
-
-            {tagsWithCount.length > 5 ? (
-              <button
-                type="button"
-                className="mp-market-sidebar__more"
-                onClick={() => setShowAllTagCategories((v) => !v)}
-              >
-                {showAllTagCategories ? "Ver menos" : "Ver más"}
-              </button>
-            ) : null}
-          </div>
-
-          <div className="mp-market-sidebar__section">
-            <span className="mp-toolbar__field-label" id="mp-price-label">
-              Precio ({priceReady ? `${priceExtent[0]}–${priceExtent[1]}` : "…"})
-            </span>
-            <div className="mp-toolbar__price-inputs">
-              <input
-                type="number"
-                className="mp-toolbar__input"
-                min={priceExtent[0]}
-                max={priceExtent[1]}
-                value={priceReady ? priceRange[0] : ""}
-                onChange={(e) => onPriceMinInput(e.target.value)}
-                disabled={!priceReady}
-                aria-labelledby="mp-price-label"
-                aria-label="Precio mínimo"
-              />
-              <span className="mp-toolbar__dash" aria-hidden>
-                —
-              </span>
-              <input
-                type="number"
-                className="mp-toolbar__input"
-                min={priceExtent[0]}
-                max={priceExtent[1]}
-                value={priceReady ? priceRange[1] : ""}
-                onChange={(e) => onPriceMaxInput(e.target.value)}
-                disabled={!priceReady}
-                aria-labelledby="mp-price-label"
-                aria-label="Precio máximo"
-              />
-            </div>
-          </div>
-
-          <div className="mp-market-sidebar__section">
-            <label className="mp-toolbar__field-label" htmlFor="mp-sort-sidebar">
-              Ordenar por
-            </label>
-            <select
-              id="mp-sort-sidebar"
-              className="mp-toolbar__select"
-              value={sortKey}
-              onChange={(e) => setSortKey(e.target.value as MarketplaceSortKey)}
-            >
-              <option value="random">Aleatorio</option>
-              <option value="price-asc">Precio: menor a mayor</option>
-              <option value="price-desc">Precio: mayor a menor</option>
-              <option value="name-asc">Nombre: A–Z</option>
-              <option value="name-desc">Nombre: Z–A</option>
-            </select>
-          </div>
-
-          <div className="mp-market-sidebar__section">
-            <label className="mp-market-sidebar__stock">
-              <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} />
-              Solo con stock
-            </label>
-          </div>
+    <div className="sp-layout sp-layout--marketplace">
+        <aside className="sp-sidebar sp-sidebar--marketplace-desktop" aria-label="Filtros del marketplace">
+          <MarketplaceFiltersBody {...filtersBodyProps} />
         </aside>
 
         <main className="sp-main">
@@ -577,6 +675,22 @@ export default function AllProductsView() {
                 />
               </div>
             </div>
+          </div>
+
+          <div className="mp-marketplace-toolbar mp-marketplace-toolbar--mobile-only">
+            <button
+              type="button"
+              className="dir-tiendas-filters-trigger"
+              aria-expanded={mpFiltersOpen}
+              aria-controls="mp-marketplace-filters-panel"
+              onClick={() => setMpFiltersOpen(true)}
+            >
+              <Icon name="filter_list" />
+              Filtros
+              {mpFilterBadgeCount > 0 ? (
+                <span className="mp-marketplace-filters-badge">{mpFilterBadgeCount}</span>
+              ) : null}
+            </button>
           </div>
 
           <p className="mp-toolbar__meta">
@@ -705,6 +819,41 @@ export default function AllProductsView() {
           </div>
         </div>
       </section>
+
+      {mpFiltersOpen ? (
+        <>
+          <button
+            type="button"
+            className="dir-tiendas-filters-backdrop"
+            aria-label="Cerrar filtros"
+            onClick={() => setMpFiltersOpen(false)}
+          />
+          <div
+            id="mp-marketplace-filters-panel"
+            className="dir-tiendas-filters-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mp-marketplace-filters-title"
+          >
+            <div className="dir-tiendas-filters-panel__head">
+              <h2 id="mp-marketplace-filters-title" className="dir-tiendas-filters-panel__title">
+                Filtros
+              </h2>
+              <button
+                type="button"
+                className="dir-tiendas-filters-panel__close"
+                onClick={() => setMpFiltersOpen(false)}
+                aria-label="Cerrar"
+              >
+                <Icon name="close" />
+              </button>
+            </div>
+            <div className="dir-tiendas-filters-panel__body">
+              <MarketplaceFiltersBody {...filtersBodyProps} idPrefix="mp-drawer" />
+            </div>
+          </div>
+        </>
+      ) : null}
     </>
   );
 }

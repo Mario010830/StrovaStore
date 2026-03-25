@@ -333,7 +333,7 @@ export default function CatalogProductsPage() {
     : "—";
 
   return (
-    <div className="sp-layout">
+    <div className="sp-layout sp-layout--store-catalog">
       <aside className="sp-sidebar">
         <div>
           {loc?.photoUrl ? (() => {

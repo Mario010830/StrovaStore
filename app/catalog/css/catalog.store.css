@@ -991,3 +991,70 @@
     max-width: 156px;
   }
 }
+
+/* Marketplace: filtros en panel móvil (sidebar oculto <960px) */
+@media (max-width: 959px) {
+  .sp-layout--marketplace > .sp-sidebar--marketplace-desktop {
+    display: none;
+  }
+}
+
+.mp-marketplace-toolbar--mobile-only {
+  display: none;
+}
+
+@media (max-width: 959px) {
+  .mp-marketplace-toolbar--mobile-only {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+}
+
+.mp-marketplace-filters-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--dir-primary);
+  color: #fff;
+  margin-left: 4px;
+}
+
+@media (max-width: 959px) {
+  .sp-layout--store-catalog .sp-sidebar {
+    padding: 16px 16px 12px;
+  }
+
+  .sp-layout--store-catalog .sp-about {
+    margin-top: 18px;
+  }
+
+  .sp-layout--store-catalog .sp-about__title {
+    font-size: 14px;
+  }
+
+  .sp-layout--store-catalog .sp-about__text {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .sp-layout--store-catalog .sp-divider {
+    margin: 16px 0;
+  }
+
+  .sp-layout--store-catalog .sp-meta {
+    gap: 12px;
+  }
+
+  .sp-layout--store-catalog .sp-sidebar__extras {
+    margin-top: 16px;
+    padding: 10px 12px 12px;
+  }
+}

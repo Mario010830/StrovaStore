@@ -1334,6 +1334,7 @@
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   background: var(--dir-bg, #fff);
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 .pd-container {
@@ -1479,8 +1480,10 @@
 
 .pd-price {
   font-size: 34px;
-  font-weight: 700;
-  color: var(--dir-text);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: #0f172a;
 }
 
 .pd-divider {
@@ -1678,11 +1681,23 @@
   gap: 8px;
   text-decoration: none;
   color: inherit;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--dir-surface);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(15, 23, 42, 0.04);
+  padding: 0 0 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pd-other-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.07), 0 8px 20px rgba(15, 23, 42, 0.06);
 }
 
 .pd-other-card__img {
   aspect-ratio: 1;
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
   background: var(--dir-bg);
   display: flex;
@@ -1703,18 +1718,23 @@
 
 .pd-other-card__name {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--dir-text);
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  padding: 0 10px;
+  line-height: 1.3;
 }
 
 .pd-other-card__price {
   font-size: 17px;
-  font-weight: 700;
-  color: var(--dir-primary);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  padding: 0 10px;
 }
 
 
