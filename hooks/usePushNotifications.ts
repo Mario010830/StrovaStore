@@ -1,5 +1,7 @@
 "use client";
 
+import { getApiUrl } from "@/lib/auth-api";
+
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -36,14 +38,26 @@ export function usePushNotifications() {
       });
 
       const subJson = subscription.toJSON();
-      await fetch("/api/push/subscribe", {
+      const apiUrl = getApiUrl().replace(/\/$/, "");
+      const payload = {
+        ...subJson,
+        locationId,
+      };
+
+      // Primary target: backend API (where admin-triggered push reads subscriptions).
+      const backendRes = await fetch(`${apiUrl}/push/subscribe`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...subJson,
-          locationId,
-        }),
+        body: JSON.stringify(payload),
       });
+      if (!backendRes.ok) {
+        // Compatibility fallback for local/dev setups.
+        await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      }
 
       if (typeof locationId === "number" && Number.isInteger(locationId) && locationId > 0) {
         try {
