@@ -3289,3 +3289,26 @@
   }
 }
 
+/* Hide global navbar + force white background on mobile */
+@media (max-width: 959px) {
+  .page-store-detail .store-nav,
+  .page-store-detail .store-nav--directory,
+  .page-catalog-directory .store-nav,
+  .page-catalog-directory .store-nav--directory {
+    display: none;
+  }
+
+  .page-catalog-directory,
+  .page-catalog-directory .dir-page,
+  .page-catalog-directory .sp-layout,
+  .page-catalog-directory .sp-main,
+  .page-catalog-directory .dir-mp,
+  .page-store-detail,
+  .page-store-detail .sp-layout,
+  .page-store-detail .sp-main {
+    --dir-surface: #ffffff;
+    --dir-bg: #ffffff;
+    background: #ffffff;
+  }
+}
+

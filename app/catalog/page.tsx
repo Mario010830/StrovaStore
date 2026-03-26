@@ -172,6 +172,7 @@ export default function CatalogLocationsPage() {
   );
   const { search, setSearch } = useCatalogCtx();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [mobSearchOpen, setMobSearchOpen] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const patchParams = useCallback(
@@ -373,16 +374,49 @@ export default function CatalogLocationsPage() {
       <>
       {/* Mobile-only: pill search header (YerroMenu style) */}
       <div className="dir-mob-header">
-        <button type="button" className="dir-mob-header__pill" onClick={focusSearch}>
-          <span className="dir-mob-header__pill-icon"><Icon name="storefront" /></span>
-          <span className="dir-mob-header__pill-text">
-            <span className="dir-mob-header__pill-title">Catálogos</span>
-            <span className="dir-mob-header__pill-sub">
-              {zonaProvincia || "Explorar tiendas"}
+        {mobSearchOpen ? (
+          <div className="dir-mob-header__search-row">
+            <div className="dir-mob-header__search-box">
+              <Icon name="search" />
+              <input
+                ref={searchInputRef}
+                type="search"
+                className="dir-mob-header__search-input"
+                placeholder="Buscar productos o tiendas..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                autoFocus
+                onBlur={() => { if (!search) setMobSearchOpen(false); }}
+              />
+              {search ? (
+                <button
+                  type="button"
+                  className="dir-mob-header__search-clear"
+                  onClick={() => { setSearch(""); searchInputRef.current?.focus(); }}
+                  aria-label="Limpiar"
+                >
+                  <Icon name="close" />
+                </button>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              className="dir-mob-header__search-cancel"
+              onClick={() => { setMobSearchOpen(false); setSearch(""); }}
+            >
+              Cancelar
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="dir-mob-header__pill" onClick={() => setMobSearchOpen(true)}>
+            <span className="dir-mob-header__pill-icon"><Icon name="storefront" /></span>
+            <span className="dir-mob-header__pill-text">
+              <span className="dir-mob-header__pill-title">Catálogos</span>
+              <span className="dir-mob-header__pill-sub">Strova</span>
             </span>
-          </span>
-          <span className="dir-mob-header__pill-search"><Icon name="search" /></span>
-        </button>
+            <span className="dir-mob-header__pill-search"><Icon name="search" /></span>
+          </button>
+        )}
       </div>
 
       {/* Mobile-only icon category tabs */}
@@ -402,7 +436,7 @@ export default function CatalogLocationsPage() {
                 {item.key === "todos" ? (
                   <Icon name="apps" />
                 ) : (
-                  createElement(CatIcon, { size: 20, strokeWidth: 1.5, "aria-hidden": true })
+                  createElement(CatIcon, { size: 28, strokeWidth: 1.5, "aria-hidden": true })
                 )}
               </span>
               {item.key === "todos" ? "Todos" : item.name}
@@ -494,8 +528,27 @@ export default function CatalogLocationsPage() {
                 </div>
               ) : null}
 
+              {/* Mobile-only: filtered category list (stacked cards) */}
+              {!isLoading && !isError && categorySlug && directoryList.length > 0 ? (
+                <div className="dir-cat-results">
+                  <p className="dir-cat-results__suptitle">Negocios en</p>
+                  <p className="dir-cat-results__title">{activeBizCategoryLabel}</p>
+                  <div className="dir-cat-results__list">
+                    {directoryList.map((loc) => (
+                      <StoreCard
+                        key={loc.id}
+                        loc={loc}
+                        businessCategoryDisplay={resolveLocationBizName(loc)}
+                        distanceKm={userCoords ? distanceToStoreKm(loc, userCoords) : null}
+                        zoneLabel={zoneLine(loc)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               {/* Mobile-only trending section */}
-              {!isLoading && !isError && trendingLocations.length > 0 ? (
+              {!isLoading && !isError && !categorySlug && trendingLocations.length > 0 ? (
                 <div className="dir-trending">
                   <p className="dir-trending__suptitle">Negocios en</p>
                   <p className="dir-trending__title">Tendencia</p>
