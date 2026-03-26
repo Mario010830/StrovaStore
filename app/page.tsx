@@ -65,6 +65,11 @@ export default function LandingPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isMobileLanding = useMediaQuery("(max-width: 768px)");
+
+  useEffect(() => {
+    document.body.classList.add("page-landing");
+    return () => { document.body.classList.remove("page-landing"); };
+  }, []);
   const { data: locations = [] } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
   const { data: businessCategories = [] } = useGetBusinessCategoriesQuery(
     undefined,
