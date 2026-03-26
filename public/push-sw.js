@@ -2,15 +2,18 @@ self.addEventListener("push", (event) => {
   if (!event.data) return;
 
   let payload = {};
+  const raw = event.data?.text?.() ?? "";
+  console.log("[push-sw] raw payload:", raw);
   try {
-    payload = event.data.json();
+    payload = JSON.parse(raw);
   } catch {
     payload = {
       title: "StrovaStore",
-      body: event.data.text(),
+      body: raw,
       data: { url: "/catalog" },
     };
   }
+  console.log("[push-sw] parsed payload:", payload);
 
   const title = payload.title || "Oferta nueva en StrovaStore";
   const targetUrl = payload.url || payload?.data?.url || "/catalog";
@@ -38,6 +41,7 @@ self.addEventListener("push", (event) => {
       locationId: payload.locationId ?? payload?.data?.locationId ?? null,
     },
   };
+  console.log("[push-sw] showNotification:", { title, options });
 
   event.waitUntil(self.registration.showNotification(title, options));
 });
