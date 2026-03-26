@@ -16,7 +16,17 @@ export function usePushNotifications() {
   const isSupported = () =>
     typeof window !== "undefined" &&
     "serviceWorker" in navigator &&
-    "PushManager" in window;
+    "PushManager" in window &&
+    "Notification" in window;
+
+  const isIos = () =>
+    typeof navigator !== "undefined" &&
+    /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  const isStandalone = () =>
+    typeof window !== "undefined" &&
+    (window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as unknown as Record<string, unknown>).standalone === true);
 
   const subscribe = async (locationId?: number) => {
     if (!isSupported()) return false;
@@ -91,17 +101,33 @@ export function usePushNotifications() {
   };
 
   const requestPermissionAndSubscribe = async (locationId?: number) => {
+    if (isIos() && !isStandalone()) {
+      console.warn("[push] iOS requires PWA (add to home screen) for push notifications");
+      alert(
+        "Para recibir notificaciones en iPhone:\n\n" +
+        "1. Toca el botón de Compartir (⎙)\n" +
+        "2. Selecciona \"Agregar a inicio\"\n" +
+        "3. Abre la app desde tu pantalla de inicio\n" +
+        "4. Activa las notificaciones desde ahí"
+      );
+      return false;
+    }
+
     if (!isSupported()) {
       console.warn("[push] not supported in this browser/context");
       return false;
     }
+
     const permission = await Notification.requestPermission();
     console.info("[push] permission result:", permission);
     if (permission === "granted") {
       return await subscribe(locationId);
     }
+    if (permission === "denied") {
+      console.warn("[push] permission denied by user");
+    }
     return false;
   };
 
-  return { isSupported, subscribe, requestPermissionAndSubscribe };
+  return { isSupported, isIos, isStandalone, subscribe, requestPermissionAndSubscribe };
 }

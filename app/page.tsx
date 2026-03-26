@@ -55,7 +55,7 @@ const HERO_QUICK_TAGS = [
 const HERO_PORTRAIT_SRC = "/images/woman.webp?v=1";
 
 /** Cantidad mostrada en «Productos populares» (landing); no listar todo el catálogo. */
-const LANDING_TOP_PRODUCTS_LIMIT = 8;
+const LANDING_TOP_PRODUCTS_LIMIT = 4;
 
 type LandingCategoryRowItem = { key: string; name: string; slug: string };
 
