@@ -543,7 +543,6 @@ export default function LandingPage() {
                   </div>
                   <div className="landing-mob-store-item__meta">
                     <span className="landing-mob-store-item__name">{store.name}</span>
-                    <BusinessCategoryPill name={store.businessCategoryName} />
                   </div>
                 </Link>
               ))
