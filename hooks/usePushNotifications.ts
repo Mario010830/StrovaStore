@@ -29,11 +29,12 @@ export function usePushNotifications() {
 
     try {
       // Ensure SW is registered in case auto-registration is delayed/missing.
-      const existingReg = await navigator.serviceWorker.getRegistration();
+      const existingReg = await navigator.serviceWorker.getRegistration("/push-sw.js");
       if (!existingReg) {
-        await navigator.serviceWorker.register("/sw.js");
+        await navigator.serviceWorker.register("/push-sw.js", { scope: "/" });
       }
-      const registration = await navigator.serviceWorker.ready;
+      const registration =
+        existingReg ?? (await navigator.serviceWorker.getRegistration("/push-sw.js")) ?? (await navigator.serviceWorker.ready);
 
       const appServerKey = urlBase64ToUint8Array(vapidKey) as unknown as BufferSource;
       let subscription = await registration.pushManager.getSubscription();
