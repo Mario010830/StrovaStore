@@ -112,7 +112,7 @@ function StoreProductCard({
   return (
     <div className={`sp-card${sold ? " sp-card--sold" : ""}`}>
       <Link href={`${catalogBasePath}/product/${item.id}`} className="sp-card__link">
-      <div className="sp-card__img-wrap">
+      <div className={`sp-card__img-wrap${promoBadge && item.categoryName ? " sp-card__img-wrap--promo-cat" : ""}`}>
         {item.categoryName ? (
           <span className="sp-card__cat-pill">
             <span

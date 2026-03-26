@@ -335,7 +335,7 @@ function MarketplaceProductCard({
       tabIndex={soldOut ? -1 : 0}
       aria-disabled={soldOut}
     >
-      <div className="sp-card__img-wrap">
+      <div className={`sp-card__img-wrap${promoBadge && item.categoryName ? " sp-card__img-wrap--promo-cat" : ""}`}>
         {proxiedImageUrl ? (
           <Image
             src={proxiedImageUrl}

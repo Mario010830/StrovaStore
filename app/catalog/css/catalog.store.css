@@ -500,6 +500,10 @@
   box-shadow: 0 2px 8px rgba(127, 29, 29, 0.35);
 }
 
+.sp-card__img-wrap--promo-cat .sp-card__cat-pill {
+  top: 42px;
+}
+
 .sp-card__sold-actions {
   margin-top: auto;
   padding-top: 4px;
