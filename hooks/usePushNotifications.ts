@@ -28,24 +28,43 @@ export function usePushNotifications() {
     }
 
     try {
+      // Ensure SW is registered in case auto-registration is delayed/missing.
+      const existingReg = await navigator.serviceWorker.getRegistration();
+      if (!existingReg) {
+        await navigator.serviceWorker.register("/sw.js");
+      }
       const registration = await navigator.serviceWorker.ready;
 
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey) as unknown as BufferSource,
-      });
+      const appServerKey = urlBase64ToUint8Array(vapidKey) as unknown as BufferSource;
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: appServerKey,
+        });
+      }
 
       const subJson = subscription.toJSON();
       const payload = {
         ...subJson,
         locationId,
       };
+      console.info("[push] sending subscription payload", {
+        locationId,
+        endpoint: subJson.endpoint,
+      });
       const response = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!response.ok) return false;
+      if (!response.ok) {
+        const errBody = await response.text().catch(() => "");
+        console.error("[push] subscribe endpoint failed", response.status, errBody);
+        return false;
+      }
+      const result = await response.json().catch(() => null);
+      console.info("[push] subscribe endpoint response", result);
 
       if (typeof locationId === "number" && Number.isInteger(locationId) && locationId > 0) {
         try {
@@ -71,7 +90,12 @@ export function usePushNotifications() {
   };
 
   const requestPermissionAndSubscribe = async (locationId?: number) => {
+    if (!isSupported()) {
+      console.warn("[push] not supported in this browser/context");
+      return false;
+    }
     const permission = await Notification.requestPermission();
+    console.info("[push] permission result:", permission);
     if (permission === "granted") {
       return await subscribe(locationId);
     }
