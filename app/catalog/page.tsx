@@ -4,7 +4,6 @@ import { createElement, useCallback, useEffect, useMemo, useRef, useState } from
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MapPin } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import {
   QUERY_POLLING_OPTIONS,
@@ -147,6 +146,11 @@ function TiendasEmptyIllustration() {
 export default function CatalogLocationsPage() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    document.body.classList.add("page-catalog-directory");
+    return () => document.body.classList.remove("page-catalog-directory");
+  }, []);
   const router = useRouter();
   const tab = searchParams.get("tab") ?? "tiendas";
   const zonaProvincia = searchParams.get("provincia")?.trim() ?? "";
@@ -367,17 +371,17 @@ export default function CatalogLocationsPage() {
   if (showTiendas) {
     return (
       <>
-      {/* Mobile-only compact header */}
+      {/* Mobile-only: pill search header (YerroMenu style) */}
       <div className="dir-mob-header">
-        <span className="dir-mob-header__icon"><Icon name="storefront" /></span>
-        <div className="dir-mob-header__text">
-          <span className="dir-mob-header__title">Catálogos</span>
-          {zonaProvincia ? (
-            <span className="dir-mob-header__subtitle">{zonaProvincia}</span>
-          ) : null}
-        </div>
-        <button type="button" className="dir-mob-header__btn" onClick={focusSearch} aria-label="Buscar">
-          <Icon name="search" />
+        <button type="button" className="dir-mob-header__pill" onClick={focusSearch}>
+          <span className="dir-mob-header__pill-icon"><Icon name="storefront" /></span>
+          <span className="dir-mob-header__pill-text">
+            <span className="dir-mob-header__pill-title">Catálogos</span>
+            <span className="dir-mob-header__pill-sub">
+              {zonaProvincia || "Explorar tiendas"}
+            </span>
+          </span>
+          <span className="dir-mob-header__pill-search"><Icon name="search" /></span>
         </button>
       </div>
 
@@ -493,19 +497,22 @@ export default function CatalogLocationsPage() {
               {/* Mobile-only trending section */}
               {!isLoading && !isError && trendingLocations.length > 0 ? (
                 <div className="dir-trending">
-                  <p className="dir-trending__title">Negocios en</p>
-                  <p className="dir-trending__subtitle">Tendencia</p>
+                  <p className="dir-trending__suptitle">Negocios en</p>
+                  <p className="dir-trending__title">Tendencia</p>
                   <div className="dir-trending__scroll">
                     {trendingLocations.map((tLoc) => {
                       const photo = toImageProxyUrl(tLoc.photoUrl);
                       return (
                         <Link key={tLoc.id} href={buildLocationCatalogPath(tLoc)} className="dir-trending__item">
                           {photo ? (
-                            <Image src={photo} alt={tLoc.name} width={64} height={64} className="dir-trending__avatar" />
+                            <Image src={photo} alt={tLoc.name} width={88} height={88} className="dir-trending__avatar" />
                           ) : (
                             <span className="dir-trending__avatar-placeholder"><Icon name="storefront" /></span>
                           )}
-                          <span className="dir-trending__name">{tLoc.name}</span>
+                          <span className="dir-trending__name">
+                            {tLoc.name}
+                            <Icon name="verified" className="dir-trending__verified" />
+                          </span>
                         </Link>
                       );
                     })}
@@ -602,8 +609,8 @@ export default function CatalogLocationsPage() {
                           ) : null}
 
                           <div className="dir-zone-provincia__head">
-                            <div className="dir-zone-provincia__title-row">
-                              <MapPin className="dir-zone-provincia__pin" size={20} strokeWidth={2} aria-hidden />
+                            <div className="dir-zone-provincia__title-col">
+                              <span className="dir-zone-provincia__suptitle">Negocios en</span>
                               <h2 className="dir-zone-provincia__title">{province}</h2>
                             </div>
                             {!hideProvinciaVerTodas ? (
@@ -634,8 +641,8 @@ export default function CatalogLocationsPage() {
                           {/* Mobile-only rebajas for this province */}
                           {promos.length > 0 ? (
                             <div className="dir-rebajas">
-                              <p className="dir-rebajas__title">Rebajas en</p>
-                              <p className="dir-rebajas__subtitle">{province}</p>
+                              <p className="dir-rebajas__suptitle">Domicilio en</p>
+                              <p className="dir-rebajas__title">{province}</p>
                               <div className="dir-rebajas__grid">
                                 {promos.map((p) => {
                                   const pImg = toImageProxyUrl(p.imagenUrl);

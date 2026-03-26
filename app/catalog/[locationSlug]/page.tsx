@@ -227,8 +227,10 @@ export default function CatalogProductsPage() {
   const [storeSearch, setStoreSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPushDialog, setShowPushDialog] = useState(false);
+  const [showFullDesc, setShowFullDesc] = useState(false);
   const { requestPermissionAndSubscribe } = usePushNotifications();
   const promoSnapshotRef = useRef<string>("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     document.body.classList.add("page-store-detail");
@@ -434,32 +436,123 @@ export default function CatalogProductsPage() {
 
   return (
     <>
-    {/* Mobile-only banner + info compact */}
+    {/* Mobile-only: compact sticky store header */}
+    <div className="sp-store-header">
+      <div className="sp-store-header__left">
+        {storePhoto ? (
+          <Image src={storePhoto} alt={storeName} width={36} height={36} className="sp-store-header__avatar" />
+        ) : (
+          <span className="sp-store-header__avatar-placeholder"><Icon name="storefront" /></span>
+        )}
+        <div className="sp-store-header__info">
+          {loc && (
+            <span className={`sp-store-header__status${loc.isOpenNow ? "" : " sp-store-header__status--closed"}`}>
+              {loc.isOpenNow
+                ? `ABIERTO${loc.todayClose ? ` · Cierra a las ${loc.todayClose}` : ""}`
+                : "CERRADO"}
+            </span>
+          )}
+          <span className="sp-store-header__name">{storeName}</span>
+        </div>
+      </div>
+      <div className="sp-store-header__actions">
+        <button
+          type="button"
+          className="sp-store-header__btn"
+          aria-label="Buscar"
+          onClick={() => searchInputRef.current?.focus()}
+        >
+          <Icon name="search" />
+        </button>
+        <button
+          type="button"
+          className="sp-store-header__btn"
+          aria-label="Más información"
+          onClick={() => setSidebarOpen((v) => !v)}
+        >
+          <Icon name="menu" />
+        </button>
+      </div>
+    </div>
+
+    {/* Hero banner — mobile full-bleed, desktop hidden */}
     <div className="sp-store-banner">
       {storePhoto ? (
-        <Image src={storePhoto} alt={storeName} width={800} height={450} />
+        <Image src={storePhoto} alt={storeName} width={800} height={600} />
       ) : (
         <div className="sp-store-banner__placeholder"><Icon name="storefront" /></div>
       )}
     </div>
-    <div className="sp-store-info-compact">
-      <div className="sp-store-info-compact__name-row">
-        <h1 className="sp-store-info-compact__name">{storeName}</h1>
-        {loc && (
-          <StatusBadge
-            label={loc.isOpenNow ? "Abierto" : "Cerrado"}
-            className="sp-profile__badge"
-            active={!!loc.isOpenNow}
-            inactiveClassName="sp-profile__badge--closed"
-          />
-        )}
+
+    {/* Mobile-only: rich info block (YerroMenu style) */}
+    <div className="sp-info-hero">
+      {(storeBusinessCategoryName || locationLine) ? (
+        <div className="sp-info-hero__meta">
+          {storeBusinessCategoryName ? (
+            <span className="sp-info-hero__meta-cat">{storeBusinessCategoryName}</span>
+          ) : null}
+          {storeBusinessCategoryName && locationLine ? (
+            <span className="sp-info-hero__meta-sep" aria-hidden>·</span>
+          ) : null}
+          {locationLine ? (
+            <span className="sp-info-hero__meta-loc">{locationLine}</span>
+          ) : null}
+        </div>
+      ) : null}
+      <div className="sp-info-hero__name-row">
+        <h1 className="sp-info-hero__name">{storeName}</h1>
+        <Icon name="verified" className="sp-info-hero__verified" />
       </div>
-      {locationLine ? (
-        <p className="sp-store-info-compact__location">
+      {addressLine && addressLine !== "—" ? (
+        <p className="sp-info-hero__address">
           <Icon name="location_on" />
-          {locationLine}
+          {addressLine}
         </p>
       ) : null}
+      {loc?.description ? (
+        <p className="sp-info-hero__desc">
+          {showFullDesc || loc.description.length <= 90
+            ? loc.description
+            : `${loc.description.slice(0, 90)}\u2026`}
+          {loc.description.length > 90 ? (
+            <button
+              type="button"
+              className="sp-info-hero__ver-mas"
+              onClick={() => setShowFullDesc((v) => !v)}
+            >
+              {showFullDesc ? " Ver menos" : " Ver más..."}
+            </button>
+          ) : null}
+        </p>
+      ) : null}
+      <div className="sp-info-hero__pills">
+        <button
+          type="button"
+          className="sp-delivery-pill sp-delivery-pill--delivery"
+          onClick={() => openCart()}
+        >
+          <span className="sp-delivery-pill__top">
+            <Icon name="shopping_bag" />
+            <span className="sp-delivery-pill__label">Domicilio</span>
+          </span>
+          <span className="sp-delivery-pill__sub">
+            {loc?.isOpenNow ? "Disponible ahora" : "No disponible"}
+          </span>
+        </button>
+        <button
+          type="button"
+          className="sp-delivery-pill sp-delivery-pill--pickup"
+          onClick={() => openCart()}
+        >
+          <span className="sp-delivery-pill__top">
+            <Icon name="store" />
+            <span className="sp-delivery-pill__label">Recogida</span>
+          </span>
+          <span className="sp-delivery-pill__sub">
+            {loc?.isOpenNow ? "Disponible ahora" : "No disponible"}
+          </span>
+        </button>
+      </div>
     </div>
 
     <div className="sp-layout sp-layout--store-catalog">
@@ -564,6 +657,7 @@ export default function CatalogProductsPage() {
             <div className="sp-catalog-search-box">
               <Icon name="search" />
               <input
+                ref={searchInputRef}
                 type="search"
                 className="sp-catalog-search"
                 placeholder="Buscar en esta tienda..."

@@ -1236,7 +1236,9 @@
 .sp-store-mob-header,
 .sp-store-banner,
 .sp-store-info-compact,
-.sp-store-sidebar-toggle {
+.sp-store-sidebar-toggle,
+.sp-store-header,
+.sp-info-hero {
   display: none;
 }
 
@@ -1447,9 +1449,10 @@
   .sp-store-banner {
     display: block;
     width: 100%;
-    height: 250px;
+    aspect-ratio: 4/3;
+    height: auto;
     overflow: hidden;
-    border-radius: 0 0 20px 20px;
+    border-radius: 0;
   }
 
   .sp-store-banner img {
@@ -1661,23 +1664,23 @@
     display: none;
   }
 
-  /* Card becomes a transparent wrapper so only the image + text read as one unit */
+  /* Card: white background, subtle shadow, rounded */
   .sp-layout--store-catalog .sp-card:not(.sp-card--store) {
-    background: transparent;
-    box-shadow: none;
-    border-radius: 0;
+    background: #fff;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.08);
+    border-radius: 14px;
     border: none;
   }
 
   .sp-layout--store-catalog .sp-card:not(.sp-card--store):hover {
-    transform: none;
-    box-shadow: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.11);
   }
 
-  /* Image wrap gets its own rounded corners and shadow */
+  /* Image wrap: rounded top corners only */
   .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__img-wrap {
-    border-radius: 14px;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.10);
+    border-radius: 14px 14px 0 0;
+    box-shadow: none;
   }
 
   /* Show product name below the image */
@@ -1743,5 +1746,282 @@
   /* 7 — Qty control add-to-cart: pill style on desktop CTA too */
   .sp-card__add--cta {
     border-radius: 9999px;
+  }
+
+  /* 8 — Page background */
+  .page-store-detail body,
+  .sp-layout--store-catalog,
+  .sp-layout--store-catalog .sp-main {
+    background: #F9FAFB;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STORE HEADER — sticky compact nav (mobile ≤959px)
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 959px) {
+  .sp-store-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 10px 14px;
+    background: #fff;
+    border-bottom: 1px solid #F1F5F9;
+  }
+
+  .sp-store-header__left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .sp-store-header__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1.5px solid #E2E8F0;
+  }
+
+  .sp-store-header__avatar-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #F1F5F9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #94A3B8;
+  }
+
+  .sp-store-header__avatar-placeholder .material-icons {
+    font-size: 20px;
+  }
+
+  .sp-store-header__info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 1px;
+  }
+
+  .sp-store-header__status {
+    font-size: 10px;
+    font-weight: 700;
+    color: #16A34A;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sp-store-header__status--closed {
+    color: #94A3B8;
+  }
+
+  .sp-store-header__name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0F172A;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+  }
+
+  .sp-store-header__actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .sp-store-header__btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: #F8FAFC;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .sp-store-header__btn:active {
+    background: #E2E8F0;
+  }
+
+  .sp-store-header__btn .material-icons {
+    font-size: 20px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INFO HERO BLOCK — rich store info below banner (mobile ≤959px)
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 959px) {
+  .sp-info-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px 16px 20px;
+    background: #fff;
+    border-bottom: 1px solid #F1F5F9;
+  }
+
+  /* Meta line: business category · location */
+  .sp-info-hero__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .sp-info-hero__meta-cat {
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748B;
+  }
+
+  .sp-info-hero__meta-sep {
+    font-size: 13px;
+    color: #CBD5E1;
+    user-select: none;
+  }
+
+  .sp-info-hero__meta-loc {
+    font-size: 13px;
+    color: #64748B;
+  }
+
+  /* Store name + verified badge */
+  .sp-info-hero__name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sp-info-hero__name {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .sp-info-hero__verified.material-icons {
+    font-size: 20px;
+    color: #3B82F6;
+    flex-shrink: 0;
+  }
+
+  /* Street address */
+  .sp-info-hero__address {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #64748B;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .sp-info-hero__address .material-icons {
+    font-size: 14px;
+    color: #94A3B8;
+    flex-shrink: 0;
+  }
+
+  /* Description + Ver más */
+  .sp-info-hero__desc {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .sp-info-hero__ver-mas {
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dir-primary);
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* Delivery type pill buttons */
+  .sp-info-hero__pills {
+    display: flex;
+    gap: 10px;
+    margin-top: 2px;
+  }
+
+  .sp-delivery-pill {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    padding: 11px 16px 10px;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    color: #fff;
+    -webkit-tap-highlight-color: transparent;
+    transition: filter 0.15s;
+  }
+
+  .sp-delivery-pill:active {
+    filter: brightness(0.9);
+  }
+
+  .sp-delivery-pill--delivery {
+    background: #22C55E;
+  }
+
+  .sp-delivery-pill--pickup {
+    background: #374151;
+  }
+
+  .sp-delivery-pill__top {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .sp-delivery-pill__top .material-icons {
+    font-size: 16px;
+  }
+
+  .sp-delivery-pill__label {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .sp-delivery-pill__sub {
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.88;
+    padding-left: 21px;
+    line-height: 1;
   }
 }
