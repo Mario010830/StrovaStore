@@ -230,6 +230,11 @@ export default function CatalogProductsPage() {
   const { requestPermissionAndSubscribe } = usePushNotifications();
   const promoSnapshotRef = useRef<string>("");
 
+  useEffect(() => {
+    document.body.classList.add("page-store-detail");
+    return () => document.body.classList.remove("page-store-detail");
+  }, []);
+
   const { data: products, isLoading, isError, error, refetch } = useGetPublicCatalogQuery(
     locationId != null ? locationId : skipToken,
     QUERY_POLLING_OPTIONS.storeCatalog,
@@ -429,21 +434,6 @@ export default function CatalogProductsPage() {
 
   return (
     <>
-    {/* Mobile-only mini header */}
-    <div className="sp-store-mob-header">
-      {storePhoto ? (
-        <Image src={storePhoto} alt={storeName} width={32} height={32} className="sp-store-mob-header__avatar" />
-      ) : (
-        <span className="sp-store-mob-header__avatar-placeholder"><Icon name="storefront" /></span>
-      )}
-      <span className="sp-store-mob-header__name">{storeName}</span>
-      <div className="sp-store-mob-header__actions">
-        <button type="button" className="sp-store-mob-header__btn" onClick={() => openCart()} aria-label="Carrito">
-          <Icon name="shopping_cart" />
-        </button>
-      </div>
-    </div>
-
     {/* Mobile-only banner + info compact */}
     <div className="sp-store-banner">
       {storePhoto ? (
@@ -470,16 +460,6 @@ export default function CatalogProductsPage() {
           {locationLine}
         </p>
       ) : null}
-      <div className="sp-store-info-compact__btns">
-        <span className={`sp-store-info-compact__btn ${loc?.isOpenNow ? "sp-store-info-compact__btn--status" : "sp-store-info-compact__btn--status-closed"}`}>
-          <Icon name={loc?.isOpenNow ? "check_circle" : "schedule"} />
-          {loc?.isOpenNow ? "Disponible" : "Cerrado"}
-        </span>
-        <button type="button" className="sp-store-info-compact__btn sp-store-info-compact__btn--cart" onClick={() => openCart()}>
-          <Icon name="shopping_cart" />
-          {cartCount > 0 ? `Pedido (${cartCount})` : "Haz tu pedido"}
-        </button>
-      </div>
     </div>
 
     <div className="sp-layout sp-layout--store-catalog">

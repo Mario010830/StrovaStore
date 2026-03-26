@@ -1168,7 +1168,7 @@
     margin-top: 14px;
     padding: 12px 16px;
     font-size: 15px;
-    border-radius: 14px;
+    border-radius: 9999px;
   }
 
   .sp-layout--store-catalog .sp-wa-sidebar-hint {
@@ -1447,10 +1447,9 @@
   .sp-store-banner {
     display: block;
     width: 100%;
-    aspect-ratio: 16/9;
-    max-height: 220px;
+    height: 250px;
     overflow: hidden;
-    border-radius: 0 0 16px 16px;
+    border-radius: 0 0 20px 20px;
   }
 
   .sp-store-banner img {
@@ -1477,8 +1476,8 @@
   .sp-store-info-compact {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 14px;
+    gap: 6px;
+    padding: 16px 16px 18px;
   }
 
   .sp-store-info-compact__name-row {
@@ -1631,5 +1630,118 @@
 
   .sp-store-sidebar-body .sp-about {
     margin-top: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STORE DETAIL — MINIMAL REFINEMENTS (mobile ≤959px)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 1 — Hide the global navbar on the store detail page (body class set by page) */
+@media (max-width: 959px) {
+  .page-store-detail .store-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 959px) {
+  /* 2 — Product cards: transparent shell, image rounded, name below */
+
+  /* Hide category pill — tabs already filter by category */
+  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__cat-pill {
+    display: none;
+  }
+
+  /* Remove dark overlay name and gradient — name moves below the image */
+  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__overlay-name {
+    display: none;
+  }
+
+  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__img-gradient {
+    display: none;
+  }
+
+  /* Card becomes a transparent wrapper so only the image + text read as one unit */
+  .sp-layout--store-catalog .sp-card:not(.sp-card--store) {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    border: none;
+  }
+
+  .sp-layout--store-catalog .sp-card:not(.sp-card--store):hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Image wrap gets its own rounded corners and shadow */
+  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__img-wrap {
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.10);
+  }
+
+  /* Show product name below the image */
+  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__name {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dir-text);
+    margin: 0 0 1px;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Price slightly larger for readability */
+  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__price {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--dir-secondary);
+  }
+
+  /* Body: clean and airy */
+  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__body {
+    padding: 10px 4px 8px;
+    background: transparent;
+  }
+
+  /* Qty counter: pill shape */
+  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__qty {
+    border-radius: 9999px;
+    border: 1.5px solid var(--dir-primary);
+    padding: 4px 8px;
+    background: transparent;
+  }
+
+  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__qty-btn {
+    color: var(--dir-primary);
+    font-weight: 700;
+  }
+
+  /* 3 — Grid: more breathing room between cards */
+  .sp-layout--store-catalog .sp-grid {
+    gap: 14px;
+  }
+
+  /* 4 — Main content: extra bottom padding so FAB never covers last card row */
+  .sp-layout--store-catalog .sp-main {
+    padding-bottom: 96px;
+  }
+
+  /* 5 — Section titles: slightly more margin */
+  .sp-layout--store-catalog .sp-catalog-section__title {
+    margin-bottom: 16px;
+  }
+
+  /* 6 — Info compact: address line slightly larger */
+  .sp-store-info-compact__location {
+    font-size: 13px;
+    gap: 5px;
+  }
+
+  /* 7 — Qty control add-to-cart: pill style on desktop CTA too */
+  .sp-card__add--cta {
+    border-radius: 9999px;
   }
 }
