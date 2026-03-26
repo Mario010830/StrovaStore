@@ -37,6 +37,7 @@ import {
   subscribeFavorites,
 } from "@/lib/favorites";
 import { buildLocationCatalogPath } from "@/lib/location-path";
+import { getOriginalPriceForDisplay, getPromotionBadgeLabel } from "@/lib/catalog-promotion";
 
 const STROVA_BUSINESS_URL = getBusinessUrl();
 
@@ -77,7 +78,13 @@ function tagLabelsForProduct(item: PublicCatalogItem, tagsStable: Tag[]): string
 
 const PAGE_SIZE = 50;
 
-type MarketplaceSortKey = "random" | "price-asc" | "price-desc" | "name-asc" | "name-desc";
+type MarketplaceSortKey =
+  | "random"
+  | "price-asc"
+  | "price-desc"
+  | "name-asc"
+  | "name-desc"
+  | "promo-first";
 
 type MarketplaceTagRow = {
   id: number;
@@ -103,6 +110,8 @@ type MarketplaceFiltersBodyProps = {
   setSortKey: (k: MarketplaceSortKey) => void;
   onlyInStock: boolean;
   setOnlyInStock: (v: boolean) => void;
+  onlyOffers: boolean;
+  setOnlyOffers: (v: boolean) => void;
 };
 
 function MarketplaceFiltersBody({
@@ -121,6 +130,8 @@ function MarketplaceFiltersBody({
   setSortKey,
   onlyInStock,
   setOnlyInStock,
+  onlyOffers,
+  setOnlyOffers,
 }: MarketplaceFiltersBodyProps) {
   const catLabelId = `${idPrefix}-cat-label`;
   const priceLabelId = `${idPrefix}-price-label`;
@@ -223,6 +234,7 @@ function MarketplaceFiltersBody({
           <option value="price-desc">Precio: mayor a menor</option>
           <option value="name-asc">Nombre: A–Z</option>
           <option value="name-desc">Nombre: Z–A</option>
+          <option value="promo-first">Primero en oferta</option>
         </select>
       </div>
 
@@ -235,6 +247,17 @@ function MarketplaceFiltersBody({
             onChange={(e) => setOnlyInStock(e.target.checked)}
           />
           Solo con stock
+        </label>
+      </div>
+      <div className="mp-market-sidebar__section">
+        <label className="mp-market-sidebar__stock" htmlFor={`${idPrefix}-offers`}>
+          <input
+            id={`${idPrefix}-offers`}
+            type="checkbox"
+            checked={onlyOffers}
+            onChange={(e) => setOnlyOffers(e.target.checked)}
+          />
+          Solo ofertas
         </label>
       </div>
     </>
@@ -258,6 +281,13 @@ function sortProductList(
       return copy.sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
     case "name-desc":
       return copy.sort((a, b) => b.name.localeCompare(a.name, "es", { sensitivity: "base" }));
+    case "promo-first":
+      return copy.sort((a, b) => {
+        const aPromo = a.hasActivePromotion ? 1 : 0;
+        const bPromo = b.hasActivePromotion ? 1 : 0;
+        if (aPromo !== bPromo) return bPromo - aPromo;
+        return a.name.localeCompare(b.name, "es", { sensitivity: "base" });
+      });
     default:
       return copy;
   }
@@ -289,6 +319,8 @@ function MarketplaceProductCard({
   const soldOut = item.tipo === "inventariable" && item.stockAtLocation <= 0;
   const subtitle = getProductCardSubtitle(item);
   const lid = item.locationId;
+  const promoBadge = getPromotionBadgeLabel(item);
+  const originalPrice = getOriginalPriceForDisplay(item);
 
   const handleActivate = () => {
     if (!soldOut) onPedir();
@@ -331,7 +363,20 @@ function MarketplaceProductCard({
             ))}
           </div>
         ) : null}
+        {promoBadge ? <span className="sp-card__promo-pill">{promoBadge}</span> : null}
         {lid != null ? <MpCardFavorite locationId={lid} productId={item.id} /> : null}
+        <div className="sp-card__img-gradient" aria-hidden />
+        <span className="sp-card__overlay-name">{item.name}</span>
+        {!soldOut ? (
+          <button
+            type="button"
+            className="sp-card__fab"
+            onClick={(e) => { e.stopPropagation(); onPedir(); }}
+            aria-label="Ver en tienda"
+          >
+            <Icon name="storefront" />
+          </button>
+        ) : null}
       </div>
       <div className="sp-card__body">
         {item.locationName ? (
@@ -343,7 +388,12 @@ function MarketplaceProductCard({
         <h3 className="sp-card__name sp-card__name--lines-2" title={item.name}>
           {item.name}
         </h3>
-        <PriceText value={item.precio} className="sp-card__price" />
+        <div className="sp-card__price-wrap">
+          <PriceText value={item.precio} className="sp-card__price" />
+          {originalPrice != null ? (
+            <PriceText value={originalPrice} className="sp-card__price-old" />
+          ) : null}
+        </div>
         {!soldOut ? (
           <p className="sp-card__stock-ok" role="status">
             En stock
@@ -383,6 +433,7 @@ export default function AllProductsView() {
   });
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
   const [onlyInStock, setOnlyInStock] = useState(false);
+  const [onlyOffers, setOnlyOffers] = useState(false);
   const [page, setPage] = useState(1);
   const [randomReady, setRandomReady] = useState(false);
   const [priceReady, setPriceReady] = useState(false);
@@ -415,7 +466,7 @@ export default function AllProductsView() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
-  }, [search, selectedTagSlugs, priceRange, onlyInStock, sortKey]);
+  }, [search, selectedTagSlugs, priceRange, onlyInStock, onlyOffers, sortKey]);
 
   useEffect(() => {
     setRandomReady(true);
@@ -508,8 +559,11 @@ export default function AllProductsView() {
         (p) => p.tipo === "elaborado" || p.stockAtLocation > 0,
       );
     }
+    if (onlyOffers) {
+      list = list.filter((p) => p.hasActivePromotion === true);
+    }
     return list;
-  }, [filteredBySearch, selectedTagSlugs, priceRange, priceReady, onlyInStock, tagsStable]);
+  }, [filteredBySearch, selectedTagSlugs, priceRange, priceReady, onlyInStock, onlyOffers, tagsStable]);
 
   const favKeysSort = useSyncExternalStore(
     subscribeFavorites,
@@ -550,6 +604,7 @@ export default function AllProductsView() {
     setSearch("");
     setSelectedTagSlugs([]);
     setOnlyInStock(false);
+    setOnlyOffers(false);
     setSortKey("random");
     setPriceRange(priceExtent);
     setPriceReady(true);
@@ -627,7 +682,8 @@ export default function AllProductsView() {
 
   const hasFilterResults = filtered.length > 0;
 
-  const mpFilterBadgeCount = selectedTagSlugs.length + (onlyInStock ? 1 : 0);
+  const mpFilterBadgeCount =
+    selectedTagSlugs.length + (onlyInStock ? 1 : 0) + (onlyOffers ? 1 : 0);
 
   const filtersBodyProps: MarketplaceFiltersBodyProps = {
     idPrefix: "mp-sidebar",
@@ -645,6 +701,8 @@ export default function AllProductsView() {
     setSortKey,
     onlyInStock,
     setOnlyInStock,
+    onlyOffers,
+    setOnlyOffers,
   };
 
   return (

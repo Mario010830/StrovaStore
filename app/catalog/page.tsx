@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MapPin } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
@@ -9,9 +10,14 @@ import {
   QUERY_POLLING_OPTIONS,
   useGetBusinessCategoriesQuery,
   useGetPublicLocationsQuery,
+  useGetAllPublicProductsQuery,
 } from "./_service/catalogApi";
 import { useFuseSearch } from "@/hooks/useFuseSearch";
-import type { PublicLocation } from "@/lib/dashboard-types";
+import type { PublicLocation, PublicCatalogItem } from "@/lib/dashboard-types";
+import { toImageProxyUrl } from "@/lib/image";
+import { buildLocationCatalogPath } from "@/lib/location-path";
+import { getBusinessCategoryLucideIcon } from "@/utils/businessCategoryIcons";
+import { getPromotionBadgeLabel } from "@/lib/catalog-promotion";
 import AllProductsView from "./AllProductsView";
 import { useCatalogCtx } from "./layout";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -272,6 +278,37 @@ export default function CatalogLocationsPage() {
 
   const groupedZones = useMemo(() => groupByProvinceMunicipality(directoryList), [directoryList]);
 
+  const trendingLocations = useMemo(() => {
+    if (!locations) return [];
+    return locations
+      .filter((l) => !isExcludedDirectoryLocation(l) && hasZoneData(l))
+      .slice(0, 12);
+  }, [locations]);
+
+  const { data: allProductsData } = useGetAllPublicProductsQuery(
+    { page: 1, pageSize: 50 },
+    QUERY_POLLING_OPTIONS.general,
+  );
+
+  const promoProductsByProvince = useMemo(() => {
+    if (!allProductsData?.data || !locations) return new Map<string, PublicCatalogItem[]>();
+    const promos = allProductsData.data.filter((p) => p.hasActivePromotion);
+    const locMap = new Map<number, PublicLocation>();
+    for (const l of locations) locMap.set(l.id, l);
+    const byProv = new Map<string, PublicCatalogItem[]>();
+    for (const p of promos) {
+      if (p.locationId == null) continue;
+      const loc = locMap.get(p.locationId);
+      if (!loc) continue;
+      const prov = (loc.province ?? "").trim();
+      if (!prov) continue;
+      const arr = byProv.get(prov) ?? [];
+      if (arr.length < 4) arr.push(p);
+      byProv.set(prov, arr);
+    }
+    return byProv;
+  }, [allProductsData, locations]);
+
   const geoAvailable = userCoords != null;
 
   const onSortChange = useCallback(
@@ -330,6 +367,46 @@ export default function CatalogLocationsPage() {
   if (showTiendas) {
     return (
       <>
+      {/* Mobile-only compact header */}
+      <div className="dir-mob-header">
+        <span className="dir-mob-header__icon"><Icon name="storefront" /></span>
+        <div className="dir-mob-header__text">
+          <span className="dir-mob-header__title">Catálogos</span>
+          {zonaProvincia ? (
+            <span className="dir-mob-header__subtitle">{zonaProvincia}</span>
+          ) : null}
+        </div>
+        <button type="button" className="dir-mob-header__btn" onClick={focusSearch} aria-label="Buscar">
+          <Icon name="search" />
+        </button>
+      </div>
+
+      {/* Mobile-only icon category tabs */}
+      <nav className="dir-cat-tabs" aria-label="Categorías de negocio">
+        {dirBizCategoryItems.map((item) => {
+          const CatIcon = getBusinessCategoryLucideIcon(
+            item.key === "todos" ? null : item.name,
+          );
+          return (
+            <button
+              key={item.key}
+              type="button"
+              className={`dir-cat-tab${activeDirBizKey === item.key ? " dir-cat-tab--active" : ""}`}
+              onClick={() => selectDirBizCategory(item)}
+            >
+              <span className="dir-cat-tab__icon">
+                {item.key === "todos" ? (
+                  <Icon name="apps" />
+                ) : (
+                  createElement(CatIcon, { size: 20, strokeWidth: 1.5, "aria-hidden": true })
+                )}
+              </span>
+              {item.key === "todos" ? "Todos" : item.name}
+            </button>
+          );
+        })}
+      </nav>
+
       <div className="sp-layout">
             <aside className="sp-sidebar" aria-label="Filtros del directorio">
               <div className="dir-mp-sidebar">
@@ -413,7 +490,30 @@ export default function CatalogLocationsPage() {
                 </div>
               ) : null}
 
-              <div className={`dir-tiendas-zones${vista === "grid" ? " dir-tiendas-zones--grid-mode" : ""}`}>
+              {/* Mobile-only trending section */}
+              {!isLoading && !isError && trendingLocations.length > 0 ? (
+                <div className="dir-trending">
+                  <p className="dir-trending__title">Negocios en</p>
+                  <p className="dir-trending__subtitle">Tendencia</p>
+                  <div className="dir-trending__scroll">
+                    {trendingLocations.map((tLoc) => {
+                      const photo = toImageProxyUrl(tLoc.photoUrl);
+                      return (
+                        <Link key={tLoc.id} href={buildLocationCatalogPath(tLoc)} className="dir-trending__item">
+                          {photo ? (
+                            <Image src={photo} alt={tLoc.name} width={64} height={64} className="dir-trending__avatar" />
+                          ) : (
+                            <span className="dir-trending__avatar-placeholder"><Icon name="storefront" /></span>
+                          )}
+                          <span className="dir-trending__name">{tLoc.name}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className={`dir-tiendas-zones${vista === "grid" ? " dir-tiendas-zones--grid-mode" : ""}${categorySlug ? " dir-tiendas-zones--filtered" : ""}`}>
                 {isLoading && (vista === "grid" ? <DirGridSkeleton /> : <DirZonesSkeleton />)}
 
                 {isError && (
@@ -481,39 +581,90 @@ export default function CatalogLocationsPage() {
 
                 {!isLoading && !isError && vista === "zonas" && groupedZones.length > 0 && (
                   <div className="dir-tiendas-zones__inner">
-                    {groupedZones.map(({ province, municipios }) => (
-                      <section key={province} className="dir-zone-provincia">
-                        <div className="dir-zone-provincia__head">
-                          <div className="dir-zone-provincia__title-row">
-                            <MapPin className="dir-zone-provincia__pin" size={20} strokeWidth={2} aria-hidden />
-                            <h2 className="dir-zone-provincia__title">{province}</h2>
-                          </div>
-                          {!hideProvinciaVerTodas ? (
-                            <Link href={buildCatalogZoneHref(province, null)} className="dir-zone-provincia__link">
-                              Ver todas →
+                    {groupedZones.map(({ province, municipios }, provIdx) => {
+                      const promos = promoProductsByProvince.get(province) ?? [];
+                      return (
+                        <section key={province} className="dir-zone-provincia">
+                          {/* Mobile-only zone hero card */}
+                          {provIdx > 0 ? (
+                            <Link
+                              href={buildCatalogZoneHref(province, null)}
+                              className="dir-zone-hero"
+                            >
+                              <div className="dir-zone-hero__bg" />
+                              <div className="dir-zone-hero__overlay">
+                                <h3 className="dir-zone-hero__title">{province}</h3>
+                                <span className="dir-zone-hero__cta">
+                                  Explorar <Icon name="arrow_forward" />
+                                </span>
+                              </div>
                             </Link>
                           ) : null}
-                        </div>
-                        <div className="dir-zone-provincia__divider" aria-hidden />
 
-                        {municipios.map(({ municipality, locations: locs }) => (
-                          <div key={`${province}::${municipality}`} className="dir-zone-municipio">
-                            <h3 className="dir-zone-municipio__label">{municipality}</h3>
-                            <div className="dir-zone-card-row">
-                              {locs.map((loc) => (
-                                <StoreCard
-                                  key={loc.id}
-                                  loc={loc}
-                                  businessCategoryDisplay={resolveLocationBizName(loc)}
-                                  distanceKm={userCoords ? distanceToStoreKm(loc, userCoords) : null}
-                                  zoneLabel={null}
-                                />
-                              ))}
+                          <div className="dir-zone-provincia__head">
+                            <div className="dir-zone-provincia__title-row">
+                              <MapPin className="dir-zone-provincia__pin" size={20} strokeWidth={2} aria-hidden />
+                              <h2 className="dir-zone-provincia__title">{province}</h2>
                             </div>
+                            {!hideProvinciaVerTodas ? (
+                              <Link href={buildCatalogZoneHref(province, null)} className="dir-zone-provincia__link">
+                                Ver todas →
+                              </Link>
+                            ) : null}
                           </div>
-                        ))}
-                      </section>
-                    ))}
+                          <div className="dir-zone-provincia__divider" aria-hidden />
+
+                          {municipios.map(({ municipality, locations: locs }) => (
+                            <div key={`${province}::${municipality}`} className="dir-zone-municipio">
+                              <h3 className="dir-zone-municipio__label">{municipality}</h3>
+                              <div className="dir-zone-card-row">
+                                {locs.map((loc) => (
+                                  <StoreCard
+                                    key={loc.id}
+                                    loc={loc}
+                                    businessCategoryDisplay={resolveLocationBizName(loc)}
+                                    distanceKm={userCoords ? distanceToStoreKm(loc, userCoords) : null}
+                                    zoneLabel={null}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Mobile-only rebajas for this province */}
+                          {promos.length > 0 ? (
+                            <div className="dir-rebajas">
+                              <p className="dir-rebajas__title">Rebajas en</p>
+                              <p className="dir-rebajas__subtitle">{province}</p>
+                              <div className="dir-rebajas__grid">
+                                {promos.map((p) => {
+                                  const pImg = toImageProxyUrl(p.imagenUrl);
+                                  const badge = getPromotionBadgeLabel(p);
+                                  return (
+                                    <Link
+                                      key={p.id}
+                                      href={p.locationId != null ? buildLocationCatalogPath({ id: p.locationId, name: p.locationName ?? "" }) : "/catalog"}
+                                      className="dir-rebajas__card"
+                                    >
+                                      {pImg ? (
+                                        <Image src={pImg} alt={p.name} width={240} height={240} className="dir-rebajas__card-img" />
+                                      ) : (
+                                        <div className="dir-rebajas__card-placeholder"><Icon name="inventory_2" /></div>
+                                      )}
+                                      <div className="dir-rebajas__card-overlay">
+                                        <span className="dir-rebajas__card-name">{p.name}</span>
+                                        <span className="dir-rebajas__card-price">${p.precio.toLocaleString()}</span>
+                                      </div>
+                                      {badge ? <span className="dir-rebajas__card-badge">{badge}</span> : null}
+                                    </Link>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ) : null}
+                        </section>
+                      );
+                    })}
                   </div>
                 )}
               </div>

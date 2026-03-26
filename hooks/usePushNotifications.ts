@@ -45,6 +45,22 @@ export function usePushNotifications() {
         }),
       });
 
+      if (typeof locationId === "number" && Number.isInteger(locationId) && locationId > 0) {
+        try {
+          const key = "push-location-ids";
+          const current = JSON.parse(localStorage.getItem(key) ?? "[]") as unknown;
+          const list = Array.isArray(current)
+            ? current.filter((v): v is number => Number.isInteger(v) && v > 0)
+            : [];
+          if (!list.includes(locationId)) {
+            list.push(locationId);
+            localStorage.setItem(key, JSON.stringify(list));
+          }
+        } catch {
+          // ignore localStorage errors
+        }
+      }
+
       return true;
     } catch (err) {
       console.error("Error al suscribirse a push:", err);

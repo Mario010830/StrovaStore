@@ -1476,6 +1476,18 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pd-promo-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  background: #dc2626;
 }
 
 .pd-price {
@@ -1484,6 +1496,13 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
   color: #0f172a;
+}
+
+.pd-price-old {
+  font-size: 16px;
+  color: #64748b;
+  text-decoration: line-through;
+  font-weight: 700;
 }
 
 .pd-divider {
@@ -1735,6 +1754,24 @@
   letter-spacing: -0.02em;
   color: #0f172a;
   padding: 0 10px;
+}
+
+.pd-other-card__price-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 10px;
+}
+
+.pd-other-card__price-wrap .pd-other-card__price {
+  padding: 0;
+}
+
+.pd-other-card__price-old {
+  font-size: 12px;
+  color: #64748b;
+  text-decoration: line-through;
+  font-weight: 700;
 }
 
 
@@ -2986,6 +3023,14 @@
   color: var(--st-text-dim);
 }
 
+.cart-row__unit-old {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: #64748b;
+  text-decoration: line-through;
+}
+
 .cart-row__stepper {
   display: inline-flex;
   align-items: center;
@@ -3087,6 +3132,7 @@
 .cart-panel__total { display: flex; justify-content: space-between; align-items: center; }
 .cart-panel__total-label { font-size: 0.84rem; color: var(--st-text-sub); }
 .cart-panel__total-value { font-size: 1.2rem; font-weight: 900; color: var(--st-blue-dark); }
+.cart-panel__total-note { margin: 6px 0 0; font-size: 0.72rem; color: var(--st-text-sub); }
 
 .cart-panel__wa { display: flex; align-items: center; justify-content: center; gap: 7px; height: 46px; background: var(--lp-secondary); color: #fff; font-size: 0.92rem; font-weight: 800; border-radius: var(--st-r-md); border: none; cursor: pointer; font-family: inherit; transition: background var(--st-ease), transform var(--st-ease); box-shadow: 0 8px 20px rgba(29, 158, 117, 0.26); }
 .cart-panel__wa:hover { background: #17835f; transform: translateY(-1px); }
@@ -3118,6 +3164,7 @@
 .confirm-table th { text-align: left; padding: 4px 6px; color: var(--st-text-dim); font-weight: 600; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--st-border); }
 .confirm-table td { padding: 6px; color: var(--st-text); border-bottom: 1px solid var(--st-border-light); }
 .confirm-table .td-right { text-align: right; }
+.confirm-price-old { margin-top: 2px; font-size: 0.68rem; color: #64748b; text-decoration: line-through; }
 .confirm-table-wrap {
   width: 100%;
   overflow-x: auto;

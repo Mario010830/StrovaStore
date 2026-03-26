@@ -9,6 +9,7 @@ import { getApiUrl } from "@/lib/auth-api";
 import type { CreateSaleOrderRequest } from "@/lib/dashboard-types";
 import { toImageProxyUrl } from "@/lib/image";
 import { formatPrice } from "@/lib/format";
+import { getOriginalUnitPriceForDisplay } from "@/lib/catalog-promotion";
 
 interface CustomerInfo {
   name: string;
@@ -105,12 +106,24 @@ function ConfirmOrderModal({ onClose, onConfirm, submitting, error }: ConfirmPro
               </thead>
               <tbody>
                 {cart.items.map((it) => (
+                  (() => {
+                    const originalUnitPrice = getOriginalUnitPriceForDisplay(it);
+                    return (
                   <tr key={it.productId}>
                     <td>{it.name}</td>
                     <td className="td-right">{it.quantity}</td>
-                    <td className="td-right">{formatPrice(it.unitPrice)}</td>
+                    <td className="td-right">
+                      {formatPrice(it.unitPrice)}
+                      {originalUnitPrice != null ? (
+                        <div className="confirm-price-old">
+                          Antes: {formatPrice(originalUnitPrice)}
+                        </div>
+                      ) : null}
+                    </td>
                     <td className="td-right">{formatPrice(it.quantity * it.unitPrice)}</td>
                   </tr>
+                    );
+                  })()
                 ))}
               </tbody>
             </table>
@@ -251,11 +264,11 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
       if (cart.whatsAppContact) {
         const msg = buildWaMessage(cart.items, cart.locationName, folio, customer);
-        window.open(
-          `https://wa.me/${cart.whatsAppContact}?text=${encodeURIComponent(msg)}`,
-          "_blank",
-          "noopener,noreferrer"
-        );
+        const waNumber = cart.whatsAppContact.replace(/\D/g, "");
+        if (waNumber) {
+          // Mobile browsers may block popup windows after async work; navigate directly instead.
+          window.location.assign(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`);
+        }
       }
 
       dispatch(clearCart());
@@ -315,7 +328,9 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                   <p>Tu carrito está vacío</p>
                 </div>
               ) : (
-                cart.items.map((it) => (
+                cart.items.map((it) => {
+                  const originalUnitPrice = getOriginalUnitPriceForDisplay(it);
+                  return (
                   <div key={it.productId} className="cart-row">
                     {it.imagenUrl ? (() => {
                       const proxiedUrl = toImageProxyUrl(it.imagenUrl);
@@ -334,7 +349,14 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
                     <div className="cart-row__body">
                       <div className="cart-row__name">{it.name}</div>
-                      <div className="cart-row__unit">{formatPrice(it.unitPrice)} c/u</div>
+                      <div className="cart-row__unit">
+                        {formatPrice(it.unitPrice)} c/u
+                        {originalUnitPrice != null ? (
+                          <span className="cart-row__unit-old">
+                            Antes: {formatPrice(originalUnitPrice)}
+                          </span>
+                        ) : null}
+                      </div>
                       <div className="cart-row__stepper">
                         <button
                           type="button"
@@ -367,7 +389,8 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                       </button>
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
 
@@ -377,6 +400,9 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                   <span className="cart-panel__total-label">Total estimado</span>
                   <span className="cart-panel__total-value">{formatPrice(total)}</span>
                 </div>
+                <p className="cart-panel__total-note">
+                  Precio referencial. El total final se confirma al registrar la orden.
+                </p>
 
                 {cart.whatsAppContact ? (
                   <button

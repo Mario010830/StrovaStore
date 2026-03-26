@@ -54,6 +54,12 @@ function parseNumber(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function parseNullableNumber(value: unknown): number | null {
+  if (value == null) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function normalizeCatalogImage(rec: Record<string, unknown>): PublicCatalogImageItem | null {
   const imageUrl = asNullableString(rec.imageUrl);
   if (!imageUrl?.trim()) return null;
@@ -136,6 +142,14 @@ function normalizePublicItem(item: Record<string, unknown>): PublicCatalogItem {
     name: asString(item.name, "Producto"),
     description: pickProductDescription(item),
     precio: parseNumber(item.precio, 0),
+    originalPrecio: parseNullableNumber(item.originalPrecio),
+    hasActivePromotion: item.hasActivePromotion === true,
+    promotionType:
+      item.promotionType === "percentage" || item.promotionType === "fixed"
+        ? item.promotionType
+        : null,
+    promotionValue: parseNullableNumber(item.promotionValue),
+    promotionId: parseNullableNumber(item.promotionId),
     imagenUrl: asNullableString(item.imagenUrl),
     images: normalizeCatalogImages(item),
     categoryId: asPositiveInt(item.categoryId),

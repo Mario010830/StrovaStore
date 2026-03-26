@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useSyncExternalStore } from "react";
+import { useState, useMemo, useEffect, useSyncExternalStore, useRef } from "react";
 import { useParams } from "next/navigation";
 import { skipToken } from "@reduxjs/toolkit/query";
 import Link from "next/link";
@@ -31,6 +31,7 @@ import { useOpenCart } from "@/components/ui/CartUiContext";
 import { getFavoriteProductSortKey, subscribeFavorites } from "@/lib/favorites";
 import { getProductCardSubtitle, categoryDotColor } from "@/lib/catalog-display";
 import { buildLocationCatalogPath, parseLocationRouteParam } from "@/lib/location-path";
+import { getOriginalPriceForDisplay, getPromotionBadgeLabel } from "@/lib/catalog-promotion";
 
 const PRODUCT_FUSE_KEYS = [
   { name: "name" as const, weight: 0.5 },
@@ -77,6 +78,8 @@ function StoreProductCard({
     !isElaborado && item.stockAtLocation > 0 && item.stockAtLocation <= 5;
 
   const subtitle = getProductCardSubtitle(item);
+  const promoBadge = getPromotionBadgeLabel(item);
+  const originalPrice = getOriginalPriceForDisplay(item);
 
   const add = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -87,6 +90,11 @@ function StoreProductCard({
         productId: item.id,
         name: item.name,
         unitPrice: item.precio,
+        originalUnitPrice: item.originalPrecio ?? null,
+        hasActivePromotion: item.hasActivePromotion ?? false,
+        promotionType: item.promotionType ?? null,
+        promotionValue: item.promotionValue ?? null,
+        promotionId: item.promotionId ?? null,
         quantity: 1,
         imagenUrl: item.imagenUrl,
         stockAtLocation: item.stockAtLocation,
@@ -120,6 +128,7 @@ function StoreProductCard({
             ¡Quedan {item.stockAtLocation}!
           </span>
         ) : null}
+        {promoBadge ? <span className="sp-card__promo-pill">{promoBadge}</span> : null}
         {item.imagenUrl ? (() => {
           const proxiedUrl = toImageProxyUrl(item.imagenUrl);
           return proxiedUrl ? (
@@ -130,12 +139,24 @@ function StoreProductCard({
         })() : (
           <span style={{ fontSize: 48, color: "var(--dir-hint)" }}><Icon name="inventory_2" /></span>
         )}
+        <div className="sp-card__img-gradient" aria-hidden />
+        <span className="sp-card__overlay-name">{item.name}</span>
+        {!sold && !inCart ? (
+          <button type="button" className="sp-card__fab" onClick={add} aria-label="Agregar al carrito">
+            <Icon name="add_shopping_cart" />
+          </button>
+        ) : null}
       </div>
       <div className="sp-card__body">
         <h3 className="sp-card__name" title={item.name}>
           {item.name}
         </h3>
-        <PriceText value={item.precio} className="sp-card__price" />
+        <div className="sp-card__price-wrap">
+          <PriceText value={item.precio} className="sp-card__price" />
+          {originalPrice != null ? (
+            <PriceText value={originalPrice} className="sp-card__price-old" />
+          ) : null}
+        </div>
         {!sold ? (
           <p className="sp-card__stock-ok" role="status">
             En stock
@@ -204,8 +225,10 @@ export default function CatalogProductsPage() {
   );
   const [cat, setCat] = useState<string | null>(null);
   const [storeSearch, setStoreSearch] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPushDialog, setShowPushDialog] = useState(false);
   const { requestPermissionAndSubscribe } = usePushNotifications();
+  const promoSnapshotRef = useRef<string>("");
 
   const { data: products, isLoading, isError, error, refetch } = useGetPublicCatalogQuery(
     locationId != null ? locationId : skipToken,
@@ -255,6 +278,74 @@ export default function CatalogProductsPage() {
       }),
     );
   }, [loc, dispatch]);
+
+  useEffect(() => {
+    if (locationId == null || !products || products.length === 0) return;
+    if (typeof window === "undefined") return;
+
+    const activePromoKeys = products
+      .filter((p) => p.hasActivePromotion)
+      .map((p) =>
+        p.promotionId != null
+          ? `promo:${p.promotionId}`
+          : `product:${p.id}:${p.precio}:${p.promotionType ?? "none"}`,
+      )
+      .sort();
+    const nextSnapshot = activePromoKeys.join("|");
+    const previousSnapshot = promoSnapshotRef.current;
+    promoSnapshotRef.current = nextSnapshot;
+
+    // First load only primes snapshot; avoid notifying old offers.
+    if (!previousSnapshot) return;
+    if (nextSnapshot === previousSnapshot) return;
+    if (Notification.permission !== "granted") return;
+    if (!activePromoKeys.length) return;
+
+    const previousSet = new Set(previousSnapshot ? previousSnapshot.split("|") : []);
+    const newPromoItems = products.filter((p) => {
+      if (!p.hasActivePromotion) return false;
+      const key =
+        p.promotionId != null
+          ? `promo:${p.promotionId}`
+          : `product:${p.id}:${p.precio}:${p.promotionType ?? "none"}`;
+      return !previousSet.has(key);
+    });
+    if (!newPromoItems.length) return;
+
+    const first = newPromoItems[0];
+    const count = newPromoItems.length;
+    const title =
+      count === 1
+        ? `Nueva oferta en ${loc?.name ?? "tu tienda favorita"}`
+        : `${count} ofertas nuevas en ${loc?.name ?? "tu tienda favorita"}`;
+    const body =
+      count === 1
+        ? `${first.name} ahora está en oferta.`
+        : `${first.name} y otros productos acaban de entrar en oferta.`;
+
+    const show = async () => {
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          await reg.showNotification(title, {
+            body,
+            icon: "/images/icon-192x192.png",
+            badge: "/images/icon-72x72.png",
+            data: { url: catalogBasePath, locationId },
+          });
+          return;
+        }
+      } catch {
+        // fallback below
+      }
+      try {
+        new Notification(title, { body });
+      } catch {
+        // no-op
+      }
+    };
+    void show();
+  }, [products, locationId, loc?.name, catalogBasePath]);
 
   const filteredBySearch = useFuseSearch(
     products ?? [],
@@ -332,8 +423,65 @@ export default function CatalogProductsPage() {
     ? `Lun a Sáb: ${loc.todayOpen} - ${loc.todayClose}`
     : "—";
 
+  const storeName = loc?.name ?? "Tienda";
+  const storePhoto = loc?.photoUrl ? toImageProxyUrl(loc.photoUrl) : null;
+  const locationLine = [loc?.municipality, loc?.province].filter(Boolean).join(", ") || null;
+
   return (
     <>
+    {/* Mobile-only mini header */}
+    <div className="sp-store-mob-header">
+      {storePhoto ? (
+        <Image src={storePhoto} alt={storeName} width={32} height={32} className="sp-store-mob-header__avatar" />
+      ) : (
+        <span className="sp-store-mob-header__avatar-placeholder"><Icon name="storefront" /></span>
+      )}
+      <span className="sp-store-mob-header__name">{storeName}</span>
+      <div className="sp-store-mob-header__actions">
+        <button type="button" className="sp-store-mob-header__btn" onClick={() => openCart()} aria-label="Carrito">
+          <Icon name="shopping_cart" />
+        </button>
+      </div>
+    </div>
+
+    {/* Mobile-only banner + info compact */}
+    <div className="sp-store-banner">
+      {storePhoto ? (
+        <Image src={storePhoto} alt={storeName} width={800} height={450} />
+      ) : (
+        <div className="sp-store-banner__placeholder"><Icon name="storefront" /></div>
+      )}
+    </div>
+    <div className="sp-store-info-compact">
+      <div className="sp-store-info-compact__name-row">
+        <h1 className="sp-store-info-compact__name">{storeName}</h1>
+        {loc && (
+          <StatusBadge
+            label={loc.isOpenNow ? "Abierto" : "Cerrado"}
+            className="sp-profile__badge"
+            active={!!loc.isOpenNow}
+            inactiveClassName="sp-profile__badge--closed"
+          />
+        )}
+      </div>
+      {locationLine ? (
+        <p className="sp-store-info-compact__location">
+          <Icon name="location_on" />
+          {locationLine}
+        </p>
+      ) : null}
+      <div className="sp-store-info-compact__btns">
+        <span className={`sp-store-info-compact__btn ${loc?.isOpenNow ? "sp-store-info-compact__btn--status" : "sp-store-info-compact__btn--status-closed"}`}>
+          <Icon name={loc?.isOpenNow ? "check_circle" : "schedule"} />
+          {loc?.isOpenNow ? "Disponible" : "Cerrado"}
+        </span>
+        <button type="button" className="sp-store-info-compact__btn sp-store-info-compact__btn--cart" onClick={() => openCart()}>
+          <Icon name="shopping_cart" />
+          {cartCount > 0 ? `Pedido (${cartCount})` : "Haz tu pedido"}
+        </button>
+      </div>
+    </div>
+
     <div className="sp-layout sp-layout--store-catalog">
       <aside className="sp-sidebar sp-sidebar--store-profile">
         <div>
@@ -548,6 +696,36 @@ export default function CatalogProductsPage() {
             </p>
           </div>
         </div>
+
+        {/* Mobile-only: collapsible sidebar info */}
+        <button
+          type="button"
+          className="sp-store-sidebar-toggle"
+          aria-expanded={sidebarOpen}
+          onClick={() => setSidebarOpen((v) => !v)}
+        >
+          Más información
+          <Icon name="expand_more" />
+        </button>
+        {sidebarOpen ? (
+          <div className="sp-store-sidebar-body">
+            <div className="sp-about">
+              <h2 className="sp-about__title">Sobre nosotros</h2>
+              <p className="sp-about__text">{loc?.description || "Sin descripción."}</p>
+            </div>
+            <div className="sp-divider" />
+            <div className="sp-meta">
+              <div className="sp-meta__row">
+                <Icon name="location_on" />
+                <span className="sp-meta__text">{addressLine}</span>
+              </div>
+              <div className="sp-meta__row">
+                <Icon name="schedule" />
+                <span className="sp-meta__text">{hoursLine}</span>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </main>
     </div>
     <PushDialog

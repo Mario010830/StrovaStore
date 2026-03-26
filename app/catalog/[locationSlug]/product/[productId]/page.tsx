@@ -18,6 +18,7 @@ import {
 } from "../../../_service/catalogApi";
 import { getProductCardSubtitle } from "@/lib/catalog-display";
 import { buildLocationCatalogPath, parseLocationRouteParam } from "@/lib/location-path";
+import { getOriginalPriceForDisplay, getPromotionBadgeLabel } from "@/lib/catalog-promotion";
 
 function getInitials(name: string): string {
   return name
@@ -117,6 +118,8 @@ export default function ProductDetailPage() {
 
   const categoryLabel = product.categoryName || "Productos";
   const mainImageUrl = galleryUrls[activeImageIdx] ?? null;
+  const promoBadge = getPromotionBadgeLabel(product);
+  const originalPrice = getOriginalPriceForDisplay(product);
 
   return (
     <div className="pd-page">
@@ -168,7 +171,11 @@ export default function ProductDetailPage() {
             />
             <h1 className="pd-title">{product.name}</h1>
             <div className="pd-price-row">
+              {promoBadge ? <span className="pd-promo-pill">{promoBadge}</span> : null}
               <PriceText value={product.precio} className="pd-price" />
+              {originalPrice != null ? (
+                <PriceText value={originalPrice} className="pd-price-old" />
+              ) : null}
             </div>
 
             <div className="pd-divider" />
@@ -232,22 +239,35 @@ export default function ProductDetailPage() {
           </div>
           <div className="pd-others__grid">
             {otherProducts.map((item) => (
-              <Link
-                key={item.id}
-                href={`${catalogBasePath}/product/${item.id}`}
-                className="pd-other-card"
-              >
-                <div className="pd-other-card__img">
-                  {item.imagenUrl ? (() => {
-                    const proxiedUrl = toImageProxyUrl(item.imagenUrl);
-                    return proxiedUrl ? <Image src={proxiedUrl} alt={item.name} width={240} height={160} /> : <Icon name="inventory_2" />;
-                  })() : (
-                    <Icon name="inventory_2" />
-                  )}
-                </div>
-                <span className="pd-other-card__name">{item.name}</span>
-                <PriceText value={item.precio} className="pd-other-card__price" />
-              </Link>
+              (() => {
+                const otherOriginalPrice = getOriginalPriceForDisplay(item);
+                return (
+                  <Link
+                    key={item.id}
+                    href={`${catalogBasePath}/product/${item.id}`}
+                    className="pd-other-card"
+                  >
+                    <div className="pd-other-card__img">
+                      {item.imagenUrl ? (() => {
+                        const proxiedUrl = toImageProxyUrl(item.imagenUrl);
+                        return proxiedUrl ? <Image src={proxiedUrl} alt={item.name} width={240} height={160} /> : <Icon name="inventory_2" />;
+                      })() : (
+                        <Icon name="inventory_2" />
+                      )}
+                    </div>
+                    <span className="pd-other-card__name">{item.name}</span>
+                    <div className="pd-other-card__price-wrap">
+                      <PriceText value={item.precio} className="pd-other-card__price" />
+                      {otherOriginalPrice != null ? (
+                        <PriceText
+                          value={otherOriginalPrice}
+                          className="pd-other-card__price-old"
+                        />
+                      ) : null}
+                    </div>
+                  </Link>
+                );
+              })()
             ))}
           </div>
         </section>

@@ -70,6 +70,11 @@ export interface PublicCatalogItem {
   /** Galería ordenada por sortOrder; vacío si solo hay imagen legada en imagenUrl. */
   images?: PublicCatalogImageItem[];
   precio: number;
+  originalPrecio?: number | null;
+  hasActivePromotion?: boolean;
+  promotionType?: "percentage" | "fixed" | null;
+  promotionValue?: number | null;
+  promotionId?: number | null;
   categoryId: number;
   categoryName: string | null;
   categoryColor: string | null;
@@ -93,6 +98,11 @@ export interface CartItem {
   productId: number;
   name: string;
   unitPrice: number;
+  originalUnitPrice?: number | null;
+  hasActivePromotion?: boolean;
+  promotionType?: "percentage" | "fixed" | null;
+  promotionValue?: number | null;
+  promotionId?: number | null;
   quantity: number;
   imagenUrl: string | null;
   stockAtLocation: number;
