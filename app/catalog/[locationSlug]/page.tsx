@@ -226,6 +226,7 @@ export default function CatalogProductsPage() {
   const [cat, setCat] = useState<string | null>(null);
   const [storeSearch, setStoreSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [showPushDialog, setShowPushDialog] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const { requestPermissionAndSubscribe } = usePushNotifications();
@@ -467,10 +468,10 @@ export default function CatalogProductsPage() {
         <button
           type="button"
           className="sp-store-header__btn"
-          aria-label="Más información"
-          onClick={() => setSidebarOpen((v) => !v)}
+          aria-label="Menú"
+          onClick={() => setMenuSheetOpen(true)}
         >
-          <Icon name="menu" />
+          <Icon name="more_vert" />
         </button>
       </div>
     </div>
@@ -802,6 +803,55 @@ export default function CatalogProductsPage() {
         ) : null}
       </main>
     </div>
+    {menuSheetOpen ? (
+      <div className="sp-menu-sheet__overlay" onClick={() => setMenuSheetOpen(false)}>
+        <div className="sp-menu-sheet" onClick={(e) => e.stopPropagation()}>
+          <div className="sp-menu-sheet__header">
+            {storePhoto ? (
+              <Image src={storePhoto} alt="" width={40} height={40} className="sp-menu-sheet__avatar" />
+            ) : (
+              <span className="sp-menu-sheet__avatar-ph"><Icon name="storefront" /></span>
+            )}
+            <div className="sp-menu-sheet__header-text">
+              <span className="sp-menu-sheet__name">{storeName}</span>
+              <span className="sp-menu-sheet__sub">
+                {storeBusinessCategoryName || "Tienda"}
+                {categories.length > 0 ? ` · ${categories.length} categoría${categories.length === 1 ? "" : "s"}` : ""}
+              </span>
+            </div>
+          </div>
+          <div className="sp-menu-sheet__items">
+            <button
+              type="button"
+              className="sp-menu-sheet__item"
+              onClick={() => { setMenuSheetOpen(false); setCat(null); }}
+            >
+              <Icon name="category" />
+              <span>Categorías</span>
+              <Icon name="chevron_right" />
+            </button>
+            <button
+              type="button"
+              className="sp-menu-sheet__item"
+              onClick={() => { setMenuSheetOpen(false); setShowPushDialog(true); }}
+            >
+              <Icon name="notifications_active" />
+              <span>Activar notificaciones</span>
+              <Icon name="chevron_right" />
+            </button>
+            <button
+              type="button"
+              className="sp-menu-sheet__item"
+              onClick={() => { setMenuSheetOpen(false); setSidebarOpen(true); }}
+            >
+              <Icon name="info" />
+              <span>Más sobre {storeName}</span>
+              <Icon name="chevron_right" />
+            </button>
+          </div>
+        </div>
+      </div>
+    ) : null}
     <PushDialog
       open={showPushDialog}
       onClose={() => setShowPushDialog(false)}

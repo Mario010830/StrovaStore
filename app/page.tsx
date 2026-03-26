@@ -66,6 +66,9 @@ export default function LandingPage() {
   const searchParams = useSearchParams();
   const isMobileLanding = useMediaQuery("(max-width: 768px)");
 
+  const [mobSearchOpen, setMobSearchOpen] = useState(false);
+  const landingSearchRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     document.body.classList.add("page-landing");
     return () => { document.body.classList.remove("page-landing"); };
@@ -250,19 +253,51 @@ export default function LandingPage() {
     <div className="landing">
       <div className="landing-mobile-top landing-mob-only">
         <div className="landing-mobile-top__sticky">
-          <form className="landing-mobile-search" onSubmit={handleSearch}>
-            <span className="landing-mobile-search__icon" aria-hidden>
-              <Icon name="search" outlined />
-            </span>
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar productos o tiendas"
-              aria-label="Buscar productos o tiendas"
-              enterKeyHint="search"
-            />
-          </form>
+          <div className="landing-mobile-search">
+            {mobSearchOpen ? (
+              <form className="landing-mobile-search__row" onSubmit={handleSearch}>
+                <div className="landing-mobile-search__box">
+                  <Icon name="search" />
+                  <input
+                    ref={landingSearchRef}
+                    type="search"
+                    className="landing-mobile-search__input"
+                    placeholder="Buscar productos o tiendas..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    autoFocus
+                    onBlur={() => { if (!query) setMobSearchOpen(false); }}
+                  />
+                  {query ? (
+                    <button
+                      type="button"
+                      className="landing-mobile-search__clear"
+                      onClick={() => { setQuery(""); landingSearchRef.current?.focus(); }}
+                      aria-label="Limpiar"
+                    >
+                      <Icon name="close" />
+                    </button>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  className="landing-mobile-search__cancel"
+                  onClick={() => { setMobSearchOpen(false); setQuery(""); }}
+                >
+                  Cancelar
+                </button>
+              </form>
+            ) : (
+              <button type="button" className="landing-mobile-search__pill" onClick={() => setMobSearchOpen(true)}>
+                <span className="landing-mobile-search__pill-icon"><Icon name="storefront" /></span>
+                <span className="landing-mobile-search__pill-text">
+                  <span className="landing-mobile-search__pill-title">Catálogos</span>
+                  <span className="landing-mobile-search__pill-sub">Strova</span>
+                </span>
+                <span className="landing-mobile-search__pill-search"><Icon name="search" /></span>
+              </button>
+            )}
+          </div>
           <div className="landing-mobile-categories-wrap">
             <button
               type="button"
