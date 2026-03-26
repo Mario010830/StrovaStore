@@ -361,20 +361,9 @@
   margin-top: 8px;
 }
 
-/* Barra inferior móvil (acciones rápidas) */
+/* Barra inferior móvil (acciones rápidas) 
 .dir-mp-mobile-bar {
-  display: flex;
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 90;
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0));
-  background: rgba(255, 255, 255, 0.96);
-  border-top: 1px solid var(--dir-mp-border);
-  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
-  gap: 8px;
-  justify-content: stretch;
+  display: none;
 }
 
 @media (min-width: 960px) {
@@ -458,26 +447,30 @@
   display: none;
 }
 
-/* Hide the global navbar on the catalog directory page (mobile) */
 @media (max-width: 959px) {
+  /* ══════ HIDE OLD ELEMENTS ══════ */
   .page-catalog-directory .store-nav,
-  .page-catalog-directory .store-nav--directory {
-    display: none;
+  .page-catalog-directory .store-nav--directory,
+  .page-catalog-directory nav.store-nav {
+    display: none !important;
   }
 
   .page-catalog-directory {
     background: #fff;
   }
-}
 
-@media (max-width: 959px) {
+  .page-catalog-directory .sp-layout .sp-catalog-header,
+  .page-catalog-directory .sp-catalog-header {
+    display: none !important;
+  }
+
   /* ══════ PILL SEARCH HEADER (YerroMenu style) ══════ */
   .dir-mob-header {
     display: block;
     position: sticky;
     top: 0;
-    z-index: 50;
-    padding: 10px 14px;
+    z-index: 100;
+    padding: 12px 16px;
     background: #fff;
   }
 
@@ -553,12 +546,8 @@
     color: #475569;
   }
 
-  /* Hide sidebar, title, and old search header on mobile */
+  /* Hide sidebar on mobile */
   .sp-layout .sp-sidebar:not(.sp-sidebar--marketplace-desktop) {
-    display: none;
-  }
-
-  .sp-layout .sp-catalog-header {
     display: none;
   }
 

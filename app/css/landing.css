@@ -2482,3 +2482,267 @@
     display: none !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   LANDING MOBILE — YerroMenu overhaul (≤768px)
+   Bigger elements, more spacing, white background, no navbar
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Hide navbar */
+  .landing .landing-nav {
+    display: none !important;
+  }
+
+  /* White background */
+  .landing {
+    background: #fff;
+  }
+
+  /* Sticky search: now sticks to top:0 since navbar is gone */
+  .landing-mobile-top__sticky {
+    top: 0;
+    z-index: 100;
+    padding: 12px 0 14px;
+    background: #fff;
+  }
+
+  /* Search bar: bigger, pill-shaped */
+  .landing-mobile-search {
+    height: 52px;
+    padding: 0 16px;
+    border-radius: 9999px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  }
+
+  .landing-mobile-search__icon {
+    font-size: 24px;
+    color: #475569;
+  }
+
+  .landing-mobile-search input {
+    font-size: 16px;
+  }
+
+  /* Category tabs: bigger icons + text, more spacing */
+  .landing-mobile-categories-wrap {
+    margin-top: 16px;
+  }
+
+  .landing-mobile-cat {
+    flex: 0 0 84px;
+    width: 84px;
+    min-width: 84px;
+    max-width: 84px;
+    gap: 8px;
+    padding: 6px 0 10px;
+  }
+
+  .landing-mobile-cat__icon-wrap {
+    width: 36px;
+    height: 36px;
+  }
+
+  .landing-mobile-cat__icon-wrap svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .landing-mobile-cat__label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #94A3B8;
+  }
+
+  .landing-mobile-cat--active .landing-mobile-cat__label {
+    color: #0F172A;
+    font-weight: 700;
+  }
+
+  .landing-mobile-cat--active .landing-mobile-cat__icon-wrap {
+    color: #0F172A;
+  }
+
+  .landing-mobile-cat__dot {
+    display: none;
+  }
+
+  /* Section headers: bigger, two-line style */
+  .landing-mob-section-header {
+    margin-bottom: 18px;
+  }
+
+  .landing-mob-section-header__title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .landing-mob-section-header__action {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  /* Sections: more vertical spacing */
+  .landing-section--zones {
+    padding-top: 28px;
+    padding-bottom: 28px;
+  }
+
+  .landing-section--stores {
+    padding-top: 28px;
+    padding-bottom: 28px;
+  }
+
+  .landing-section--products {
+    padding-top: 28px;
+    padding-bottom: 28px;
+  }
+
+  /* Zone cards: taller */
+  .landing-zone-card {
+    width: min(280px, calc(100vw - 2 * var(--landing-mob-gutter) - 20px));
+  }
+
+  .landing-zone-card__media {
+    height: 180px;
+  }
+
+  /* Store circles: MUCH bigger (90px like YerroMenu) */
+  .landing-mob-store-scroll {
+    gap: 18px;
+    padding: 4px 0 12px;
+  }
+
+  .landing-mob-store-item {
+    width: 96px;
+    gap: 10px;
+  }
+
+  .landing-mob-store-item__avatar {
+    width: 90px;
+    height: 90px;
+    background: #F1F5F9;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  }
+
+  .landing-mob-store-item__img {
+    width: 90px !important;
+    height: 90px !important;
+  }
+
+  .landing-mob-store-item__placeholder {
+    background: linear-gradient(145deg, #F1F5F9, #E2E8F0);
+  }
+
+  .landing-mob-store-item__name {
+    font-size: 12px;
+    font-weight: 600;
+    max-width: 96px;
+  }
+
+  /* Product grid: bigger cards, more gap */
+  .landing-mob-product-grid {
+    gap: 14px;
+  }
+
+  .landing-product-card__media--market-mob {
+    height: 180px;
+    border-radius: 14px;
+  }
+
+  .landing-product-card--market-mob {
+    border-radius: 14px;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.08);
+  }
+
+  .landing-product-card__name--market-mob {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Business CTA section */
+  .landing-business__mob-banner {
+    border-radius: 16px;
+    padding: 28px 20px;
+  }
+
+  /* Two-line section header (YerroMenu style) */
+  .landing-mob-section-header--two-line {
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .landing-mob-section-header__suptitle {
+    display: block;
+    font-size: 13px;
+    font-weight: 400;
+    color: #94A3B8;
+    line-height: 1.3;
+  }
+
+  .landing-mob-section-header--two-line .landing-mob-section-header__title {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.15;
+    color: #0F172A;
+  }
+
+  /* Verified badge in store circles */
+  .landing-mob-store-item__meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+
+  .landing-mob-store-item__meta .material-icons {
+    font-size: 14px;
+    color: #3B82F6;
+  }
+
+  /* Footer: minimal on mobile */
+  .landing-footer {
+    border-top: 1px solid #F1F5F9;
+    padding: 16px 0;
+    background: #fff;
+  }
+
+  .landing-footer__compact {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .landing-footer__brand {
+    font-size: 13px;
+    font-weight: 600;
+    color: #94A3B8;
+  }
+
+  .landing-footer__brand .landing-nav__logo-box {
+    display: none;
+  }
+
+  .landing-footer__compact-text {
+    font-size: 11px;
+    color: #CBD5E1;
+  }
+
+  .landing-footer__panel {
+    display: none !important;
+  }
+
+  .landing-footer__divider {
+    display: none;
+  }
+
+  .landing-footer__bottom {
+    display: none;
+  }
+}

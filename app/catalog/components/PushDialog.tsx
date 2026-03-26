@@ -24,17 +24,17 @@ export function PushDialog({
   return (
     <div className="push-dialog-overlay" role="dialog" aria-modal="true" aria-labelledby="push-dialog-title">
       <div className="push-dialog">
+        {proxiedImageUrl && (
+          <div className="push-dialog__logo">
+            <Image src={proxiedImageUrl} alt="" width={56} height={56} />
+          </div>
+        )}
         <h2 id="push-dialog-title" className="push-dialog__title">
           ¿Quieres recibir ofertas?
         </h2>
         <p className="push-dialog__body">
           Te avisamos cuando <strong>{storeName}</strong> publique novedades o descuentos.
         </p>
-        {proxiedImageUrl && (
-          <div className="push-dialog__logo">
-            <Image src={proxiedImageUrl} alt="" width={64} height={64} />
-          </div>
-        )}
         <div className="push-dialog__actions">
           <button
             type="button"

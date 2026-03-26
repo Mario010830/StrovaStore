@@ -424,8 +424,11 @@ export default function LandingPage() {
             />
           </div>
           <div className="landing-mob-only">
-            <div className="landing-mob-section-header">
-              <h2 className="landing-mob-section-header__title">Explora por zona</h2>
+            <div className="landing-mob-section-header landing-mob-section-header--two-line">
+              <div>
+                <span className="landing-mob-section-header__suptitle">Explorar por</span>
+                <h2 className="landing-mob-section-header__title">Zona</h2>
+              </div>
               <Link href="/catalog?tab=tiendas" className="landing-mob-section-header__action">
                 Ver todas →
               </Link>
@@ -514,8 +517,11 @@ export default function LandingPage() {
         </div>
 
         <div className="landing-mob-only">
-          <div className="landing-mob-section-header">
-            <h2 className="landing-mob-section-header__title">Tiendas populares</h2>
+          <div className="landing-mob-section-header landing-mob-section-header--two-line">
+            <div>
+              <span className="landing-mob-section-header__suptitle">Negocios en</span>
+              <h2 className="landing-mob-section-header__title">Tendencia</h2>
+            </div>
             <Link href="/catalog" className="landing-mob-section-header__action">
               Ver todas →
             </Link>
@@ -533,8 +539,8 @@ export default function LandingPage() {
                       <Image
                         src={store.imageUrl}
                         alt=""
-                        width={72}
-                        height={72}
+                        width={90}
+                        height={90}
                         className="landing-mob-store-item__img"
                       />
                     ) : (
@@ -543,6 +549,7 @@ export default function LandingPage() {
                   </div>
                   <div className="landing-mob-store-item__meta">
                     <span className="landing-mob-store-item__name">{store.name}</span>
+                    <Icon name="verified" />
                   </div>
                 </Link>
               ))
@@ -554,8 +561,11 @@ export default function LandingPage() {
       <section className="landing-section landing-section--landing-block landing-section--products landing-shell landing-anim">
         {isMobileLanding ? (
           <>
-            <div className="landing-mob-section-header">
-              <h2 className="landing-mob-section-header__title">Productos populares</h2>
+            <div className="landing-mob-section-header landing-mob-section-header--two-line">
+              <div>
+                <span className="landing-mob-section-header__suptitle">Productos</span>
+                <h2 className="landing-mob-section-header__title">Populares</h2>
+              </div>
               <Link href="/catalog?tab=productos" className="landing-mob-section-header__action">
                 Ver todos →
               </Link>
