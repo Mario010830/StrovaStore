@@ -502,7 +502,7 @@ export default function CatalogProductsPage() {
       ) : null}
       <div className="sp-info-hero__name-row">
         <h1 className="sp-info-hero__name">{storeName}</h1>
-        <Icon name="verified" className="sp-info-hero__verified" />
+        {loc?.isVerified && <Icon name="verified" className="sp-info-hero__verified" />}
       </div>
       {addressLine && addressLine !== "—" ? (
         <p className="sp-info-hero__address">
@@ -527,33 +527,61 @@ export default function CatalogProductsPage() {
         </p>
       ) : null}
       <div className="sp-info-hero__pills">
-        <button
-          type="button"
-          className="sp-delivery-pill sp-delivery-pill--delivery"
-          onClick={() => openCart()}
-        >
-          <span className="sp-delivery-pill__top">
-            <Icon name="shopping_bag" />
-            <span className="sp-delivery-pill__label">Domicilio</span>
-          </span>
-          <span className="sp-delivery-pill__sub">
-            {loc?.isOpenNow ? "Disponible ahora" : "No disponible"}
-          </span>
-        </button>
-        <button
-          type="button"
-          className="sp-delivery-pill sp-delivery-pill--pickup"
-          onClick={() => openCart()}
-        >
-          <span className="sp-delivery-pill__top">
-            <Icon name="store" />
-            <span className="sp-delivery-pill__label">Recogida</span>
-          </span>
-          <span className="sp-delivery-pill__sub">
-            {loc?.isOpenNow ? "Disponible ahora" : "No disponible"}
-          </span>
-        </button>
+        {loc?.offersDelivery !== false && (
+          <button
+            type="button"
+            className="sp-delivery-pill sp-delivery-pill--delivery"
+            onClick={() => openCart()}
+          >
+            <span className="sp-delivery-pill__top">
+              <Icon name="shopping_bag" />
+              <span className="sp-delivery-pill__label">Domicilio</span>
+            </span>
+            <span className="sp-delivery-pill__sub">
+              {loc?.isOpenNow ? "Disponible ahora" : "No disponible"}
+            </span>
+          </button>
+        )}
+        {loc?.offersPickup !== false && (
+          <button
+            type="button"
+            className="sp-delivery-pill sp-delivery-pill--pickup"
+            onClick={() => openCart()}
+          >
+            <span className="sp-delivery-pill__top">
+              <Icon name="store" />
+              <span className="sp-delivery-pill__label">Recogida</span>
+            </span>
+            <span className="sp-delivery-pill__sub">
+              {loc?.isOpenNow ? "Disponible ahora" : "No disponible"}
+            </span>
+          </button>
+        )}
       </div>
+
+      {/* Mapa + botón "Cómo llegar" */}
+      {loc?.coordinates && loc.coordinates.lat && loc.coordinates.lng && (
+        <div className="sp-map-section">
+          <iframe
+            title="Ubicación de la tienda"
+            width="100%"
+            height="250"
+            style={{ border: 0, borderRadius: "12px" }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            src={`https://www.google.com/maps?q=${loc.coordinates.lat},${loc.coordinates.lng}&z=15&output=embed`}
+          />
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${loc.coordinates.lat},${loc.coordinates.lng}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sp-map-directions-btn"
+          >
+            <Icon name="directions" />
+            Cómo llegar
+          </a>
+        </div>
+      )}
     </div>
 
     <div className="sp-layout sp-layout--store-catalog">

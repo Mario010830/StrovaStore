@@ -8,3 +8,10 @@ export function getBusinessUrl(): string {
 export function getPushInternalToken(): string {
   return process.env.PUSH_INTERNAL_TOKEN?.trim() ?? "";
 }
+
+export const SOCIAL_URLS = {
+  instagram: process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM?.trim() ?? "",
+  facebook: process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK?.trim() ?? "",
+  tiktok: process.env.NEXT_PUBLIC_SOCIAL_TIKTOK?.trim() ?? "",
+  youtube: process.env.NEXT_PUBLIC_SOCIAL_YOUTUBE?.trim() ?? "",
+} as const;

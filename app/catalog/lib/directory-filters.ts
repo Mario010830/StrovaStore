@@ -32,10 +32,14 @@ export function sortLocations(
     });
   }
   if (sortLabel === "Nuevos") {
-    return next.sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
+    return next.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
   }
   if (sortLabel === "Más populares") {
-    return next.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "", "es"));
+    return next.sort((a, b) => (b.productCount ?? 0) - (a.productCount ?? 0));
   }
   return next.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "", "es"));
 }

@@ -2027,6 +2027,39 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   MAP SECTION + DIRECTIONS BUTTON
+   ═══════════════════════════════════════════════════════════════ */
+.sp-map-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 16px 16px;
+}
+
+.sp-map-directions-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: var(--dir-accent, #185FA5);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.sp-map-directions-btn:hover {
+  background: #134a82;
+}
+
+.sp-map-directions-btn .material-icons {
+  font-size: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BOTTOM SHEET MENU (3-dot)
    ═══════════════════════════════════════════════════════════════ */
 .sp-menu-sheet__overlay {
