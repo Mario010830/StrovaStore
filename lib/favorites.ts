@@ -1,5 +1,7 @@
 /**
- * Favoritos en localStorage (sin servidor). Claves versionadas por si cambia el formato.
+ * Favoritos en localStorage (sin servidor). MVP: server-side requiere autenticación
+ * del usuario en el catálogo público (feature futura).
+ * Claves versionadas por si cambia el formato.
  */
 const LS_STORES = "strova-fav-stores-v1";
 const LS_PRODUCTS = "strova-fav-products-v1";

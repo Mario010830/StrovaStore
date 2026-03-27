@@ -235,6 +235,14 @@ function normalizeLocations(raw: unknown): PublicLocation[] {
       isOpenNow: typeof loc.isOpenNow === "boolean" ? loc.isOpenNow : null,
       businessCategoryId,
       businessCategoryName,
+      isVerified: loc.isVerified === true,
+      offersDelivery: loc.offersDelivery !== false,
+      offersPickup: loc.offersPickup !== false,
+      deliveryHours: (loc.deliveryHours as PublicLocation["deliveryHours"]) ?? null,
+      pickupHours: (loc.pickupHours as PublicLocation["pickupHours"]) ?? null,
+      createdAt: asNullableString(loc.createdAt),
+      productCount: typeof loc.productCount === "number" ? loc.productCount : 0,
+      hasPromo: loc.hasPromo === true,
     } as PublicLocation;
   });
 }
@@ -273,8 +281,29 @@ export const catalogApi = createApi({
   refetchOnReconnect: true,
 
   endpoints: (builder) => ({
-    getPublicLocations: builder.query<PublicLocation[], void>({
-      query: () => "/public/locations",
+    getPublicLocations: builder.query<
+      PublicLocation[],
+      {
+        sortBy?: string;
+        sortDir?: string;
+        lat?: number;
+        lng?: number;
+        radiusKm?: number;
+        categoryId?: number;
+      } | void
+    >({
+      query: (params) => {
+        const p = params || {};
+        const qs = new URLSearchParams();
+        if (p.sortBy) qs.set("sortBy", p.sortBy);
+        if (p.sortDir) qs.set("sortDir", p.sortDir);
+        if (p.lat != null) qs.set("lat", String(p.lat));
+        if (p.lng != null) qs.set("lng", String(p.lng));
+        if (p.radiusKm != null) qs.set("radiusKm", String(p.radiusKm));
+        if (p.categoryId != null) qs.set("categoryId", String(p.categoryId));
+        const q = qs.toString();
+        return `/public/locations${q ? `?${q}` : ""}`;
+      },
       transformResponse: (raw: unknown) => normalizeLocations(raw),
     }),
 
@@ -286,10 +315,33 @@ export const catalogApi = createApi({
 
     getAllPublicProducts: builder.query<
       { data: PublicCatalogItem[]; pagination: PaginationMeta },
-      { page: number; pageSize: number }
+      {
+        page: number;
+        pageSize: number;
+        sortBy?: string;
+        sortDir?: string;
+        tagId?: number;
+        minPrice?: number;
+        maxPrice?: number;
+        inStock?: boolean;
+        hasPromotion?: boolean;
+      }
     >({
-      query: ({ page, pageSize }) =>
-        `/public/catalog?all=true&page=${page}&pageSize=${pageSize}`,
+      query: ({ page, pageSize, sortBy, sortDir, tagId, minPrice, maxPrice, inStock, hasPromotion }) => {
+        const qs = new URLSearchParams({
+          all: "true",
+          page: String(page),
+          pageSize: String(pageSize),
+        });
+        if (sortBy) qs.set("sortBy", sortBy);
+        if (sortDir) qs.set("sortDir", sortDir);
+        if (tagId != null) qs.set("tagId", String(tagId));
+        if (minPrice != null) qs.set("minPrice", String(minPrice));
+        if (maxPrice != null) qs.set("maxPrice", String(maxPrice));
+        if (inStock) qs.set("inStock", "true");
+        if (hasPromotion) qs.set("hasPromotion", "true");
+        return `/public/catalog?${qs.toString()}`;
+      },
       transformResponse: (
         raw: unknown,
       ): { data: PublicCatalogItem[]; pagination: PaginationMeta } => {
