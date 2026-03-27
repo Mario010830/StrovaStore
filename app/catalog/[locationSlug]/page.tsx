@@ -33,6 +33,28 @@ import { getProductCardSubtitle, categoryDotColor } from "@/lib/catalog-display"
 import { buildLocationCatalogPath, parseLocationRouteParam } from "@/lib/location-path";
 import { getOriginalPriceForDisplay, getPromotionBadgeLabel } from "@/lib/catalog-promotion";
 
+const DAYS_MAP = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
+
+/**
+ * Checks if "now" (client local time) falls within the hours schedule.
+ * Uses specific hours if provided, otherwise falls back to businessHours.
+ */
+function isAvailableNow(
+  specificHours: Record<string, { open: string; close: string } | null> | null | undefined,
+  businessHours: Record<string, { open: string; close: string } | null> | null | undefined,
+): boolean {
+  const hours = specificHours ?? businessHours;
+  if (!hours) return false;
+  const now = new Date();
+  const dayKey = DAYS_MAP[now.getDay()];
+  const today = hours[dayKey];
+  if (!today?.open || !today?.close) return false;
+  const [oh, om] = today.open.split(":").map(Number);
+  const [ch, cm] = today.close.split(":").map(Number);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  return nowMin >= oh * 60 + om && nowMin <= ch * 60 + cm;
+}
+
 const PRODUCT_FUSE_KEYS = [
   { name: "name" as const, weight: 0.5 },
   { name: "categoryName" as const, weight: 0.25 },
@@ -446,13 +468,16 @@ export default function CatalogProductsPage() {
           <span className="sp-store-header__avatar-placeholder"><Icon name="storefront" /></span>
         )}
         <div className="sp-store-header__info">
-          {loc && (
-            <span className={`sp-store-header__status${loc.isOpenNow ? "" : " sp-store-header__status--closed"}`}>
-              {loc.isOpenNow
-                ? `ABIERTO${loc.todayClose ? ` · Cierra a las ${loc.todayClose}` : ""}`
-                : "CERRADO"}
-            </span>
-          )}
+          {loc && (() => {
+            const storeOpen = isAvailableNow(null, loc.businessHours);
+            return (
+              <span className={`sp-store-header__status${storeOpen ? "" : " sp-store-header__status--closed"}`}>
+                {storeOpen
+                  ? `ABIERTO${loc.todayClose ? ` · Cierra a las ${loc.todayClose}` : ""}`
+                  : "CERRADO"}
+              </span>
+            );
+          })()}
           <span className="sp-store-header__name">{storeName}</span>
         </div>
       </div>
@@ -538,7 +563,7 @@ export default function CatalogProductsPage() {
               <span className="sp-delivery-pill__label">Domicilio</span>
             </span>
             <span className="sp-delivery-pill__sub">
-              {loc?.isOpenNow ? "Disponible ahora" : "No disponible"}
+              {isAvailableNow(loc?.deliveryHours, loc?.businessHours) ? "Disponible ahora" : "No disponible"}
             </span>
           </button>
         )}
@@ -553,7 +578,7 @@ export default function CatalogProductsPage() {
               <span className="sp-delivery-pill__label">Recogida</span>
             </span>
             <span className="sp-delivery-pill__sub">
-              {loc?.isOpenNow ? "Disponible ahora" : "No disponible"}
+              {isAvailableNow(loc?.pickupHours, loc?.businessHours) ? "Disponible ahora" : "No disponible"}
             </span>
           </button>
         )}
