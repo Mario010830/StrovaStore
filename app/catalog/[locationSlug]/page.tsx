@@ -659,6 +659,29 @@ export default function CatalogProductsPage() {
           </div>
         </div>
 
+        {loc?.coordinates && loc.coordinates.lat && loc.coordinates.lng && (
+          <div className="sp-map-section">
+            <iframe
+              title="Ubicación de la tienda"
+              width="100%"
+              height="200"
+              style={{ border: 0, borderRadius: "12px" }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://www.google.com/maps?q=${loc.coordinates.lat},${loc.coordinates.lng}&z=15&output=embed`}
+            />
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${loc.coordinates.lat},${loc.coordinates.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sp-map-directions-btn"
+            >
+              <Icon name="directions" />
+              Cómo llegar
+            </a>
+          </div>
+        )}
+
         {products && products.length > 0 ? (
           <div className="sp-sidebar__extras">
             <p className="sp-sidebar__extras-title">Catálogo</p>
