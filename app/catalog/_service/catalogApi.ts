@@ -197,6 +197,18 @@ function normalizeLocations(raw: unknown): PublicLocation[] {
     const todayOpen = today?.open ?? null;
     const todayClose = today?.close ?? null;
 
+    // Recalculate isOpenNow client-side (server uses its own timezone which may differ)
+    let isOpenNow: boolean = false;
+    if (todayOpen && todayClose) {
+      const now = new Date();
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const [oh, om] = todayOpen.split(":").map(Number);
+      const [ch, cm] = todayClose.split(":").map(Number);
+      if (Number.isFinite(oh) && Number.isFinite(om) && Number.isFinite(ch) && Number.isFinite(cm)) {
+        isOpenNow = nowMin >= oh * 60 + om && nowMin <= ch * 60 + cm;
+      }
+    }
+
     const nestedBc = asRecord(loc.businessCategory);
     const businessCategoryIdRaw =
       loc.businessCategoryId != null && loc.businessCategoryId !== ""
@@ -232,7 +244,7 @@ function normalizeLocations(raw: unknown): PublicLocation[] {
       lng: longitude,
       todayOpen,
       todayClose,
-      isOpenNow: typeof loc.isOpenNow === "boolean" ? loc.isOpenNow : null,
+      isOpenNow,
       businessCategoryId,
       businessCategoryName,
       isVerified: loc.isVerified === true,
