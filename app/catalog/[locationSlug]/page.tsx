@@ -468,16 +468,13 @@ export default function CatalogProductsPage() {
           <span className="sp-store-header__avatar-placeholder"><Icon name="storefront" /></span>
         )}
         <div className="sp-store-header__info">
-          {loc && (() => {
-            const storeOpen = isAvailableNow(null, loc.businessHours);
-            return (
-              <span className={`sp-store-header__status${storeOpen ? "" : " sp-store-header__status--closed"}`}>
-                {storeOpen
-                  ? `ABIERTO${loc.todayClose ? ` · Cierra a las ${loc.todayClose}` : ""}`
-                  : "CERRADO"}
-              </span>
-            );
-          })()}
+          {loc && (
+            <span className={`sp-store-header__status${loc.isOpenNow ? "" : " sp-store-header__status--closed"}`}>
+              {loc.isOpenNow
+                ? `ABIERTO${loc.todayClose ? ` · Cierra a las ${loc.todayClose}` : ""}`
+                : "CERRADO"}
+            </span>
+          )}
           <span className="sp-store-header__name">{storeName}</span>
         </div>
       </div>
