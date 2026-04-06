@@ -10,19 +10,31 @@ export type MetricsEventType =
   | "cart_abandoned"
   | "catalog_search";
 
+/**
+ * Cuerpo alineado con CatalogMetricEventItemRequest (ASP.NET: Type → JSON "type", TrafficSource → "trafficSource").
+ */
 export interface CatalogMetricsEventItem {
-  eventType: string;
-  productId?: string;
+  type: string;
+  occurredAt?: string;
+  catalogId?: number;
+  productId?: number;
+  trafficSource?: string;
   searchTerm?: string;
-  source?: string;
-  orderId?: string;
   durationSeconds?: number;
 }
 
+/**
+ * Cuerpo alineado con CatalogMetricsBatchRequest (LocationId → JSON "locationId" numérico).
+ */
 export interface CatalogMetricsBatchRequest {
-  locationId: string;
+  locationId: number;
   sessionId: string;
   events: CatalogMetricsEventItem[];
+}
+
+function parsePositiveLocationId(locationId: string): number | null {
+  const n = Number.parseInt(locationId.trim(), 10);
+  return Number.isInteger(n) && n > 0 ? n : null;
 }
 
 function authHeaders(): HeadersInit {
@@ -40,11 +52,11 @@ function authHeaders(): HeadersInit {
 
 /**
  * Fire-and-forget POST to the metrics API. Never throws; errors are swallowed.
- * Sin locationId no se envía (el backend resuelve organización desde la tienda).
  */
 export function sendEvent(payload: CatalogMetricsBatchRequest): void {
   if (typeof window === "undefined") return;
-  if (!payload.locationId?.trim()) return;
+  if (!Number.isInteger(payload.locationId) || payload.locationId <= 0) return;
+  if (!payload.events?.length) return;
 
   void fetch(`${getApiUrl()}/public/metrics/events`, {
     method: "POST",
@@ -67,24 +79,26 @@ export function buildBaseMetricsFields(overrides: {
   source?: string | null;
   searchTerm?: string | null;
   cartId?: string | null;
-  orderId?: string | null;
-}): CatalogMetricsBatchRequest {
-  const item: CatalogMetricsEventItem = { eventType: overrides.eventType };
+}): CatalogMetricsBatchRequest | null {
+  const lid = parsePositiveLocationId(overrides.locationId);
+  if (lid == null) return null;
+
+  const item: CatalogMetricsEventItem = { type: overrides.eventType };
   if (overrides.productId != null && overrides.productId !== "") {
-    item.productId = String(overrides.productId);
+    const pid = Number(overrides.productId);
+    if (Number.isInteger(pid) && pid > 0) {
+      item.productId = pid;
+    }
   }
   if (overrides.searchTerm != null && overrides.searchTerm !== "") {
     item.searchTerm = overrides.searchTerm;
   }
   if (overrides.source != null && overrides.source !== "") {
-    item.source = overrides.source;
-  }
-  if (overrides.orderId != null && overrides.orderId !== "") {
-    item.orderId = overrides.orderId;
+    item.trafficSource = overrides.source;
   }
 
   return {
-    locationId: overrides.locationId.trim(),
+    locationId: lid,
     sessionId: getSessionId(),
     events: [item],
   };

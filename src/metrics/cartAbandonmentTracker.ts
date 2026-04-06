@@ -5,11 +5,19 @@ import { sendEvent, type CatalogMetricsBatchRequest } from "./metricsClient";
 
 let registered = false;
 
+function parseLocationId(raw: string): number | null {
+  const n = Number.parseInt(raw.trim(), 10);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
 function sendCartAbandonedWithBeacon(locationId: string, _cartId: string): void {
+  const lid = parseLocationId(locationId);
+  if (lid == null) return;
+
   const payload: CatalogMetricsBatchRequest = {
-    locationId,
+    locationId: lid,
     sessionId: getSessionId(),
-    events: [{ eventType: "cart_abandoned" }],
+    events: [{ type: "cart_abandoned" }],
   };
 
   if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {

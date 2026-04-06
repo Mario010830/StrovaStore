@@ -5,9 +5,13 @@ import { buildBaseMetricsFields, sendEvent } from "./metricsClient";
 import { detectSource } from "./sourceDetector";
 import { updatePendingCartAfterAdd } from "./pendingCart";
 
+function send(batch: ReturnType<typeof buildBaseMetricsFields>): void {
+  if (batch) sendEvent(batch);
+}
+
 export function useMetrics() {
   const trackCatalogView = useCallback((locationId: string) => {
-    sendEvent(
+    send(
       buildBaseMetricsFields({
         eventType: "catalog_visit",
         locationId,
@@ -17,7 +21,7 @@ export function useMetrics() {
   }, []);
 
   const trackProductView = useCallback((locationId: string, productId: number | string) => {
-    sendEvent(
+    send(
       buildBaseMetricsFields({
         eventType: "product_view",
         locationId,
@@ -27,7 +31,7 @@ export function useMetrics() {
   }, []);
 
   const trackFavorite = useCallback((locationId: string, productId: number | string) => {
-    sendEvent(
+    send(
       buildBaseMetricsFields({
         eventType: "product_favorited",
         locationId,
@@ -39,7 +43,7 @@ export function useMetrics() {
   const trackAddToCart = useCallback(
     (locationId: string, productId: number | string, cartId?: string | null) => {
       const cid = updatePendingCartAfterAdd(locationId, productId, cartId);
-      sendEvent(
+      send(
         buildBaseMetricsFields({
           eventType: "add_to_cart",
           locationId,
@@ -54,7 +58,7 @@ export function useMetrics() {
   const trackSearch = useCallback((locationId: string, searchTerm: string) => {
     const q = searchTerm.trim();
     if (!q) return;
-    sendEvent(
+    send(
       buildBaseMetricsFields({
         eventType: "catalog_search",
         locationId,
