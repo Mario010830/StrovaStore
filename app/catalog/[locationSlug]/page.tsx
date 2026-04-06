@@ -34,6 +34,28 @@ import { buildLocationCatalogPath, parseLocationRouteParam } from "@/lib/locatio
 import { getOriginalPriceForDisplay, getPromotionBadgeLabel } from "@/lib/catalog-promotion";
 import { useMetrics } from "@/src/metrics/useMetrics";
 
+const DAYS_MAP = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
+
+/**
+ * Checks if "now" (client local time) falls within the hours schedule.
+ * Uses specific hours if provided, otherwise falls back to businessHours.
+ */
+function isAvailableNow(
+  specificHours: Record<string, { open: string; close: string } | null> | null | undefined,
+  businessHours: Record<string, { open: string; close: string } | null> | null | undefined,
+): boolean {
+  const hours = specificHours ?? businessHours;
+  if (!hours) return false;
+  const now = new Date();
+  const dayKey = DAYS_MAP[now.getDay()];
+  const today = hours[dayKey];
+  if (!today?.open || !today?.close) return false;
+  const [oh, om] = today.open.split(":").map(Number);
+  const [ch, cm] = today.close.split(":").map(Number);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  return nowMin >= oh * 60 + om && nowMin <= ch * 60 + cm;
+}
+
 const PRODUCT_FUSE_KEYS = [
   { name: "name" as const, weight: 0.5 },
   { name: "categoryName" as const, weight: 0.25 },
@@ -532,7 +554,7 @@ export default function CatalogProductsPage() {
       ) : null}
       <div className="sp-info-hero__name-row">
         <h1 className="sp-info-hero__name">{storeName}</h1>
-        <Icon name="verified" className="sp-info-hero__verified" />
+        {loc?.isVerified && <Icon name="verified" className="sp-info-hero__verified" />}
       </div>
       {addressLine && addressLine !== "—" ? (
         <p className="sp-info-hero__address">
@@ -557,33 +579,61 @@ export default function CatalogProductsPage() {
         </p>
       ) : null}
       <div className="sp-info-hero__pills">
-        <button
-          type="button"
-          className="sp-delivery-pill sp-delivery-pill--delivery"
-          onClick={() => openCart()}
-        >
-          <span className="sp-delivery-pill__top">
-            <Icon name="shopping_bag" />
-            <span className="sp-delivery-pill__label">Domicilio</span>
-          </span>
-          <span className="sp-delivery-pill__sub">
-            {loc?.isOpenNow ? "Disponible ahora" : "No disponible"}
-          </span>
-        </button>
-        <button
-          type="button"
-          className="sp-delivery-pill sp-delivery-pill--pickup"
-          onClick={() => openCart()}
-        >
-          <span className="sp-delivery-pill__top">
-            <Icon name="store" />
-            <span className="sp-delivery-pill__label">Recogida</span>
-          </span>
-          <span className="sp-delivery-pill__sub">
-            {loc?.isOpenNow ? "Disponible ahora" : "No disponible"}
-          </span>
-        </button>
+        {loc?.offersDelivery !== false && (
+          <button
+            type="button"
+            className="sp-delivery-pill sp-delivery-pill--delivery"
+            onClick={() => openCart()}
+          >
+            <span className="sp-delivery-pill__top">
+              <Icon name="shopping_bag" />
+              <span className="sp-delivery-pill__label">Domicilio</span>
+            </span>
+            <span className="sp-delivery-pill__sub">
+              {isAvailableNow(loc?.deliveryHours, loc?.businessHours) ? "Disponible ahora" : "No disponible"}
+            </span>
+          </button>
+        )}
+        {loc?.offersPickup !== false && (
+          <button
+            type="button"
+            className="sp-delivery-pill sp-delivery-pill--pickup"
+            onClick={() => openCart()}
+          >
+            <span className="sp-delivery-pill__top">
+              <Icon name="store" />
+              <span className="sp-delivery-pill__label">Recogida</span>
+            </span>
+            <span className="sp-delivery-pill__sub">
+              {isAvailableNow(loc?.pickupHours, loc?.businessHours) ? "Disponible ahora" : "No disponible"}
+            </span>
+          </button>
+        )}
       </div>
+
+      {/* Mapa + botón "Cómo llegar" */}
+      {loc?.coordinates && loc.coordinates.lat && loc.coordinates.lng && (
+        <div className="sp-map-section">
+          <iframe
+            title="Ubicación de la tienda"
+            width="100%"
+            height="250"
+            style={{ border: 0, borderRadius: "12px" }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            src={`https://www.google.com/maps?q=${loc.coordinates.lat},${loc.coordinates.lng}&z=15&output=embed`}
+          />
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${loc.coordinates.lat},${loc.coordinates.lng}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sp-map-directions-btn"
+          >
+            <Icon name="directions" />
+            Cómo llegar
+          </a>
+        </div>
+      )}
     </div>
 
     <div className="sp-layout sp-layout--store-catalog">
@@ -660,6 +710,29 @@ export default function CatalogProductsPage() {
             <span className="sp-meta__text">{hoursLine}</span>
           </div>
         </div>
+
+        {loc?.coordinates && loc.coordinates.lat && loc.coordinates.lng && (
+          <div className="sp-map-section">
+            <iframe
+              title="Ubicación de la tienda"
+              width="100%"
+              height="200"
+              style={{ border: 0, borderRadius: "12px" }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://www.google.com/maps?q=${loc.coordinates.lat},${loc.coordinates.lng}&z=15&output=embed`}
+            />
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${loc.coordinates.lat},${loc.coordinates.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sp-map-directions-btn"
+            >
+              <Icon name="directions" />
+              Cómo llegar
+            </a>
+          </div>
+        )}
 
         {products && products.length > 0 ? (
           <div className="sp-sidebar__extras">

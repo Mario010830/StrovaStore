@@ -288,8 +288,9 @@ export default function CatalogLocationsPage() {
 
   const trendingLocations = useMemo(() => {
     if (!locations) return [];
-    return locations
+    return [...locations]
       .filter((l) => !isExcludedDirectoryLocation(l) && hasZoneData(l))
+      .sort((a, b) => (b.productCount ?? 0) - (a.productCount ?? 0))
       .slice(0, 12);
   }, [locations]);
 
@@ -580,7 +581,7 @@ export default function CatalogLocationsPage() {
                           )}
                           <span className="dir-trending__name">
                             {tLoc.name}
-                            <Icon name="verified" className="dir-trending__verified" />
+                            {tLoc.isVerified && <Icon name="verified" className="dir-trending__verified" />}
                           </span>
                         </Link>
                       );

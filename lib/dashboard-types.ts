@@ -21,8 +21,8 @@ export interface BusinessCategory {
 }
 
 /**
- * Local público en el directorio. Extensiones posibles vía API (no implementadas en UI aún):
- * rating, reviewCount, isVerified, productCount, hasPromo — normalizar en catalogApi cuando existan.
+ * Local público en el directorio.
+ * Campos futuros pendientes de backend: rating, reviewCount.
  */
 export interface PublicLocation {
   id: number;
@@ -30,9 +30,7 @@ export interface PublicLocation {
   description: string | null;
   organizationId: number;
   organizationName: string;
-  /** Relación con BusinessCategory, si el backend la envía. */
   businessCategoryId?: number | null;
-  /** Nombre de la categoría de negocio si el backend lo envía. */
   businessCategoryName?: string | null;
   whatsAppContact: string | null;
   photoUrl?: string | null;
@@ -52,6 +50,14 @@ export interface PublicLocation {
   longitude?: number | null;
   lat?: number | null;
   lng?: number | null;
+  isVerified?: boolean;
+  offersDelivery?: boolean;
+  offersPickup?: boolean;
+  deliveryHours?: Record<string, { open: string; close: string } | null> | null;
+  pickupHours?: Record<string, { open: string; close: string } | null> | null;
+  createdAt?: string | null;
+  productCount?: number;
+  hasPromo?: boolean;
 }
 
 /** Imagen de galería en respuesta pública del catálogo (JSON camelCase). */

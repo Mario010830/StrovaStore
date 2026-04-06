@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type SVGProps } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { SOCIAL_URLS } from "@/lib/runtime-config";
 
 function SocialInstagram(props: SVGProps<SVGSVGElement>) {
   return (
@@ -107,7 +108,6 @@ export function LandingFooter({ businessUrl }: LandingFooterProps) {
               <Link href="/catalog">Tiendas</Link>
               <Link href="/catalog?tab=productos">Productos</Link>
               <Link href="/catalog?tab=productos">Categorías</Link>
-              {/* TODO: crear filtro por categoría para deep-link real desde footer. */}
             </div>
             <div className="landing-footer__col">
               <div className="landing-footer__col-title">Negocios</div>
@@ -123,28 +123,36 @@ export function LandingFooter({ businessUrl }: LandingFooterProps) {
             </div>
             <div className="landing-footer__col">
               <div className="landing-footer__col-title">Legal</div>
-              <Link href="#">Términos</Link>
-              <Link href="#">Privacidad</Link>
-              {/* TODO: reemplazar href="#" por rutas legales reales cuando existan. */}
+              <Link href="/terms">Términos</Link>
+              <Link href="/privacy">Privacidad</Link>
             </div>
           </div>
 
-          <div className="landing-footer__socials">
-            <span>Síguenos</span>
-            {/* TODO: agregar URLs reales de redes sociales. */}
-            <a href="#" aria-label="Instagram" className="landing-footer__social-link">
-              <SocialInstagram className="landing-footer__social-icon" />
-            </a>
-            <a href="#" aria-label="Facebook" className="landing-footer__social-link">
-              <SocialFacebook className="landing-footer__social-icon" />
-            </a>
-            <a href="#" aria-label="TikTok" className="landing-footer__social-link">
-              <SocialTikTok className="landing-footer__social-icon" />
-            </a>
-            <a href="#" aria-label="YouTube" className="landing-footer__social-link">
-              <SocialYouTube className="landing-footer__social-icon" />
-            </a>
-          </div>
+          {(SOCIAL_URLS.instagram || SOCIAL_URLS.facebook || SOCIAL_URLS.tiktok || SOCIAL_URLS.youtube) && (
+            <div className="landing-footer__socials">
+              <span>Síguenos</span>
+              {SOCIAL_URLS.instagram && (
+                <a href={SOCIAL_URLS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="landing-footer__social-link">
+                  <SocialInstagram className="landing-footer__social-icon" />
+                </a>
+              )}
+              {SOCIAL_URLS.facebook && (
+                <a href={SOCIAL_URLS.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="landing-footer__social-link">
+                  <SocialFacebook className="landing-footer__social-icon" />
+                </a>
+              )}
+              {SOCIAL_URLS.tiktok && (
+                <a href={SOCIAL_URLS.tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="landing-footer__social-link">
+                  <SocialTikTok className="landing-footer__social-icon" />
+                </a>
+              )}
+              {SOCIAL_URLS.youtube && (
+                <a href={SOCIAL_URLS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="landing-footer__social-link">
+                  <SocialYouTube className="landing-footer__social-icon" />
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="landing-footer__divider" />

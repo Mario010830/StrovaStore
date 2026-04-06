@@ -215,18 +215,6 @@ export default function ProductDetailPage() {
               </p>
             </div>
 
-            <div className="pd-features">
-              <span className="pd-feature">
-                <Icon name="bolt" /> 20V Potencia
-              </span>
-              <span className="pd-feature">
-                <Icon name="settings_backup_restore" /> Garantía 1 año
-              </span>
-              <span className="pd-feature">
-                <Icon name="local_shipping" /> Envío local
-              </span>
-            </div>
-
             <a
               href={waHref}
               target="_blank"
