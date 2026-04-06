@@ -3,20 +3,27 @@ const SESSION_CART_ID_KEY = "mkt_cart_id";
 
 export interface PendingCartSnapshot {
   cartId: string;
-  businessId: string;
+  /** ID de ubicación/tienda (Location), para métricas y abandono de carrito. */
+  locationId: string;
   productIds: number[];
 }
 
 function parsePending(raw: string | null): PendingCartSnapshot | null {
   if (!raw?.trim()) return null;
   try {
-    const o = JSON.parse(raw) as Partial<PendingCartSnapshot>;
+    const o = JSON.parse(raw) as Record<string, unknown>;
     if (typeof o.cartId !== "string" || !o.cartId) return null;
-    if (typeof o.businessId !== "string") return null;
+    const locationId =
+      typeof o.locationId === "string" && o.locationId.trim()
+        ? o.locationId.trim()
+        : typeof o.businessId === "string" && o.businessId.trim()
+          ? o.businessId.trim()
+          : null;
+    if (!locationId) return null;
     const ids = Array.isArray(o.productIds)
       ? o.productIds.map((n) => Number(n)).filter((n) => Number.isInteger(n) && n > 0)
       : [];
-    return { cartId: o.cartId, businessId: o.businessId, productIds: ids };
+    return { cartId: o.cartId, locationId, productIds: ids };
   } catch {
     return null;
   }
@@ -47,10 +54,10 @@ export function getOrCreateSessionCartId(): string {
 }
 
 /**
- * After add_to_cart: persist cart id, business id, and merged product ids for abandonment tracking.
+ * After add_to_cart: persist cart id, location id, and merged product ids for abandonment tracking.
  */
 export function updatePendingCartAfterAdd(
-  businessId: string,
+  locationId: string,
   productId: number | string,
   explicitCartId?: string | null,
 ): string {
@@ -64,7 +71,7 @@ export function updatePendingCartAfterAdd(
     productIds.add(pid);
     const next: PendingCartSnapshot = {
       cartId,
-      businessId,
+      locationId: locationId.trim(),
       productIds: [...productIds],
     };
     window.sessionStorage.setItem(PENDING_KEY, JSON.stringify(next));

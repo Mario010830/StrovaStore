@@ -84,12 +84,10 @@ function StoreProductCard({
   item,
   locationId,
   catalogBasePath,
-  businessId,
 }: {
   item: PublicCatalogItem;
   locationId: number;
   catalogBasePath: string;
-  businessId: string;
 }) {
   const { trackFavorite, trackAddToCart } = useMetrics();
   const { isFavorite, toggle } = useFavoriteProduct(locationId, item.id);
@@ -127,7 +125,7 @@ function StoreProductCard({
         tipo: item.tipo,
       })
     );
-    trackAddToCart(businessId, item.id);
+    trackAddToCart(String(locationId), item.id);
   };
 
   const qty = (delta: number) => (e: React.MouseEvent) => {
@@ -228,7 +226,7 @@ function StoreProductCard({
       <CardFavoriteButton
         isFavorite={isFavorite}
         onToggle={(ev) => {
-          if (!isFavorite) trackFavorite(businessId, item.id);
+          if (!isFavorite) trackFavorite(String(locationId), item.id);
           toggle(ev);
         }}
         labelOn="Quitar producto de favoritos"
@@ -319,12 +317,10 @@ export default function CatalogProductsPage() {
     );
   }, [loc, dispatch]);
 
-  const storeBusinessId = loc ? String(loc.organizationId) : "";
-
   useEffect(() => {
-    if (!storeBusinessId) return;
-    trackCatalogView(storeBusinessId);
-  }, [storeBusinessId, trackCatalogView]);
+    if (locationId == null) return;
+    trackCatalogView(String(locationId));
+  }, [locationId, trackCatalogView]);
 
   useEffect(() => {
     if (locationId == null || !products || products.length === 0) return;
@@ -409,9 +405,9 @@ export default function CatalogProductsPage() {
     if (filteredBySearch.length === 0) return;
     if (lastStoreSearchTracked.current === q) return;
     lastStoreSearchTracked.current = q;
-    if (!storeBusinessId) return;
-    trackSearch(storeBusinessId, q);
-  }, [storeSearch, filteredBySearch.length, storeBusinessId, trackSearch]);
+    if (locationId == null) return;
+    trackSearch(String(locationId), q);
+  }, [storeSearch, filteredBySearch.length, locationId, trackSearch]);
 
   const categories = useMemo(() => {
     const m = new Map<string, { name: string }>();
@@ -835,7 +831,6 @@ export default function CatalogProductsPage() {
                       item={item}
                       locationId={locationId}
                       catalogBasePath={catalogBasePath}
-                      businessId={storeBusinessId}
                     />
                   ))}
                 </div>
@@ -858,7 +853,6 @@ export default function CatalogProductsPage() {
                       item={item}
                       locationId={locationId}
                       catalogBasePath={catalogBasePath}
-                      businessId={storeBusinessId}
                     />
                   ))}
                 </div>

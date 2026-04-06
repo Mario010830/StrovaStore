@@ -1,30 +1,28 @@
 import { getApiUrl } from "@/lib/auth-api";
 import { getSessionId } from "./sessionId";
 
+/** Valores alineados con el backend (catalog_visit, catalog_search, etc.). */
 export type MetricsEventType =
-  | "catalog_view"
+  | "catalog_visit"
   | "product_view"
   | "product_favorited"
   | "add_to_cart"
   | "cart_abandoned"
-  | "purchase_completed"
-  | "search_performed";
+  | "catalog_search";
 
-export interface MetricsEventPayload {
-  eventType: MetricsEventType;
-  businessId: string;
-  productId: string | null;
-  sessionId: string;
-  userId: string | null;
-  source: string | null;
-  searchTerm: string | null;
-  cartId: string | null;
-  orderId: string | null;
-  timestamp: string;
+export interface CatalogMetricsEventItem {
+  eventType: string;
+  productId?: string;
+  searchTerm?: string;
+  source?: string;
+  orderId?: string;
+  durationSeconds?: number;
 }
 
-function utcIsoNow(): string {
-  return new Date().toISOString();
+export interface CatalogMetricsBatchRequest {
+  locationId: string;
+  sessionId: string;
+  events: CatalogMetricsEventItem[];
 }
 
 function authHeaders(): HeadersInit {
@@ -42,46 +40,52 @@ function authHeaders(): HeadersInit {
 
 /**
  * Fire-and-forget POST to the metrics API. Never throws; errors are swallowed.
+ * Sin locationId no se envía (el backend resuelve organización desde la tienda).
  */
-export function sendEvent(payload: MetricsEventPayload): void {
+export function sendEvent(payload: CatalogMetricsBatchRequest): void {
   if (typeof window === "undefined") return;
+  if (!payload.locationId?.trim()) return;
 
-  void (async () => {
-    try {
-      await fetch(`${getApiUrl()}/metrics/event`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true",
-          ...authHeaders(),
-        },
-        body: JSON.stringify(payload),
-      });
-    } catch {
-      // intentionally silent
-    }
-  })();
+  void fetch(`${getApiUrl()}/public/metrics/events`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true",
+      ...authHeaders(),
+    },
+    body: JSON.stringify(payload),
+  }).catch(() => {
+    // intentionally silent
+  });
 }
 
 export function buildBaseMetricsFields(overrides: {
   eventType: MetricsEventType;
-  businessId: string;
+  /** ID numérico de la ubicación/tienda (Location), como string. */
+  locationId: string;
   productId?: string | null;
   source?: string | null;
   searchTerm?: string | null;
   cartId?: string | null;
   orderId?: string | null;
-}): MetricsEventPayload {
+}): CatalogMetricsBatchRequest {
+  const item: CatalogMetricsEventItem = { eventType: overrides.eventType };
+  if (overrides.productId != null && overrides.productId !== "") {
+    item.productId = String(overrides.productId);
+  }
+  if (overrides.searchTerm != null && overrides.searchTerm !== "") {
+    item.searchTerm = overrides.searchTerm;
+  }
+  if (overrides.source != null && overrides.source !== "") {
+    item.source = overrides.source;
+  }
+  if (overrides.orderId != null && overrides.orderId !== "") {
+    item.orderId = overrides.orderId;
+  }
+
   return {
-    eventType: overrides.eventType,
-    businessId: overrides.businessId,
-    productId: overrides.productId ?? null,
+    locationId: overrides.locationId.trim(),
     sessionId: getSessionId(),
-    userId: null,
-    source: overrides.source ?? null,
-    searchTerm: overrides.searchTerm ?? null,
-    cartId: overrides.cartId ?? null,
-    orderId: overrides.orderId ?? null,
-    timestamp: utcIsoNow(),
+    events: [item],
   };
 }

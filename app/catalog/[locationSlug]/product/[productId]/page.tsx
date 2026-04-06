@@ -72,17 +72,15 @@ export default function ProductDetailPage() {
     setActiveImageIdx(0);
   }, [productId]);
 
-  const productViewBusinessId =
-    loc != null ? String(loc.organizationId) : locationId != null ? String(locationId) : "";
-
   const lastTrackedProductViewKey = useRef<string>("");
   useEffect(() => {
-    if (product == null || !productViewBusinessId) return;
-    const key = `${productId}:${productViewBusinessId}:${product.id}`;
+    if (product == null || locationId == null) return;
+    const lid = String(locationId);
+    const key = `${productId}:${lid}:${product.id}`;
     if (lastTrackedProductViewKey.current === key) return;
     lastTrackedProductViewKey.current = key;
-    trackProductView(productViewBusinessId, product.id);
-  }, [productId, product, productViewBusinessId, trackProductView]);
+    trackProductView(lid, product.id);
+  }, [productId, product, locationId, trackProductView]);
 
   const errorInfo = getRtkErrorInfo(error);
 

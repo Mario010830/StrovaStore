@@ -42,7 +42,6 @@ import {
   DirectoryFiltersForm,
   type DirectoryCategoryItem,
 } from "@/app/catalog/_components/directory/DirectoryFiltersForm";
-import { useMetrics } from "@/src/metrics/useMetrics";
 
 type PublicLocationSearch = PublicLocation & { _bizSearch: string };
 
@@ -145,8 +144,6 @@ function TiendasEmptyIllustration() {
 }
 
 export default function CatalogLocationsPage() {
-  const { trackSearch } = useMetrics();
-  const lastDirSearchTracked = useRef("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
 
@@ -371,18 +368,6 @@ export default function CatalogLocationsPage() {
   const showTiendas = tab === "tiendas";
   const errorInfo = getRtkErrorInfo(error);
 
-  useEffect(() => {
-    if (!showTiendas) return;
-    const q = search.trim();
-    if (!q) {
-      lastDirSearchTracked.current = "";
-      return;
-    }
-    if (directoryList.length === 0) return;
-    if (lastDirSearchTracked.current === q) return;
-    lastDirSearchTracked.current = q;
-    trackSearch("", q);
-  }, [showTiendas, search, directoryList.length, trackSearch]);
   const hideProvinciaVerTodas = zonaProvincia.length > 0 && zonaMunicipio.length === 0;
   const hasActiveFilters = openOnly || radiusKm > 0 || !!categorySlug;
 

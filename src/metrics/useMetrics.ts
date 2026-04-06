@@ -3,46 +3,46 @@
 import { useCallback } from "react";
 import { buildBaseMetricsFields, sendEvent } from "./metricsClient";
 import { detectSource } from "./sourceDetector";
-import { clearPendingCartStorage, updatePendingCartAfterAdd } from "./pendingCart";
+import { updatePendingCartAfterAdd } from "./pendingCart";
 
 export function useMetrics() {
-  const trackCatalogView = useCallback((businessId: string) => {
+  const trackCatalogView = useCallback((locationId: string) => {
     sendEvent(
       buildBaseMetricsFields({
-        eventType: "catalog_view",
-        businessId,
+        eventType: "catalog_visit",
+        locationId,
         source: detectSource(),
       }),
     );
   }, []);
 
-  const trackProductView = useCallback((businessId: string, productId: number | string) => {
+  const trackProductView = useCallback((locationId: string, productId: number | string) => {
     sendEvent(
       buildBaseMetricsFields({
         eventType: "product_view",
-        businessId,
+        locationId,
         productId: String(productId),
       }),
     );
   }, []);
 
-  const trackFavorite = useCallback((businessId: string, productId: number | string) => {
+  const trackFavorite = useCallback((locationId: string, productId: number | string) => {
     sendEvent(
       buildBaseMetricsFields({
         eventType: "product_favorited",
-        businessId,
+        locationId,
         productId: String(productId),
       }),
     );
   }, []);
 
   const trackAddToCart = useCallback(
-    (businessId: string, productId: number | string, cartId?: string | null) => {
-      const cid = updatePendingCartAfterAdd(businessId, productId, cartId);
+    (locationId: string, productId: number | string, cartId?: string | null) => {
+      const cid = updatePendingCartAfterAdd(locationId, productId, cartId);
       sendEvent(
         buildBaseMetricsFields({
           eventType: "add_to_cart",
-          businessId,
+          locationId,
           productId: String(productId),
           cartId: cid,
         }),
@@ -51,25 +51,13 @@ export function useMetrics() {
     [],
   );
 
-  const trackPurchase = useCallback((businessId: string, orderId: string) => {
-    clearPendingCartStorage();
-    sendEvent(
-      buildBaseMetricsFields({
-        eventType: "purchase_completed",
-        businessId,
-        orderId,
-        productId: null,
-      }),
-    );
-  }, []);
-
-  const trackSearch = useCallback((businessId: string, searchTerm: string) => {
+  const trackSearch = useCallback((locationId: string, searchTerm: string) => {
     const q = searchTerm.trim();
     if (!q) return;
     sendEvent(
       buildBaseMetricsFields({
-        eventType: "search_performed",
-        businessId,
+        eventType: "catalog_search",
+        locationId,
         searchTerm: q,
       }),
     );
@@ -80,7 +68,6 @@ export function useMetrics() {
     trackProductView,
     trackFavorite,
     trackAddToCart,
-    trackPurchase,
     trackSearch,
   };
 }

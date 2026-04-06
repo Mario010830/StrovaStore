@@ -11,6 +11,7 @@ import { PriceText } from "@/components/ui/PriceText";
 import { EcommerceCarousel } from "@/components/landing/EcommerceCarousel";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { SectionHeader } from "@/components/landing/SectionHeader";
+import { StoreHeroSequence } from "@/components/landing/StoreHeroSequence";
 import {
   QUERY_POLLING_OPTIONS,
   useGetAllPublicProductsQuery,
@@ -32,14 +33,25 @@ import { buildLocationCatalogPath, buildLocationProductPath } from "@/lib/locati
 
 const STROVA_BUSINESS_URL = getBusinessUrl();
 
+const FALLBACK_STORES = [
+  { name: "Café del Barrio", category: "Cafetería & Bakery", eta: "20 min" },
+  { name: "Ferretería Central", category: "Herramientas & Hogar", eta: "35 min" },
+  { name: "Green Garden", category: "Vivero & Plantas", eta: "25 min" },
+  { name: "Tech Point", category: "Accesorios de Celular", eta: "40 min" },
+];
+
+const FALLBACK_PRODUCTS = [
+  { name: "Café en Grano 1kg", price: 12500, store: "Café del Barrio" },
+  { name: "Taladro Inalámbrico", price: 85000, store: "Ferretería Central" },
+  { name: "Suculenta Mini", price: 3200, store: "Green Garden" },
+  { name: "Auriculares Bluetooth", price: 22400, store: "Tech Point" },
+];
 
 const HERO_QUICK_TAGS = [
   { label: "Seguro", href: "/catalog?tab=tiendas" },
   { label: "Fácil", href: "/catalog?tab=productos" },
   { label: "Cerca", href: "/catalog" },
 ] as const;
-
-const HERO_PORTRAIT_SRC = "/images/woman.webp?v=1";
 
 /** Cantidad mostrada en «Productos populares» (landing); no listar todo el catálogo. */
 const LANDING_TOP_PRODUCTS_LIMIT = 4;
@@ -70,16 +82,28 @@ export default function LandingPage() {
     QUERY_POLLING_OPTIONS.general,
   );
 
-  const topStoresRaw = locations.map((store) => ({
-    id: store.id,
-    name: store.name,
-    category: store.organizationName || "Tienda local",
-    eta: "Ver horarios",
-    imageUrl: toImageProxyUrl(store.photoUrl),
-    isOpen: store.isOpenNow === true,
-    businessCategoryId: store.businessCategoryId ?? null,
-    isVerified: store.isVerified === true,
-  }));
+  const topStoresRaw = locations.length
+    ? locations.map((store) => ({
+        id: store.id,
+        name: store.name,
+        category: store.organizationName || "Tienda local",
+        eta: "Ver horarios",
+        imageUrl: toImageProxyUrl(store.photoUrl),
+        isOpen: store.isOpenNow === true,
+        businessCategoryId: store.businessCategoryId ?? null,
+      }))
+    : Array.from({ length: 8 }).map((_, index) => {
+        const store = FALLBACK_STORES[index % FALLBACK_STORES.length];
+        return {
+          id: index + 1,
+          name: store.name,
+          category: store.category,
+          eta: store.eta,
+          imageUrl: null,
+          isOpen: true,
+          businessCategoryId: null as number | null,
+        };
+      });
 
   const topStores = locations.length
     ? topStoresRaw.filter((s) => !isExcludedLandingStore(s.name, s.category))
@@ -147,18 +171,32 @@ export default function LandingPage() {
   const socialProofLine =
     activeStoreCount > 0
       ? `${activeStoreCount.toLocaleString("es-US")} tiendas activas cerca de ti`
-      : "Descubre tiendas locales en tu ciudad";
+      : "Cientos de tiendas locales en tu ciudad";
 
-  const topProducts = (allProducts?.data ?? []).slice(0, LANDING_TOP_PRODUCTS_LIMIT).map((product) => ({
-    id: product.id,
-    name: product.name,
-    price: product.precio,
-    store: product.locationName || "Tienda local",
-    locationId: product.locationId,
-    imageUrl: toImageProxyUrl(product.imagenUrl),
-    stockAtLocation: product.stockAtLocation,
-    tipo: product.tipo,
-  }));
+  const topProducts = allProducts?.data?.length
+    ? allProducts.data.slice(0, LANDING_TOP_PRODUCTS_LIMIT).map((product) => ({
+        id: product.id,
+        name: product.name,
+        price: product.precio,
+        store: product.locationName || "Tienda local",
+        locationId: product.locationId,
+        imageUrl: toImageProxyUrl(product.imagenUrl),
+        stockAtLocation: product.stockAtLocation,
+        tipo: product.tipo,
+      }))
+    : Array.from({ length: 8 }).map((_, index) => {
+        const product = FALLBACK_PRODUCTS[index % FALLBACK_PRODUCTS.length];
+        return {
+          id: index + 1,
+          name: product.name,
+          price: product.price,
+          store: product.store,
+          locationId: null,
+          imageUrl: null,
+          stockAtLocation: 99,
+          tipo: "inventariable" as const,
+        };
+      });
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -339,14 +377,7 @@ export default function LandingPage() {
         <div className="landing-hero__split-wrap landing-shell">
           <div className="landing-hero__split-inner landing-hero__split-inner--layered">
             <div className="landing-hero__image-wrap">
-              <Image
-                src={HERO_PORTRAIT_SRC}
-                alt=""
-                fill
-                className="landing-hero__image"
-                unoptimized
-                priority
-              />
+              <StoreHeroSequence />
             </div>
             <div className="landing-hero__overlay">
               <div className="landing-hero__content">
@@ -550,7 +581,7 @@ export default function LandingPage() {
                   </div>
                   <div className="landing-mob-store-item__meta">
                     <span className="landing-mob-store-item__name">{store.name}</span>
-                    {store.isVerified && <Icon name="verified" />}
+                    <Icon name="verified" />
                   </div>
                 </Link>
               ))

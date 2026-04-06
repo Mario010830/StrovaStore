@@ -23,7 +23,7 @@ function isSocialHost(hostname: string): boolean {
 }
 
 /**
- * Traffic source for catalog_view (referrer + URL params).
+ * Traffic source for catalog_visit (referrer + URL params).
  */
 export function detectSource(): CatalogTrafficSource {
   if (typeof window === "undefined") return "direct";

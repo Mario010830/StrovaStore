@@ -295,11 +295,9 @@ function sortProductList(
 }
 
 function MpCardFavorite({
-  businessId,
   locationId,
   productId,
 }: {
-  businessId: string;
   locationId: number;
   productId: number;
 }) {
@@ -309,7 +307,7 @@ function MpCardFavorite({
     <CardFavoriteButton
       isFavorite={isFavorite}
       onToggle={(ev) => {
-        if (!isFavorite) trackFavorite(businessId, productId);
+        if (!isFavorite) trackFavorite(String(locationId), productId);
         toggle(ev);
       }}
       labelOn="Quitar producto de favoritos"
@@ -378,7 +376,7 @@ function MarketplaceProductCard({
         ) : null}
         {promoBadge ? <span className="sp-card__promo-pill">{promoBadge}</span> : null}
         {lid != null ? (
-          <MpCardFavorite businessId={String(lid)} locationId={lid} productId={item.id} />
+          <MpCardFavorite locationId={lid} productId={item.id} />
         ) : null}
         <div className="sp-card__img-gradient" aria-hidden />
         <span className="sp-card__overlay-name">{item.name}</span>
@@ -432,8 +430,6 @@ function MarketplaceProductCard({
 }
 
 export default function AllProductsView() {
-  const { trackSearch } = useMetrics();
-  const lastMpSearchTracked = useRef("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { search, setSearch } = useCatalogCtx();
@@ -523,18 +519,6 @@ export default function AllProductsView() {
   }, [items, priceReady]);
 
   const filteredBySearch = useFuseSearch(items, PRODUCT_FUSE_KEYS, search);
-
-  useEffect(() => {
-    const q = search.trim();
-    if (!q) {
-      lastMpSearchTracked.current = "";
-      return;
-    }
-    if (filteredBySearch.length === 0) return;
-    if (lastMpSearchTracked.current === q) return;
-    lastMpSearchTracked.current = q;
-    trackSearch("", q);
-  }, [search, filteredBySearch.length, trackSearch]);
 
   const priceExtent: [number, number] = useMemo(() => {
     if (!items.length) return [0, 100];
