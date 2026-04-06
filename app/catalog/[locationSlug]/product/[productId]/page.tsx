@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { skipToken } from "@reduxjs/toolkit/query";
 import Link from "next/link";
@@ -19,6 +19,7 @@ import {
 import { getProductCardSubtitle } from "@/lib/catalog-display";
 import { buildLocationCatalogPath, parseLocationRouteParam } from "@/lib/location-path";
 import { getOriginalPriceForDisplay, getPromotionBadgeLabel } from "@/lib/catalog-promotion";
+import { useMetrics } from "@/src/metrics/useMetrics";
 
 function getInitials(name: string): string {
   return name
@@ -30,6 +31,7 @@ function getInitials(name: string): string {
 }
 
 export default function ProductDetailPage() {
+  const { trackProductView } = useMetrics();
   const params = useParams();
   const locationSlugParam = String(params.locationSlug ?? "");
   const locationId = useMemo(
@@ -69,6 +71,18 @@ export default function ProductDetailPage() {
   useEffect(() => {
     setActiveImageIdx(0);
   }, [productId]);
+
+  const productViewBusinessId =
+    loc != null ? String(loc.organizationId) : locationId != null ? String(locationId) : "";
+
+  const lastTrackedProductViewKey = useRef<string>("");
+  useEffect(() => {
+    if (product == null || !productViewBusinessId) return;
+    const key = `${productId}:${productViewBusinessId}:${product.id}`;
+    if (lastTrackedProductViewKey.current === key) return;
+    lastTrackedProductViewKey.current = key;
+    trackProductView(productViewBusinessId, product.id);
+  }, [productId, product, productViewBusinessId, trackProductView]);
 
   const errorInfo = getRtkErrorInfo(error);
 

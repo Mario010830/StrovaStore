@@ -10,6 +10,8 @@ import type { CreateSaleOrderRequest } from "@/lib/dashboard-types";
 import { toImageProxyUrl } from "@/lib/image";
 import { formatPrice } from "@/lib/format";
 import { getOriginalUnitPriceForDisplay } from "@/lib/catalog-promotion";
+import { useMetrics } from "@/src/metrics/useMetrics";
+import { clearPendingCartStorage } from "@/src/metrics/pendingCart";
 
 interface CustomerInfo {
   name: string;
@@ -190,6 +192,7 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
+  const { trackPurchase } = useMetrics();
   const dispatch = useAppDispatch();
   const cart = useAppSelector((s) => s.cart);
   const [isDrawerVisible, setIsDrawerVisible] = useState(open);
@@ -261,6 +264,10 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
       const data = (await res.json()) as { result?: { folio?: string; id?: number } };
       const order = data.result ?? {};
       const folio = order.folio ?? (order.id ? `#${order.id}` : "nueva");
+      const orderIdForMetrics =
+        order.id != null && Number.isFinite(order.id) ? String(order.id) : String(folio);
+
+      trackPurchase(String(cart.locationId ?? ""), orderIdForMetrics);
 
       if (cart.whatsAppContact) {
         const msg = buildWaMessage(cart.items, cart.locationName, folio, customer);
@@ -312,7 +319,14 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                 Tu pedido {count > 0 && `(${count})`}
               </span>
               {cart.items.length > 0 && (
-                <button type="button" className="cart-panel__clear" onClick={() => dispatch(clearCart())}>
+                <button
+                  type="button"
+                  className="cart-panel__clear"
+                  onClick={() => {
+                    clearPendingCartStorage();
+                    dispatch(clearCart());
+                  }}
+                >
                   Vaciar
                 </button>
               )}

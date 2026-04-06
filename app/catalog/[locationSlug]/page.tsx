@@ -32,6 +32,7 @@ import { getFavoriteProductSortKey, subscribeFavorites } from "@/lib/favorites";
 import { getProductCardSubtitle, categoryDotColor } from "@/lib/catalog-display";
 import { buildLocationCatalogPath, parseLocationRouteParam } from "@/lib/location-path";
 import { getOriginalPriceForDisplay, getPromotionBadgeLabel } from "@/lib/catalog-promotion";
+import { useMetrics } from "@/src/metrics/useMetrics";
 
 const PRODUCT_FUSE_KEYS = [
   { name: "name" as const, weight: 0.5 },
@@ -61,11 +62,14 @@ function StoreProductCard({
   item,
   locationId,
   catalogBasePath,
+  businessId,
 }: {
   item: PublicCatalogItem;
   locationId: number;
   catalogBasePath: string;
+  businessId: string;
 }) {
+  const { trackFavorite, trackAddToCart } = useMetrics();
   const { isFavorite, toggle } = useFavoriteProduct(locationId, item.id);
   const dispatch = useAppDispatch();
   const inCart = useAppSelector((s) =>
@@ -101,6 +105,7 @@ function StoreProductCard({
         tipo: item.tipo,
       })
     );
+    trackAddToCart(businessId, item.id);
   };
 
   const qty = (delta: number) => (e: React.MouseEvent) => {
@@ -200,7 +205,10 @@ function StoreProductCard({
       </Link>
       <CardFavoriteButton
         isFavorite={isFavorite}
-        onToggle={toggle}
+        onToggle={(ev) => {
+          if (!isFavorite) trackFavorite(businessId, item.id);
+          toggle(ev);
+        }}
         labelOn="Quitar producto de favoritos"
         labelOff="Guardar producto en favoritos"
         className="sp-card__fav"
@@ -210,6 +218,8 @@ function StoreProductCard({
 }
 
 export default function CatalogProductsPage() {
+  const { trackCatalogView, trackSearch } = useMetrics();
+  const lastStoreSearchTracked = useRef("");
   const params = useParams();
   const locationSlugParam = String(params.locationSlug ?? "");
   const locationId = useMemo(
@@ -287,6 +297,13 @@ export default function CatalogProductsPage() {
     );
   }, [loc, dispatch]);
 
+  const storeBusinessId = loc ? String(loc.organizationId) : "";
+
+  useEffect(() => {
+    if (!storeBusinessId) return;
+    trackCatalogView(storeBusinessId);
+  }, [storeBusinessId, trackCatalogView]);
+
   useEffect(() => {
     if (locationId == null || !products || products.length === 0) return;
     if (typeof window === "undefined") return;
@@ -360,6 +377,19 @@ export default function CatalogProductsPage() {
     PRODUCT_FUSE_KEYS,
     storeSearch,
   );
+
+  useEffect(() => {
+    const q = storeSearch.trim();
+    if (!q) {
+      lastStoreSearchTracked.current = "";
+      return;
+    }
+    if (filteredBySearch.length === 0) return;
+    if (lastStoreSearchTracked.current === q) return;
+    lastStoreSearchTracked.current = q;
+    if (!storeBusinessId) return;
+    trackSearch(storeBusinessId, q);
+  }, [storeSearch, filteredBySearch.length, storeBusinessId, trackSearch]);
 
   const categories = useMemo(() => {
     const m = new Map<string, { name: string }>();
@@ -732,6 +762,7 @@ export default function CatalogProductsPage() {
                       item={item}
                       locationId={locationId}
                       catalogBasePath={catalogBasePath}
+                      businessId={storeBusinessId}
                     />
                   ))}
                 </div>
@@ -754,6 +785,7 @@ export default function CatalogProductsPage() {
                       item={item}
                       locationId={locationId}
                       catalogBasePath={catalogBasePath}
+                      businessId={storeBusinessId}
                     />
                   ))}
                 </div>

@@ -38,6 +38,7 @@ import {
 } from "@/lib/favorites";
 import { buildLocationCatalogPath } from "@/lib/location-path";
 import { getOriginalPriceForDisplay, getPromotionBadgeLabel } from "@/lib/catalog-promotion";
+import { useMetrics } from "@/src/metrics/useMetrics";
 
 const STROVA_BUSINESS_URL = getBusinessUrl();
 
@@ -293,12 +294,24 @@ function sortProductList(
   }
 }
 
-function MpCardFavorite({ locationId, productId }: { locationId: number; productId: number }) {
+function MpCardFavorite({
+  businessId,
+  locationId,
+  productId,
+}: {
+  businessId: string;
+  locationId: number;
+  productId: number;
+}) {
+  const { trackFavorite } = useMetrics();
   const { isFavorite, toggle } = useFavoriteProduct(locationId, productId);
   return (
     <CardFavoriteButton
       isFavorite={isFavorite}
-      onToggle={toggle}
+      onToggle={(ev) => {
+        if (!isFavorite) trackFavorite(businessId, productId);
+        toggle(ev);
+      }}
       labelOn="Quitar producto de favoritos"
       labelOff="Guardar producto en favoritos"
       className="sp-card__fav"
@@ -364,7 +377,9 @@ function MarketplaceProductCard({
           </div>
         ) : null}
         {promoBadge ? <span className="sp-card__promo-pill">{promoBadge}</span> : null}
-        {lid != null ? <MpCardFavorite locationId={lid} productId={item.id} /> : null}
+        {lid != null ? (
+          <MpCardFavorite businessId={String(lid)} locationId={lid} productId={item.id} />
+        ) : null}
         <div className="sp-card__img-gradient" aria-hidden />
         <span className="sp-card__overlay-name">{item.name}</span>
         {!soldOut ? (
@@ -417,6 +432,8 @@ function MarketplaceProductCard({
 }
 
 export default function AllProductsView() {
+  const { trackSearch } = useMetrics();
+  const lastMpSearchTracked = useRef("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { search, setSearch } = useCatalogCtx();
@@ -506,6 +523,18 @@ export default function AllProductsView() {
   }, [items, priceReady]);
 
   const filteredBySearch = useFuseSearch(items, PRODUCT_FUSE_KEYS, search);
+
+  useEffect(() => {
+    const q = search.trim();
+    if (!q) {
+      lastMpSearchTracked.current = "";
+      return;
+    }
+    if (filteredBySearch.length === 0) return;
+    if (lastMpSearchTracked.current === q) return;
+    lastMpSearchTracked.current = q;
+    trackSearch("", q);
+  }, [search, filteredBySearch.length, trackSearch]);
 
   const priceExtent: [number, number] = useMemo(() => {
     if (!items.length) return [0, 100];
