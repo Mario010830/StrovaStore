@@ -82,17 +82,17 @@ export function SharedNavbar({
         <Link href="/" className={`${prefix}__brand`} onClick={closeMobileNav}>
           <span className={`${prefix}__logo-box`}>
             <Image
-              src="/images/logo-claro-nobg.png"
-              alt="StrovaStore"
+              src="/images/logocuadre.png"
+              alt="Tu Cuadre"
               width={32}
               height={32}
               priority
             />
           </span>
           {isStore ? (
-            <span className="store-nav__brand-label">StrovaStore</span>
+            <span className="store-nav__brand-label">Tu Cuadre</span>
           ) : (
-            "StrovaStore"
+            "Tu Cuadre"
           )}
         </Link>
 
@@ -220,7 +220,7 @@ export function SharedNavbar({
           >
             <div className={`${modalPrefix}__head`}>
               <h2 className={`${modalPrefix}__title`}>
-                {activeInfoModal === "about" ? "Sobre StrovaStore" : "Cómo comprar en StrovaStore"}
+                {activeInfoModal === "about" ? "Sobre Tu Cuadre" : "Cómo comprar en Tu Cuadre"}
               </h2>
               <button
                 type="button"
@@ -235,7 +235,7 @@ export function SharedNavbar({
               {activeInfoModal === "about" ? (
                 <>
                   <p className={`${modalPrefix}__lead`}>
-                    StrovaStore conecta comercios locales con su comunidad para descubrir productos cercanos y pedir directamente por WhatsApp.
+                    Tu Cuadre conecta comercios locales con su comunidad para descubrir productos cercanos y pedir directamente por WhatsApp.
                   </p>
                   <ul className={`${modalPrefix}__list`}>
                     <li>
@@ -254,7 +254,7 @@ export function SharedNavbar({
                 </>
               ) : (
                 <>
-                  <p className={`${modalPrefix}__lead`}>Comprar en StrovaStore es rápido y directo:</p>
+                  <p className={`${modalPrefix}__lead`}>Comprar en Tu Cuadre es rápido y directo:</p>
                   <ul className={`${modalPrefix}__list`}>
                     <li>
                       <Icon name="search" />

@@ -109,7 +109,7 @@ export function validatePushSendPayload(raw: unknown): ValidationResult<Required
   return {
     ok: true,
     value: {
-      title: sanitizeText(body.title as string | undefined, "StrovaStore"),
+      title: sanitizeText(body.title as string | undefined, "Tu Cuadre"),
       body: sanitizeText(body.body as string | undefined, ""),
       url: normalizeNotificationUrl(body.url),
       locationId: locationIdRaw ?? 0,

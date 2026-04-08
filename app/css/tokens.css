@@ -1,6 +1,6 @@
 :root {
-  --brand-primary: #185fa5;
-  --brand-secondary: #1d9e75;
+  --brand-primary: #0f766e;
+  --brand-secondary: #f59e0b;
   --brand-surface: #f8fafc;
   --text-primary: #0f172a;
   --text-secondary: #475569;
@@ -13,10 +13,10 @@
   --breakpoint-sm: 600px;
   --breakpoint-md: 960px;
   --breakpoint-lg: 1280px;
-  --lp-primary: #185fa5;
+  --lp-primary: #0f766e;
   --lp-on-primary: #ffffff;
-  --lp-primary-light: rgba(24, 95, 165, 0.1);
-  --lp-secondary: #1d9e75;
+  --lp-primary-light: rgba(15, 118, 110, 0.1);
+  --lp-secondary: #f59e0b;
   --lp-bg: #ffffff;
   --lp-surface: #f8fafc;
   --lp-text: #0f172a;

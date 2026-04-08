@@ -93,8 +93,8 @@
 }
 
 .dir-hero-minimal .dir-tiendas-search__input:focus {
-  box-shadow: 0 0 0 2px rgba(24, 95, 165, 0.2);
-  border-color: rgba(24, 95, 165, 0.35);
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+  border-color: rgba(15, 118, 110, 0.35);
 }
 
 .dir-tiendas-sticky--minimal {
@@ -216,7 +216,7 @@
 .dir-mp-toggle input {
   width: 18px;
   height: 18px;
-  accent-color: var(--dir-primary, #185fa5);
+  accent-color: var(--dir-primary, #0f766e);
 }
 
 .dir-mp-radio-list {
@@ -236,7 +236,7 @@
 }
 
 .dir-mp-radio input {
-  accent-color: var(--dir-primary, #185fa5);
+  accent-color: var(--dir-primary, #0f766e);
 }
 
 .dir-mp-radio--disabled {
@@ -267,18 +267,18 @@
 }
 
 .dir-mp-seg__btn:hover {
-  border-color: var(--dir-primary, #185fa5);
-  background: rgba(24, 95, 165, 0.06);
+  border-color: var(--dir-primary, #0f766e);
+  background: rgba(15, 118, 110, 0.06);
 }
 
 .dir-mp-seg__btn--active {
-  border-color: var(--dir-primary, #185fa5);
-  background: rgba(24, 95, 165, 0.1);
-  color: var(--dir-primary, #185fa5);
+  border-color: var(--dir-primary, #0f766e);
+  background: rgba(15, 118, 110, 0.1);
+  color: var(--dir-primary, #0f766e);
 }
 
 .dir-mp-seg__btn:focus-visible {
-  box-shadow: var(--dir-focus-ring, 0 0 0 3px rgba(24, 95, 165, 0.45));
+  box-shadow: var(--dir-focus-ring, 0 0 0 3px rgba(15, 118, 110, 0.45));
 }
 
 .dir-mp-filters-sort {
@@ -296,17 +296,17 @@
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
-  color: var(--dir-primary, #185fa5);
+  color: var(--dir-primary, #0f766e);
   cursor: pointer;
   outline: none;
 }
 
 .dir-mp-clear:hover {
-  background: rgba(24, 95, 165, 0.06);
+  background: rgba(15, 118, 110, 0.06);
 }
 
 .dir-mp-clear:focus-visible {
-  box-shadow: var(--dir-focus-ring, 0 0 0 3px rgba(24, 95, 165, 0.45));
+  box-shadow: var(--dir-focus-ring, 0 0 0 3px rgba(15, 118, 110, 0.45));
 }
 
 /* Grilla de tiendas: misma base que .sp-grid del catálogo */
@@ -392,13 +392,13 @@
 }
 
 .dir-mp-mobile-bar__btn--primary {
-  background: var(--dir-primary, #185fa5);
-  border-color: var(--dir-primary, #185fa5);
+  background: var(--dir-primary, #0f766e);
+  border-color: var(--dir-primary, #0f766e);
   color: #fff;
 }
 
 .dir-mp-mobile-bar__btn:focus-visible {
-  box-shadow: var(--dir-focus-ring, 0 0 0 3px rgba(24, 95, 165, 0.45));
+  box-shadow: var(--dir-focus-ring, 0 0 0 3px rgba(15, 118, 110, 0.45));
 }
 
 /* Zona view dentro de mp */
@@ -591,7 +591,7 @@
 
   .dir-mob-header__search-input:focus {
     border-color: var(--dir-primary);
-    box-shadow: 0 0 0 2px rgba(24, 95, 165, 0.15);
+    box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
   }
 
   .dir-mob-header__search-input::placeholder {

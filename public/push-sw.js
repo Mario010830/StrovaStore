@@ -16,20 +16,20 @@ self.addEventListener("push", (event) => {
     payload = JSON.parse(raw);
   } catch {
     payload = {
-      title: "StrovaStore",
+      title: "Tu Cuadre",
       body: raw,
       data: { url: "/catalog" },
     };
   }
   console.log("[push-sw] parsed payload:", payload);
 
-  const title = payload.title || "Oferta nueva en StrovaStore";
+  const title = payload.title || "Oferta nueva en Tu Cuadre";
   const targetUrl = payload.url || payload?.data?.url || "/catalog";
   const tag =
     payload.tag ||
     (payload.locationId != null
-      ? `strova-promo-location-${payload.locationId}`
-      : "strova-promo");
+      ? `tucuadre-promo-location-${payload.locationId}`
+      : "tucuadre-promo");
   const options = {
     body: payload.body || "Hay novedades en tus tiendas.",
     icon: payload.icon || "/images/icon-192x192.png",

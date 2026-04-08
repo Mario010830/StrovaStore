@@ -50,7 +50,7 @@ export function InstallBanner() {
       {isIos ? (
         <>
           <span>
-            Instala StrovaStore: toca
+            Instala Tu Cuadre: toca
             <strong> Compartir </strong> →
             <strong> Agregar a inicio</strong>
           </span>
@@ -61,9 +61,9 @@ export function InstallBanner() {
       ) : (
         <>
           <div className="install-banner__logo">
-            <Image src="/images/logo-claro-nobg.png" alt="StrovaStore" width={32} height={32} />
+            <Image src="/images/logocuadre.png" alt="Tu Cuadre" width={32} height={32} />
           </div>
-          <span>Instala StrovaStore en tu dispositivo</span>
+          <span>Instala Tu Cuadre en tu dispositivo</span>
           <button type="button" onClick={handleInstall} className="install-banner__btn install-banner__btn--primary">
             Instalar
           </button>

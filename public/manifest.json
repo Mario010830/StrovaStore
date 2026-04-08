@@ -1,12 +1,12 @@
 {
-  "name": "StrovaStore",
-  "short_name": "StrovaStore",
+  "name": "Tu Cuadre",
+  "short_name": "Tu Cuadre",
   "description": "Descubre tiendas locales y explora sus productos",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#185FA5",
+  "theme_color": "#0F766E",
   "background_color": "#ffffff",
   "lang": "es",
   "icons": [

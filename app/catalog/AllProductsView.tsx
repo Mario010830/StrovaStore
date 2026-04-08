@@ -864,7 +864,7 @@ export default function AllProductsView() {
           <div className="mp-cta__content">
             <h2 className="mp-cta__title">¿Tienes un negocio local?</h2>
             <p className="mp-cta__text">
-              Únete a StrovaStore y empieza a recibir pedidos por WhatsApp hoy mismo. Tu catálogo online listo en minutos.
+              Únete a Tu Cuadre y empieza a recibir pedidos por WhatsApp hoy mismo. Tu catálogo online listo en minutos.
             </p>
             <div className="mp-cta__btns">
               <a

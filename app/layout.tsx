@@ -8,13 +8,13 @@ import "./css/landing.css";
 import "./catalog/css/catalog.css";
 
 export const metadata: Metadata = {
-  title: "StrovaStore",
+  title: "Tu Cuadre",
   description: "Descubre tiendas locales y explora sus productos",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "StrovaStore",
+    title: "Tu Cuadre",
   },
   icons: {
     icon: "/images/icon-192x192.png",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#185FA5",
+  themeColor: "#0F766E",
 };
 
 export default function RootLayout({
@@ -48,7 +48,7 @@ export default function RootLayout({
         />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="StrovaStore" />
+        <meta name="apple-mobile-web-app-title" content="Tu Cuadre" />
         <link rel="apple-touch-icon" href="/images/icon-192x192.png" />
       </head>
       <body className="min-h-full flex flex-col">

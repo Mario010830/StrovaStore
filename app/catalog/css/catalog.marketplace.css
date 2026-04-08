@@ -72,7 +72,7 @@
 
 .mp-hero__search:focus {
   border-color: var(--dir-primary);
-  box-shadow: 0 0 0 3px rgba(24, 95, 165, 0.12);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
 }
 
 .mp-hero__search::placeholder {
@@ -157,12 +157,12 @@
 }
 
 .mp-market-cat-btn:hover {
-  border-color: rgba(24, 95, 165, 0.45);
+  border-color: rgba(15, 118, 110, 0.45);
 }
 
 .mp-market-cat-btn--active {
-  background: rgba(24, 95, 165, 0.08);
-  border-color: rgba(24, 95, 165, 0.35);
+  background: rgba(15, 118, 110, 0.08);
+  border-color: rgba(15, 118, 110, 0.35);
 }
 
 .mp-market-cat-btn__dot {
@@ -354,7 +354,7 @@
 .mp-toolbar__input:focus {
   outline: none;
   border-color: var(--dir-primary);
-  box-shadow: 0 0 0 3px rgba(24, 95, 165, 0.12);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
 }
 
 .mp-toolbar__input:disabled {
@@ -378,7 +378,7 @@
 .mp-toolbar__select:focus {
   outline: none;
   border-color: var(--dir-primary);
-  box-shadow: 0 0 0 3px rgba(24, 95, 165, 0.12);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
 }
 
 .mp-toolbar__stock {
@@ -686,7 +686,7 @@
 }
 
 .mp-card__cta--outline:hover:not(:disabled) {
-  background: rgba(24, 95, 165, 0.06);
+  background: rgba(15, 118, 110, 0.06);
   color: var(--dir-primary);
 }
 
@@ -879,7 +879,7 @@
 }
 
 .mp-more__btn:hover:not(:disabled) {
-  background: rgba(24, 95, 165, 0.08);
+  background: rgba(15, 118, 110, 0.08);
 }
 
 .mp-more__btn:disabled {

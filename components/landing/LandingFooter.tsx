@@ -90,13 +90,13 @@ export function LandingFooter({ businessUrl }: LandingFooterProps) {
           <Link href="/" className="landing-footer__brand">
             <span className="landing-nav__logo-box" style={{ width: 28, height: 28 }}>
               <Image
-                src="/images/logo-claro-nobg.png"
-                alt="StrovaStore"
+                src="/images/logocuadre.png"
+                alt="Tu Cuadre"
                 width={20}
                 height={20}
               />
             </span>
-            StrovaStore
+            Tu Cuadre
           </Link>
           <p className="landing-footer__compact-text">Conectando comercios locales con su comunidad.</p>
         </div>
@@ -112,7 +112,7 @@ export function LandingFooter({ businessUrl }: LandingFooterProps) {
             <div className="landing-footer__col">
               <div className="landing-footer__col-title">Negocios</div>
               <a href={businessUrl} target="_blank" rel="noopener noreferrer">
-                Vender en Strova
+                Vender en Tu Cuadre
               </a>
               <a href={businessUrl} target="_blank" rel="noopener noreferrer">
                 Precios
@@ -157,7 +157,7 @@ export function LandingFooter({ businessUrl }: LandingFooterProps) {
 
         <div className="landing-footer__divider" />
         <div className="landing-footer__bottom">
-          <span>© 2026 StrovaStore. Powered by Strova.</span>
+          <span>© 2026 Tu Cuadre.</span>
         </div>
       </div>
     </footer>

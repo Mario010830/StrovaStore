@@ -6,13 +6,13 @@ self.addEventListener("push", (event) => {
     payload = event.data.json();
   } catch {
     payload = {
-      title: "StrovaStore",
+      title: "Tu Cuadre",
       body: event.data.text(),
       data: { url: "/catalog" },
     };
   }
 
-  const title = payload.title || "StrovaStore";
+  const title = payload.title || "Tu Cuadre";
   const options = {
     body: payload.body || "Hay novedades en tus tiendas.",
     icon: payload.icon || "/images/icon-192x192.png",

@@ -1,4 +1,4 @@
-const DEFAULT_BUSINESS_URL = "https://strova.com";
+const DEFAULT_BUSINESS_URL = "https://tucuadre.com";
 
 export function getBusinessUrl(): string {
   const envUrl = process.env.NEXT_PUBLIC_STROVA_BUSINESS_URL?.trim();

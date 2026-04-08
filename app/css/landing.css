@@ -1,10 +1,10 @@
 @import "./shared/navbar.css";
 
 .landing {
-  --lp-primary: #185fa5;
+  --lp-primary: #0f766e;
   --lp-on-primary: #ffffff;
-  --lp-primary-light: rgba(24, 95, 165, 0.1);
-  --lp-secondary: #1d9e75;
+  --lp-primary-light: rgba(15, 118, 110, 0.1);
+  --lp-secondary: #f59e0b;
   --lp-bg: #ffffff;
   --lp-surface: #f8fafc;
   --lp-text: #0f172a;
@@ -253,7 +253,7 @@
 }
 
 .landing-desktop-cat:focus-visible {
-  box-shadow: 0 0 0 3px rgba(24, 95, 165, 0.45);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.45);
 }
 
 .landing-desktop-cat:hover:not(.landing-desktop-cat--active) {
@@ -730,7 +730,7 @@
 }
 
 .landing-hero-search button:hover {
-  background: #0f4e8a;
+  background: #115e59;
 }
 
 .landing-hero__quick-links {
@@ -1215,7 +1215,7 @@
 .landing-zone-card__placeholder {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #185fa5 0%, #0f4e8a 50%, #64748b 100%);
+  background: linear-gradient(135deg, #0f766e 0%, #115e59 50%, #64748b 100%);
 }
 
 .landing-zone-card__overlay {
@@ -1444,7 +1444,7 @@
 
 .landing-store-card:focus-visible,
 .landing-product-card:focus-visible {
-  box-shadow: 0 0 0 2px rgba(24, 95, 165, 0.25);
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.25);
 }
 
 .landing-store-card__cover,
@@ -1690,7 +1690,7 @@
 }
 
 .landing-business__cta:hover {
-  background: #0f4e8a;
+  background: #115e59;
 }
 
 .landing-business__highlights {
@@ -2400,7 +2400,7 @@
   }
 
   .landing-business__mob-cta:hover {
-    background: #0f4e8a;
+    background: #115e59;
   }
 
   .landing-footer {

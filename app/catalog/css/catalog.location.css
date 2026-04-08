@@ -47,7 +47,7 @@
 .catalog-tab--active {
   color: var(--color-text-primary);
   font-weight: 500;
-  border-bottom-color: #185FA5;
+  border-bottom-color: #0F766E;
 }
 
 .catalog-tab:not(.catalog-tab--active):hover {
@@ -257,7 +257,7 @@
 
 .loc2-card:hover {
   border-color: var(--dir-primary);
-  box-shadow: 0 4px 16px rgba(24, 95, 165, 0.15);
+  box-shadow: 0 4px 16px rgba(15, 118, 110, 0.15);
   transform: translateY(-2px);
 }
 

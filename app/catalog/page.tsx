@@ -414,7 +414,7 @@ export default function CatalogLocationsPage() {
             <span className="dir-mob-header__pill-icon"><Icon name="storefront" /></span>
             <span className="dir-mob-header__pill-text">
               <span className="dir-mob-header__pill-title">Catálogos</span>
-              <span className="dir-mob-header__pill-sub">Strova</span>
+              <span className="dir-mob-header__pill-sub">Tu Cuadre</span>
             </span>
             <span className="dir-mob-header__pill-search"><Icon name="search" /></span>
           </button>

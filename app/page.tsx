@@ -11,7 +11,6 @@ import { PriceText } from "@/components/ui/PriceText";
 import { EcommerceCarousel } from "@/components/landing/EcommerceCarousel";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { SectionHeader } from "@/components/landing/SectionHeader";
-import { StoreHeroSequence } from "@/components/landing/StoreHeroSequence";
 import {
   QUERY_POLLING_OPTIONS,
   useGetAllPublicProductsQuery,
@@ -291,7 +290,7 @@ export default function LandingPage() {
                 <span className="landing-mobile-search__pill-icon"><Icon name="storefront" /></span>
                 <span className="landing-mobile-search__pill-text">
                   <span className="landing-mobile-search__pill-title">Catálogos</span>
-                  <span className="landing-mobile-search__pill-sub">Strova</span>
+                  <span className="landing-mobile-search__pill-sub">Tu Cuadre</span>
                 </span>
                 <span className="landing-mobile-search__pill-search"><Icon name="search" /></span>
               </button>
@@ -377,7 +376,14 @@ export default function LandingPage() {
         <div className="landing-hero__split-wrap landing-shell">
           <div className="landing-hero__split-inner landing-hero__split-inner--layered">
             <div className="landing-hero__image-wrap">
-              <StoreHeroSequence />
+              <Image
+                src="/images/woman.webp?v=20260409"
+                alt="Mujer revisando compras locales en Tu Cuadre"
+                fill
+                priority
+                className="landing-hero__image"
+                sizes="(min-width: 1025px) 52vw, 100vw"
+              />
             </div>
             <div className="landing-hero__overlay">
               <div className="landing-hero__content">
@@ -386,7 +392,7 @@ export default function LandingPage() {
                   El <span className="landing-hero__title-accent">marketplace</span> de tu ciudad
                 </h1>
                 <p className="landing-hero__subtitle">
-                  StrovaStore reúne tiendas reales de tu zona, te deja comparar opciones y terminar tu pedido por WhatsApp sin complicaciones.
+                  Tu Cuadre reúne tiendas reales de tu zona, te deja comparar opciones y terminar tu pedido por WhatsApp sin complicaciones.
                 </p>
                 <form className="landing-hero-search" onSubmit={handleSearch}>
                   <span className="landing-hero-search__icon" aria-hidden>
@@ -397,7 +403,7 @@ export default function LandingPage() {
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder="Buscar productos, tiendas o categorías"
-                    aria-label="Buscar en StrovaStore"
+                    aria-label="Buscar en Tu Cuadre"
                   />
                   <button type="submit">Buscar</button>
                 </form>
