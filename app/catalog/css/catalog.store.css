@@ -1227,9 +1227,10 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MOBILE REDESIGN — elyerromenu style (<=959px only)
+   MOBILE REDESIGN — Original Design System (<=959px only)
    ═══════════════════════════════════════════════════════════════ */
 
+/* Hidden by default — activated only on mobile */
 .sp-card__img-gradient,
 .sp-card__overlay-name,
 .sp-card__fab,
@@ -1242,109 +1243,157 @@
   display: none;
 }
 
+/* ── NEW MOBILE PRODUCT CARD SYSTEM (≤ 959px) ─────────────────────────────
+   Clean "marketplace de proximidad" design.
+   No dark overlay, no name-on-image. Add button lives BELOW the image.
+   ────────────────────────────────────────────────────────────────────────── */
 @media (max-width: 959px) {
-  /* ══════ OVERLAY PRODUCT CARDS ══════ */
-  .sp-card:not(.sp-card--store) .sp-card__img-wrap {
-    aspect-ratio: 1;
-    height: auto;
+  /* ══════ PRODUCT CARDS — clean card layout ══════ */
+  .sp-card:not(.sp-card--store) {
+    background: #fff;
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.07), 0 4px 14px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
+  .sp-card:not(.sp-card--store):active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
+  }
+
+  /* Image: 4:3 ratio, rounded top corners only */
+  .sp-card:not(.sp-card--store) .sp-card__img-wrap {
+    aspect-ratio: 4 / 3;
+    height: auto;
+    border-radius: 14px 14px 0 0;
+    overflow: hidden;
+  }
+
+  /* No overlay elements */
   .sp-card:not(.sp-card--store) .sp-card__img-gradient {
-    display: block;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 55%;
-    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
-    z-index: 1;
-    pointer-events: none;
+    display: none !important;
   }
 
   .sp-card:not(.sp-card--store) .sp-card__overlay-name {
-    display: -webkit-box;
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    right: 48px;
-    z-index: 2;
-    font-size: 13px;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1.3;
-    margin: 0;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    display: none !important;
   }
 
+  /* FAB hidden — add button lives in the card body */
   .sp-card:not(.sp-card--store) .sp-card__fab {
+    display: none !important;
+  }
+
+  /* Card body: clean layout with name, price, add button */
+  .sp-card:not(.sp-card--store) .sp-card__body {
+    padding: 10px 12px 12px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    z-index: 3;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--dir-primary);
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-    padding: 0;
-    -webkit-tap-highlight-color: transparent;
+    flex-direction: column;
+    gap: 4px;
+    background: #fff;
   }
 
-  .sp-card:not(.sp-card--store) .sp-card__fab .material-icons {
-    font-size: 18px;
+  /* Show product name */
+  .sp-card:not(.sp-card--store) .sp-card__name {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dir-text, #0F172A);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0 0 2px;
   }
 
-  .sp-card:not(.sp-card--store) .sp-card__fab:active {
-    transform: scale(0.9);
+  /* Price: prominent, using primary color */
+  .sp-card:not(.sp-card--store) .sp-card__price {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--dir-primary, #0F766E);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    margin: 0;
   }
 
-  .sp-card:not(.sp-card--store) .sp-card__name,
-  .sp-card:not(.sp-card--store) .sp-card__stock-ok,
+  .sp-card:not(.sp-card--store) .sp-card__price-wrap {
+    margin: 0 0 6px;
+  }
+
+  /* Hide description and stock-ok text for compactness */
   .sp-card:not(.sp-card--store) .sp-card__desc,
+  .sp-card:not(.sp-card--store) .sp-card__stock-ok,
   .sp-card:not(.sp-card--store) .sp-card__store-line {
     display: none;
   }
 
-  .sp-card:not(.sp-card--store) .sp-card__body {
-    padding: 8px 10px 10px;
-  }
-
-  .sp-card:not(.sp-card--store) .sp-card__price-wrap {
-    margin: 0;
-  }
-
-  .sp-card:not(.sp-card--store) .sp-card__price {
-    color: var(--dir-secondary);
-    font-size: 15px;
-  }
-
+  /* Add button: pill shape, full-width, OUTSIDE the image */
   .sp-card:not(.sp-card--store) .sp-card__add {
-    display: none;
+    display: inline-flex;
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--dir-primary, #0F766E);
+    color: #fff;
+    border: none;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: auto;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: filter 0.15s;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .sp-card:not(.sp-card--store) .sp-card__sold-actions {
-    margin-top: 4px;
+  .sp-card:not(.sp-card--store) .sp-card__add:active {
+    filter: brightness(0.9);
   }
 
+  .sp-card:not(.sp-card--store) .sp-card__add.sp-card__add--cta {
+    background: var(--dir-primary, #0F766E);
+    border-radius: 9999px;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .sp-card:not(.sp-card--store) .sp-card__add--disabled {
+    background: #E2E8F0;
+    color: #94A3B8;
+    cursor: default;
+  }
+
+  /* Qty counter: pill shape aligned with add button */
   .sp-card:not(.sp-card--store) .sp-card__qty {
-    margin-top: 4px;
-    padding: 4px 6px;
-    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: auto;
+    padding: 6px 10px;
+    border-radius: 9999px;
+    border: 1.5px solid var(--dir-primary, #0F766E);
+    background: transparent;
   }
 
   .sp-card:not(.sp-card--store) .sp-card__qty-btn {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
+    font-size: 16px;
+    color: var(--dir-primary, #0F766E);
+    font-weight: 700;
+  }
+
+  .sp-card:not(.sp-card--store) .sp-card__qty-val {
     font-size: 14px;
+    font-weight: 700;
+    min-width: 22px;
+  }
+
+  .sp-card:not(.sp-card--store) .sp-card__sold-actions {
+    margin-top: auto;
   }
 
   .sp-card:not(.sp-card--store) .sp-card__qty-val {
@@ -1358,21 +1407,17 @@
     border-radius: 12px;
   }
 
-  .sp-card:not(.sp-card--store):hover {
-    transform: none;
-    box-shadow: 0 1px 4px rgba(15,23,42,0.08);
-  }
-
+  /* Store catalog: keep 4:3 ratio for product images */
   .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__img-wrap {
     height: auto;
-    aspect-ratio: 1;
+    aspect-ratio: 4 / 3;
   }
 
   .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__img {
     height: 100%;
   }
 
-  /* ══════ STORE MINI HEADER + BANNER + INFO COMPACT ══════ */
+  /* ══════ STORE MOBILE HEADER (new design) ══════ */
   .sp-store-mob-header {
     display: flex;
     align-items: center;
@@ -1449,7 +1494,7 @@
   .sp-store-banner {
     display: block;
     width: 100%;
-    aspect-ratio: 4/3;
+    aspect-ratio: 16 / 9;
     height: auto;
     overflow: hidden;
     border-radius: 0;
@@ -1464,16 +1509,15 @@
   .sp-store-banner__placeholder {
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #eef1f5 0%, #e2e8f0 100%);
+    background: linear-gradient(135deg, var(--dir-primary, #0F766E) 0%, #1D9E75 100%);
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
   .sp-store-banner__placeholder .material-icons {
-    font-size: 48px;
-    color: var(--dir-hint);
-    opacity: 0.4;
+    font-size: 52px;
+    color: rgba(255,255,255,0.4);
   }
 
   .sp-store-info-compact {
@@ -1560,35 +1604,35 @@
     display: none;
   }
 
-  /* ══════ CATEGORY TABS (underline style) ══════ */
+  /* ══════ CATEGORY TABS (pill style — original design) ══════ */
   .sp-layout--store-catalog .sp-chips {
-    gap: 0;
+    gap: 6px;
     padding-bottom: 0;
-    margin-bottom: 12px;
-    border-bottom: 1px solid var(--dir-divider);
+    margin-bottom: 14px;
+    border-bottom: none;
   }
 
   .sp-layout--store-catalog .sp-chip {
-    padding: 8px 14px;
-    border: none;
-    border-radius: 0;
-    background: transparent;
-    color: var(--dir-text-secondary);
+    padding: 7px 16px;
+    border: 1.5px solid var(--dir-divider);
+    border-radius: 9999px;
+    background: #fff;
+    color: var(--dir-text-secondary, #475569);
     font-size: 13px;
     font-weight: 600;
-    border-bottom: 2px solid transparent;
-    transition: color 0.2s, border-color 0.2s;
+    transition: background 0.18s, color 0.18s, border-color 0.18s;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .sp-layout--store-catalog .sp-chip:hover {
+    border-color: var(--dir-primary);
     color: var(--dir-primary);
-    border-color: transparent;
   }
 
   .sp-layout--store-catalog .sp-chip--active {
-    background: transparent;
-    color: var(--dir-primary);
-    border-bottom-color: var(--dir-primary);
+    background: var(--dir-primary);
+    border-color: var(--dir-primary);
+    color: #fff;
   }
 
   /* ══════ SIDEBAR AS COLLAPSIBLE SECTION ══════ */
@@ -1637,10 +1681,10 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   STORE DETAIL — MINIMAL REFINEMENTS (mobile ≤959px)
+   STORE CATALOG — Mobile refinements (≤ 959px)
    ═══════════════════════════════════════════════════════════════ */
 
-/* 1 — Hide the global navbar on the store detail page (body class set by page) */
+/* Hide global navbar on store detail page */
 @media (max-width: 959px) {
   .page-store-detail .store-nav {
     display: none;
@@ -1648,111 +1692,29 @@
 }
 
 @media (max-width: 959px) {
-  /* 2 — Product cards: transparent shell, image rounded, name below */
-
-  /* Hide category pill — tabs already filter by category */
+  /* Hide cat pill — category tabs already handle filtering */
   .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__cat-pill {
     display: none;
   }
 
-  /* Remove dark overlay name and gradient — name moves below the image */
-  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__overlay-name {
-    display: none;
-  }
-
-  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__img-gradient {
-    display: none;
-  }
-
-  /* Card: white background, subtle shadow, rounded */
-  .sp-layout--store-catalog .sp-card:not(.sp-card--store) {
-    background: #fff;
-    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.08);
-    border-radius: 14px;
-    border: none;
-  }
-
-  .sp-layout--store-catalog .sp-card:not(.sp-card--store):hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.11);
-  }
-
-  /* Image wrap: rounded top corners only */
-  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__img-wrap {
-    border-radius: 14px 14px 0 0;
-    box-shadow: none;
-  }
-
-  /* Show product name below the image */
-  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__name {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--dir-text);
-    margin: 0 0 1px;
-    line-height: 1.3;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Price slightly larger for readability */
-  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__price {
-    font-size: 14px;
-    font-weight: 800;
-    color: var(--dir-secondary);
-  }
-
-  /* Body: clean and airy */
-  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__body {
-    padding: 10px 4px 8px;
-    background: transparent;
-  }
-
-  /* Qty counter: pill shape */
-  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__qty {
-    border-radius: 9999px;
-    border: 1.5px solid var(--dir-primary);
-    padding: 4px 8px;
-    background: transparent;
-  }
-
-  .sp-layout--store-catalog .sp-card:not(.sp-card--store) .sp-card__qty-btn {
-    color: var(--dir-primary);
-    font-weight: 700;
-  }
-
-  /* 3 — Grid: more breathing room between cards */
+  /* Grid spacing */
   .sp-layout--store-catalog .sp-grid {
     gap: 14px;
   }
 
-  /* 4 — Main content: extra bottom padding so FAB never covers last card row */
+  /* Extra bottom padding so cart FAB never covers last row */
   .sp-layout--store-catalog .sp-main {
-    padding-bottom: 96px;
+    padding-bottom: 88px;
   }
 
-  /* 5 — Section titles: slightly more margin */
   .sp-layout--store-catalog .sp-catalog-section__title {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
-  /* 6 — Info compact: address line slightly larger */
-  .sp-store-info-compact__location {
-    font-size: 13px;
-    gap: 5px;
-  }
-
-  /* 7 — Qty control add-to-cart: pill style on desktop CTA too */
-  .sp-card__add--cta {
-    border-radius: 9999px;
-  }
-
-  /* 8 — Page background */
-  .page-store-detail body,
+  /* Page background */
   .sp-layout--store-catalog,
   .sp-layout--store-catalog .sp-main {
-    background: #F9FAFB;
+    background: #F8FAFC;
   }
 }
 
@@ -1994,11 +1956,12 @@
   }
 
   .sp-delivery-pill--delivery {
-    background: #22C55E;
+    background: var(--dir-primary, #0F766E);
   }
 
   .sp-delivery-pill--pickup {
-    background: #374151;
+    background: var(--dir-secondary, #1D9E75);
+    opacity: 0.85;
   }
 
   .sp-delivery-pill__top {
@@ -2052,7 +2015,7 @@
 }
 
 .sp-map-directions-btn:hover {
-  background: #134a82;
+  filter: brightness(1.08);
 }
 
 .sp-map-directions-btn .material-icons {
@@ -2184,11 +2147,11 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   PRODUCT CARDS — YerroMenu style overhaul (mobile)
+   PRODUCT CARDS — Store detail page (mobile) — original design
    ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 959px) {
   .page-store-detail .sp-grid {
-    gap: 16px;
+    gap: 14px;
     grid-template-columns: 1fr 1fr;
   }
 
@@ -2196,15 +2159,16 @@
     background: #fff;
     border: none;
     border-radius: 14px;
-    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.06), 0 3px 10px rgba(15, 23, 42, 0.04);
     overflow: hidden;
   }
 
+  /* 4:3 image ratio — shows more of the product */
   .page-store-detail .sp-card__img-wrap {
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 4 / 3;
     height: auto;
     min-height: 0;
-    border-radius: 0;
+    border-radius: 14px 14px 0 0;
     overflow: hidden;
   }
 
@@ -2214,91 +2178,98 @@
     object-fit: cover;
   }
 
+  /* No overlay elements */
   .page-store-detail .sp-card__img-gradient,
   .page-store-detail .sp-card__overlay-name,
-  .page-store-detail .sp-card__cat-pill {
-    display: none;
+  .page-store-detail .sp-card__cat-pill,
+  .page-store-detail .sp-card__fab {
+    display: none !important;
   }
 
   .page-store-detail .sp-card__body {
     padding: 10px 12px 12px;
     background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
   }
 
   .page-store-detail .sp-card__name {
     display: block;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: #0F172A;
     line-height: 1.3;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 2px;
-  }
-
-  .page-store-detail .sp-card__desc {
-    font-size: 11px;
-    color: #94A3B8;
-    margin-bottom: 4px;
+    margin: 0;
   }
 
   .page-store-detail .sp-card__price {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 800;
     color: var(--dir-primary, #0f766e);
   }
 
   .page-store-detail .sp-card__price-old {
-    font-size: 12px;
+    font-size: 11px;
   }
 
+  .page-store-detail .sp-card__desc,
   .page-store-detail .sp-card__stock-ok {
     display: none;
   }
 
-  .page-store-detail .sp-card__fab {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    bottom: 8px;
-    right: 8px;
-  }
-
-  .page-store-detail .sp-card__fab .material-icons {
-    font-size: 18px;
-  }
-
+  /* Fav button: smaller on mobile */
   .page-store-detail .sp-card__fav {
     top: 8px;
     right: 8px;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
   }
 
+  /* Stock pill: bottom-left of image */
   .page-store-detail .sp-card__stock-pill {
-    bottom: auto;
-    top: auto;
     left: 8px;
     bottom: 8px;
-    font-size: 11px;
-    padding: 3px 8px;
+    font-size: 10px;
+    padding: 3px 7px;
     border-radius: 9999px;
     background: rgba(255, 255, 255, 0.92);
     color: #D97706;
     font-weight: 600;
+    border-color: rgba(217, 119, 6, 0.4);
+  }
+
+  /* Add button: pill, full-width, BELOW the image */
+  .page-store-detail .sp-card__add--cta,
+  .page-store-detail .sp-card__add {
+    display: inline-flex;
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--dir-primary, #0F766E);
+    color: #fff;
+    border: none;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    margin-top: 6px;
+  }
+
+  .page-store-detail .sp-card__add--disabled {
+    background: #E2E8F0;
+    color: #94A3B8;
   }
 
   .page-store-detail .sp-card__qty {
     border-radius: 9999px;
     border: 1.5px solid var(--dir-primary);
-    height: 32px;
-  }
-
-  .page-store-detail .sp-card__add--cta {
-    border-radius: 9999px;
-    font-size: 13px;
-    padding: 6px 14px;
+    height: 34px;
+    margin-top: 6px;
   }
 
   .page-store-detail .sp-card__sold-actions .sp-card__add--disabled {

@@ -17,8 +17,8 @@ export const metadata: Metadata = {
     title: "Tu Cuadre",
   },
   icons: {
-    icon: "/images/icon-192x192.png",
-    apple: "/images/icon-192x192.png",
+    icon: "/images/logocuadre.png",
+    apple: "/images/logocuadre.png",
   },
 };
 
@@ -49,7 +49,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Tu Cuadre" />
-        <link rel="apple-touch-icon" href="/images/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/images/logocuadre.png" />
       </head>
       <body className="min-h-full flex flex-col">
         <Providers>

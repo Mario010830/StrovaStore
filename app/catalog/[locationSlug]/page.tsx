@@ -533,7 +533,7 @@ export default function CatalogProductsPage() {
       )}
     </div>
 
-    {/* Mobile-only: rich info block (YerroMenu style) */}
+    {/* Mobile-only: rich info block below the banner */}
     <div className="sp-info-hero">
       {(storeBusinessCategoryName || locationLine) ? (
         <div className="sp-info-hero__meta">

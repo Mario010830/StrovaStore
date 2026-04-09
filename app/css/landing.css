@@ -2528,68 +2528,49 @@
     box-shadow: none;
   }
 
-  /* Pill button (default state) */
-  .landing-mobile-search__pill {
+  /* Clean search bar (default/collapsed state) */
+  .landing-mobile-search__bar {
     display: flex;
     align-items: center;
+    gap: 10px;
     width: 100%;
-    gap: 12px;
-    padding: 12px 16px;
-    border-radius: 9999px;
-    border: 1px solid #E2E8F0;
-    background: #fff;
-    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.07);
+    height: 48px;
+    padding: 0 16px;
+    border-radius: 12px;
+    border: 1.5px solid #E2E8F0;
+    background: #F8FAFC;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .landing-mobile-search__pill-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #F1F5F9;
-    flex-shrink: 0;
-  }
-
-  .landing-mobile-search__pill-icon .material-icons {
-    font-size: 22px;
-    color: #475569;
-  }
-
-  .landing-mobile-search__pill-text {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
     text-align: left;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.18s, background 0.18s;
   }
 
-  .landing-mobile-search__pill-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #0F172A;
-    line-height: 1.25;
+  .landing-mobile-search__bar:active {
+    background: #fff;
+    border-color: var(--lp-primary, #0F766E);
   }
 
-  .landing-mobile-search__pill-sub {
-    font-size: 13px;
+  .landing-mobile-search__bar-icon {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: var(--lp-primary, #0F766E);
+  }
+
+  .landing-mobile-search__bar-icon .material-icons {
+    font-size: 20px;
+  }
+
+  .landing-mobile-search__bar-placeholder {
+    flex: 1;
+    font-size: 14px;
     font-weight: 400;
     color: #94A3B8;
-    line-height: 1.3;
-  }
-
-  .landing-mobile-search__pill-search {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .landing-mobile-search__pill-search .material-icons {
-    font-size: 22px;
-    color: #94A3B8;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* Expanded search row */
@@ -2738,7 +2719,7 @@
     height: 180px;
   }
 
-  /* Store circles: MUCH bigger (90px like YerroMenu) */
+  /* Store circles: bigger on tablet screens */
   .landing-mob-store-scroll {
     gap: 18px;
     padding: 4px 0 12px;
@@ -2797,7 +2778,7 @@
     padding: 28px 20px;
   }
 
-  /* Two-line section header (YerroMenu style) */
+  /* Two-line section header */
   .landing-mob-section-header--two-line {
     flex-wrap: wrap;
     align-items: flex-end;
@@ -2829,6 +2810,49 @@
   .landing-mob-store-item__meta .material-icons {
     font-size: 14px;
     color: #3B82F6;
+  }
+
+  /* ══════ ORIGINAL DESIGN OVERRIDES ══════ */
+
+  /* Category active: primary green icon + subtle bg circle */
+  .landing-mobile-cat--active .landing-mobile-cat__icon-wrap {
+    background: rgba(15, 118, 110, 0.1);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    color: var(--lp-primary, #0F766E);
+  }
+
+  .landing-mobile-cat--active .landing-mobile-cat__label {
+    color: var(--lp-primary, #0F766E);
+    font-weight: 700;
+  }
+
+  /* Store circles: cleaner shadow + consistent radius */
+  .landing-mob-store-item__avatar {
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.10), 0 0 0 2px rgba(15, 118, 110, 0.08);
+  }
+
+  /* Section header titles: use primary color for "Ver todos" links */
+  .landing-mob-section-header__action {
+    color: var(--lp-primary, #0F766E);
+    font-weight: 700;
+  }
+
+  /* Product card in landing: cleaner look */
+  .landing-product-card--market-mob {
+    border: none;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.07), 0 3px 10px rgba(15, 23, 42, 0.04);
+  }
+
+  /* Two-line section header: remove YerroMenu-specific grey */
+  .landing-mob-section-header__suptitle {
+    color: var(--lp-hint, #94A3B8);
+    font-weight: 500;
+  }
+
+  .landing-mob-section-header--two-line .landing-mob-section-header__title {
+    color: var(--lp-text, #0F172A);
   }
 
   /* Footer: minimal on mobile */

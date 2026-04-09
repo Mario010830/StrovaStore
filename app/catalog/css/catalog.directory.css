@@ -1099,4 +1099,75 @@
     font-size: 16px;
     -webkit-line-clamp: 2;
   }
+
+  /* ══════ HORIZONTAL STORE CARDS — for cat-results & filtered list ══════ */
+  /* Transforms vertical cards into horizontal rows: [avatar] [info] */
+  .dir-cat-results__list > .sp-card--store,
+  .dir-tiendas-zones--filtered .dir-zone-card-row > .sp-card--store {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.07);
+    border: none;
+    overflow: hidden;
+  }
+
+  .dir-cat-results__list > .sp-card--store .sp-card__link,
+  .dir-tiendas-zones--filtered .dir-zone-card-row > .sp-card--store .sp-card__link {
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+  }
+
+  .dir-cat-results__list > .sp-card--store .sp-card__img-wrap,
+  .dir-tiendas-zones--filtered .dir-zone-card-row > .sp-card--store .sp-card__img-wrap {
+    width: 80px;
+    height: 80px;
+    min-width: 80px;
+    flex-shrink: 0;
+    border-radius: 0;
+    margin: 0;
+    border-right: 1px solid var(--dir-divider, #e2e8f0);
+  }
+
+  .dir-cat-results__list > .sp-card--store .sp-card__img-wrap img,
+  .dir-tiendas-zones--filtered .dir-zone-card-row > .sp-card--store .sp-card__img-wrap img {
+    width: 80px;
+    height: 80px;
+    border-radius: 0;
+    object-fit: cover;
+  }
+
+  .dir-cat-results__list > .sp-card--store .sp-card__body,
+  .dir-tiendas-zones--filtered .dir-zone-card-row > .sp-card--store .sp-card__body {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+    justify-content: center;
+  }
+
+  .dir-cat-results__list > .sp-card--store .sp-card__name,
+  .dir-tiendas-zones--filtered .dir-zone-card-row > .sp-card--store .sp-card__name {
+    font-size: 14px;
+    font-weight: 700;
+    -webkit-line-clamp: 1;
+    color: var(--dir-text, #0F172A);
+  }
+
+  .dir-cat-results__list > .sp-card--store .sp-card__directory-meta,
+  .dir-tiendas-zones--filtered .dir-zone-card-row > .sp-card--store .sp-card__directory-meta {
+    font-size: 12px;
+    margin-top: 3px;
+  }
+
+  .dir-cat-results__list > .sp-card--store .sp-card__directory-bottom,
+  .dir-tiendas-zones--filtered .dir-zone-card-row > .sp-card--store .sp-card__directory-bottom {
+    margin-top: 6px;
+  }
+
+  .dir-cat-results__list > .sp-card--store .sp-card__cta-text,
+  .dir-tiendas-zones--filtered .dir-zone-card-row > .sp-card--store .sp-card__cta-text {
+    font-size: 12px;
+    color: var(--dir-primary, #0F766E);
+    font-weight: 700;
+  }
 }

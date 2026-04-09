@@ -916,3 +916,137 @@
   }
 
 }
+
+/* ══════════════════════════════════════════════════════════════
+   MARKETPLACE — Mobile redesign (≤ 959px)
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 959px) {
+  /* Sticky search bar at the top of the content area */
+  .sp-layout--marketplace .sp-catalog-header {
+    position: sticky;
+    top: 56px;
+    z-index: 40;
+    background: #fff;
+    border-bottom: 1px solid var(--dir-divider);
+    padding: 12px 14px;
+    margin: -12px -14px 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sp-layout--marketplace .sp-catalog-title-wrap {
+    display: none;
+  }
+
+  .sp-layout--marketplace .sp-catalog-search-wrap {
+    width: 100%;
+    max-width: none;
+    flex: 1;
+  }
+
+  .sp-layout--marketplace .sp-catalog-search {
+    height: 42px;
+    font-size: 14px;
+    border-radius: 10px;
+    background: #F8FAFC;
+    border-color: transparent;
+  }
+
+  .sp-layout--marketplace .sp-catalog-search:focus {
+    background: #fff;
+    border-color: var(--dir-primary);
+  }
+
+  /* Filter trigger button — styled for mobile */
+  .mp-marketplace-toolbar--mobile-only {
+    padding: 0 14px 10px;
+    margin: 0 -14px;
+  }
+
+  .dir-tiendas-filters-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1.5px solid var(--dir-divider);
+    border-radius: 9999px;
+    background: #fff;
+    color: var(--dir-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .dir-tiendas-filters-trigger:active {
+    border-color: var(--dir-primary);
+    color: var(--dir-primary);
+  }
+
+  .dir-tiendas-filters-trigger .material-icons {
+    font-size: 17px;
+  }
+
+  /* Result count meta */
+  .sp-layout--marketplace .mp-toolbar__meta {
+    font-size: 12px;
+    color: var(--dir-hint);
+    padding: 0 14px 6px;
+    margin: 0 -14px;
+  }
+
+  /* Grid: always 2 columns on mobile */
+  .sp-layout--marketplace .sp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  /* Marketplace cards on mobile — same clean card system */
+  .sp-layout--marketplace .sp-card:not(.sp-card--store) .sp-card__store-line {
+    display: block;
+    font-size: 11px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Load more button */
+  .sp-layout--marketplace .sp-load-more {
+    padding-bottom: 80px;
+  }
+}
+
+@media (max-width: 599px) {
+  .sp-layout--marketplace .sp-catalog-header {
+    top: 48px;
+    padding: 10px 12px;
+    margin: -10px -12px 0;
+  }
+
+  .mp-marketplace-toolbar--mobile-only {
+    padding: 0 12px 8px;
+    margin: 0 -12px;
+  }
+
+  .sp-layout--marketplace .mp-toolbar__meta {
+    padding: 0 12px 6px;
+    margin: 0 -12px;
+  }
+
+  .sp-layout--marketplace .sp-grid {
+    gap: 10px;
+  }
+}
+
+/* Marketplace card: show store name on mobile (it's hidden by default in the mobile card styles) */
+@media (max-width: 959px) {
+  .sp-layout--marketplace .sp-card__store-line .material-icons {
+    font-size: 12px;
+  }
+}

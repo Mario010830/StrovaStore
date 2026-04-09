@@ -472,7 +472,8 @@ export default function AllProductsView() {
     initializedQueryFromUrlRef.current = true;
     if (!initialQueryFromUrl) return;
     setSearch(initialQueryFromUrl);
-  }, [initialQueryFromUrl, setSearch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const pagination = data?.pagination;
 

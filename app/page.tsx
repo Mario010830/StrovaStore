@@ -200,10 +200,9 @@ export default function LandingPage() {
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmed = query.trim();
-    const params = new URLSearchParams();
+    const params = new URLSearchParams({ tab: "productos" });
     if (trimmed) params.set("q", trimmed);
-    const qs = params.toString();
-    router.push(qs ? `/catalog/productos?${qs}` : "/catalog/productos");
+    router.push(`/catalog?${params.toString()}`);
   };
 
   const renderProductHref = (product: (typeof topProducts)[number]) =>
@@ -286,13 +285,18 @@ export default function LandingPage() {
                 </button>
               </form>
             ) : (
-              <button type="button" className="landing-mobile-search__pill" onClick={() => setMobSearchOpen(true)}>
-                <span className="landing-mobile-search__pill-icon"><Icon name="storefront" /></span>
-                <span className="landing-mobile-search__pill-text">
-                  <span className="landing-mobile-search__pill-title">Catálogos</span>
-                  <span className="landing-mobile-search__pill-sub">Tu Cuadre</span>
+              <button
+                type="button"
+                className="landing-mobile-search__bar"
+                onClick={() => setMobSearchOpen(true)}
+                aria-label="Buscar productos o tiendas"
+              >
+                <span className="landing-mobile-search__bar-icon">
+                  <Icon name="search" />
                 </span>
-                <span className="landing-mobile-search__pill-search"><Icon name="search" /></span>
+                <span className="landing-mobile-search__bar-placeholder">
+                  Busca en Tu Cuadre…
+                </span>
               </button>
             )}
           </div>
