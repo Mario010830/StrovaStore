@@ -453,6 +453,19 @@ export default function CatalogProductsPage() {
     return { favoriteItems, restItems };
   }, [filtered, favSortKey]);
 
+  const categoryGroups = useMemo(() => {
+    const grouped = new Map<string, PublicCatalogItem[]>();
+    for (const p of restItems) {
+      const key = p.categoryName || "Otros";
+      const arr = grouped.get(key);
+      if (arr) arr.push(p);
+      else grouped.set(key, [p]);
+    }
+    return Array.from(grouped.entries());
+  }, [restItems]);
+
+  const showGrouped = !cat && categoryGroups.length > 1;
+
   const hasProducts = !isLoading && !isError && products && products.length > 0;
   const errorInfo = getRtkErrorInfo(error);
 
@@ -836,28 +849,44 @@ export default function CatalogProductsPage() {
                 </div>
               </section>
             ) : null}
-            {restItems.length > 0 ? (
-              <section
-                className="sp-catalog-section"
-                aria-labelledby={favoriteItems.length > 0 ? "sp-rest-heading" : undefined}
-              >
-                {favoriteItems.length > 0 ? (
-                  <h2 id="sp-rest-heading" className="sp-catalog-section__title">
-                    Productos
-                  </h2>
+            {showGrouped
+              ? categoryGroups.map(([catName, items]) => (
+                  <section key={catName} className="sp-catalog-section" aria-label={catName}>
+                    <h2 className="sp-catalog-section__title">{catName}</h2>
+                    <div className="sp-grid">
+                      {items.map((item) => (
+                        <StoreProductCard
+                          key={item.id}
+                          item={item}
+                          locationId={locationId}
+                          catalogBasePath={catalogBasePath}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ))
+              : restItems.length > 0 ? (
+                  <section
+                    className="sp-catalog-section"
+                    aria-labelledby={favoriteItems.length > 0 ? "sp-rest-heading" : undefined}
+                  >
+                    {favoriteItems.length > 0 ? (
+                      <h2 id="sp-rest-heading" className="sp-catalog-section__title">
+                        Productos
+                      </h2>
+                    ) : null}
+                    <div className="sp-grid">
+                      {restItems.map((item) => (
+                        <StoreProductCard
+                          key={item.id}
+                          item={item}
+                          locationId={locationId}
+                          catalogBasePath={catalogBasePath}
+                        />
+                      ))}
+                    </div>
+                  </section>
                 ) : null}
-                <div className="sp-grid">
-                  {restItems.map((item) => (
-                    <StoreProductCard
-                      key={item.id}
-                      item={item}
-                      locationId={locationId}
-                      catalogBasePath={catalogBasePath}
-                    />
-                  ))}
-                </div>
-              </section>
-            ) : null}
           </div>
         )}
 

@@ -1287,10 +1287,10 @@
     flex-direction: column;
     gap: 4px;
     background: var(--m-card);
+    position: relative;
   }
 
   .sp-card:not(.sp-card--store) .sp-card__name {
-    display: block;
     font-size: 12.5px;
     font-weight: 400;
     color: var(--m-text);
@@ -1314,10 +1314,6 @@
 
   .sp-card:not(.sp-card--store) .sp-card__price-wrap {
     margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 4px;
   }
 
   .sp-card:not(.sp-card--store) .sp-card__desc,
@@ -1326,19 +1322,21 @@
     display: none;
   }
 
-  /* Add button: small square, NOT full-width */
+  /* Add button: 28×28 "+" square, hides original icon+text */
   .sp-card:not(.sp-card--store) .sp-card__add {
-    display: inline-flex;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
     width: 28px;
     height: 28px;
     min-width: 28px;
     padding: 0;
     background: var(--m-accent);
-    color: #fff;
+    color: transparent;
     border: none;
     border-radius: var(--m-r-btn);
-    font-size: 18px;
-    font-weight: 400;
+    font-size: 0;
     justify-content: center;
     align-items: center;
     gap: 0;
@@ -1346,6 +1344,19 @@
     transition: opacity 0.1s;
     -webkit-tap-highlight-color: transparent;
     flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .sp-card:not(.sp-card--store) .sp-card__add .material-icons {
+    display: none;
+  }
+
+  .sp-card:not(.sp-card--store) .sp-card__add::after {
+    content: "+";
+    font-size: 20px;
+    font-weight: 400;
+    color: #fff;
+    line-height: 1;
   }
 
   .sp-card:not(.sp-card--store) .sp-card__add:active {
@@ -1358,17 +1369,24 @@
     padding: 0;
     background: var(--m-accent);
     border-radius: var(--m-r-btn);
-    font-size: 18px;
+    font-size: 0;
+    color: transparent;
   }
 
   .sp-card:not(.sp-card--store) .sp-card__add--disabled {
     background: var(--m-bg-alt);
-    color: var(--m-text-m);
     cursor: default;
   }
 
-  /* Qty stepper inline */
+  .sp-card:not(.sp-card--store) .sp-card__add--disabled::after {
+    color: var(--m-text-m);
+  }
+
+  /* Qty stepper: positioned same as add button */
   .sp-card:not(.sp-card--store) .sp-card__qty {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2283,31 +2301,57 @@
     border: none;
   }
 
+  .page-store-detail .sp-card__body {
+    position: relative;
+  }
+
   .page-store-detail .sp-card__add--cta,
   .page-store-detail .sp-card__add {
-    display: inline-flex;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
     width: 28px;
     height: 28px;
     min-width: 28px;
     padding: 0;
     background: var(--m-accent);
-    color: #fff;
+    color: transparent;
     border: none;
     border-radius: var(--m-r-btn);
-    font-size: 18px;
+    font-size: 0;
     justify-content: center;
     align-items: center;
     gap: 0;
     margin-top: 0;
     flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .page-store-detail .sp-card__add .material-icons {
+    display: none;
+  }
+
+  .page-store-detail .sp-card__add::after {
+    content: "+";
+    font-size: 20px;
+    font-weight: 400;
+    color: #fff;
+    line-height: 1;
   }
 
   .page-store-detail .sp-card__add--disabled {
     background: var(--m-bg-alt);
+  }
+
+  .page-store-detail .sp-card__add--disabled::after {
     color: var(--m-text-m);
   }
 
   .page-store-detail .sp-card__qty {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
     border-radius: var(--m-r-btn);
     border: none;
     background: var(--m-accent);
@@ -2325,6 +2369,12 @@
 
   .page-store-detail .sp-card__sold-actions .sp-card__add--disabled {
     border-radius: var(--m-r-btn);
+    font-size: 0;
+  }
+
+  .page-store-detail .sp-card__sold-actions .sp-card__add--disabled::after {
+    content: "—";
     font-size: 12px;
+    color: var(--m-text-m);
   }
 }
