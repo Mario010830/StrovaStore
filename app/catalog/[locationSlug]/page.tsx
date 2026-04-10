@@ -244,11 +244,19 @@ export default function CatalogProductsPage() {
   const locationSlugParam = String(params.locationSlug ?? "");
   const dispatch = useAppDispatch();
   const openCart = useOpenCart();
+
+  const { data: locations } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
+  const locationId = useMemo(
+    () => resolveLocationIdFromCatalogSlug(locationSlugParam, locations),
+    [locationSlugParam, locations],
+  );
+
   const cartCount = useAppSelector((s) =>
     locationId != null && s.cart.locationId === locationId
       ? s.cart.items.reduce((a, i) => a + i.quantity, 0)
       : 0,
   );
+
   const [cat, setCat] = useState<string | null>(null);
   const [storeSearch, setStoreSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -264,11 +272,6 @@ export default function CatalogProductsPage() {
     return () => document.body.classList.remove("page-store-detail");
   }, []);
 
-  const { data: locations } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
-  const locationId = useMemo(
-    () => resolveLocationIdFromCatalogSlug(locationSlugParam, locations),
-    [locationSlugParam, locations],
-  );
   const { data: products, isLoading, isError, error, refetch } = useGetPublicCatalogQuery(
     locationId != null ? locationId : skipToken,
     QUERY_POLLING_OPTIONS.storeCatalog,
