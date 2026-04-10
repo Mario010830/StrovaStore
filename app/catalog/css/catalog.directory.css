@@ -425,9 +425,12 @@
     display: none !important;
   }
 
-  /* ══════ SEARCH HEADER ══════ */
-  .dir-mob-header {
-    display: block;
+  /* ══════ CABECERA MÓVIL — mismo buscador que marketplace + filtros ══════ */
+  .page-catalog-directory .dir-mob-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -436,100 +439,40 @@
     border-bottom: var(--m-border-w) solid var(--m-border);
   }
 
-  .dir-mob-header__pill {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .page-catalog-directory .dir-mob-header .sp-catalog-search-wrap {
+    flex: 1;
     width: 100%;
-    padding: 10px 14px;
-    border: none;
+    max-width: none;
+  }
+
+  .page-catalog-directory .dir-mob-header .sp-catalog-search {
+    height: 42px;
+    font-size: 13.5px;
     border-radius: var(--m-r-pill);
     background: var(--m-input-bg);
-    box-shadow: none;
-    cursor: pointer;
-    font-family: inherit;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .dir-mob-header__pill:active {
-    background: var(--m-border);
-  }
-
-  .dir-mob-header__pill-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: var(--m-accent);
     border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    padding: 0 14px 0 44px;
   }
 
-  .dir-mob-header__pill-icon .material-icons {
-    font-size: 20px;
-    color: #fff;
+  .page-catalog-directory .dir-mob-header .sp-catalog-search:focus {
+    background: var(--m-card);
+    border: var(--m-border-w) solid var(--m-accent);
   }
 
-  .dir-mob-header__pill-text {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-  }
-
-  .dir-mob-header__pill-title {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--m-text);
-    line-height: 1.2;
-  }
-
-  .dir-mob-header__pill-sub {
-    font-size: 12px;
-    font-weight: 400;
+  .page-catalog-directory .dir-mob-header .sp-catalog-search-box .material-icons {
     color: var(--m-text-m);
-    line-height: 1.3;
-  }
-
-  .dir-mob-header__pill-search {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .dir-mob-header__pill-search .material-icons {
-    font-size: 22px;
-    color: var(--m-text-s);
-  }
-
-  .dir-mob-header__toolbar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .dir-mob-header__toolbar .dir-mob-header__pill {
-    flex: 1;
-    min-width: 0;
-    width: auto;
   }
 
   .dir-mob-header__icon-btn {
     position: relative;
     flex-shrink: 0;
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border: none;
-    border-radius: 12px;
+    border-radius: 50%;
     background: var(--m-input-bg);
     color: var(--m-text);
     cursor: pointer;
@@ -549,124 +492,17 @@
   .dir-mob-header__icon-btn--badged::after {
     content: "";
     position: absolute;
-    top: 9px;
-    right: 9px;
+    top: 8px;
+    right: 8px;
     width: 8px;
     height: 8px;
     border-radius: 50%;
     background: var(--m-accent);
   }
 
-  .dir-mob-header__search-row--toolbar {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .dir-mob-header__menu {
-    margin-top: 10px;
-    padding: 6px 0;
-    border-radius: var(--m-r-card);
-    background: var(--m-input-bg);
-    border: var(--m-border-w) solid var(--m-border);
-  }
-
-  .dir-mob-header__menu-link {
-    display: block;
-    padding: 12px 16px;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--m-text);
-    text-decoration: none;
-    font-family: inherit;
-  }
-
-  .dir-mob-header__menu-link:active {
-    background: var(--m-border);
-  }
-
   /* Hide sidebar on mobile */
   .sp-layout .sp-sidebar:not(.sp-sidebar--marketplace-desktop) {
     display: none;
-  }
-
-  /* ══════ EXPANDED SEARCH ══════ */
-  .dir-mob-header__search-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .dir-mob-header__search-box {
-    flex: 1;
-    min-width: 0;
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-
-  .dir-mob-header__search-box > .material-icons {
-    position: absolute;
-    left: 14px;
-    font-size: 20px;
-    color: var(--m-text-m);
-    pointer-events: none;
-  }
-
-  .dir-mob-header__search-input {
-    width: 100%;
-    height: 42px;
-    padding: 0 40px 0 44px;
-    border: none;
-    border-radius: var(--m-r-pill);
-    background: var(--m-input-bg);
-    font-size: 14px;
-    font-family: inherit;
-    color: var(--m-text);
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  .dir-mob-header__search-input:focus {
-    background: var(--m-card);
-    border: var(--m-border-w) solid var(--m-accent);
-  }
-
-  .dir-mob-header__search-input::placeholder {
-    color: var(--m-text-m);
-  }
-
-  .dir-mob-header__search-clear {
-    position: absolute;
-    right: 10px;
-    width: 28px;
-    height: 28px;
-    border: none;
-    border-radius: 50%;
-    background: var(--m-border);
-    color: var(--m-text-s);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    padding: 0;
-  }
-
-  .dir-mob-header__search-clear .material-icons {
-    font-size: 16px;
-  }
-
-  .dir-mob-header__search-cancel {
-    border: none;
-    background: none;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--m-accent);
-    cursor: pointer;
-    font-family: inherit;
-    padding: 0;
-    white-space: nowrap;
-    -webkit-tap-highlight-color: transparent;
   }
 
   /* ══════ CATEGORY ICON TABS ══════ */

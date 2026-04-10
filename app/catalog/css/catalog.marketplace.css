@@ -921,6 +921,10 @@
    MARKETPLACE — Mobile light theme (≤ 959px)
    ══════════════════════════════════════════════════════════════ */
 
+.catalog-mob-vista-menu {
+  display: none;
+}
+
 @media (max-width: 959px) {
   .sp-layout--marketplace .sp-catalog-header {
     position: sticky;
@@ -1016,6 +1020,73 @@
 
   .sp-layout--marketplace .sp-load-more {
     padding-bottom: 80px;
+  }
+
+  .sp-layout--marketplace .catalog-mob-vista-menu {
+    flex-shrink: 0;
+  }
+
+  /* Menú ⋮ — Ver tiendas / Ver productos (compartido con directorio móvil) */
+  .catalog-mob-vista-menu {
+    display: block;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .catalog-mob-vista-menu__trigger {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--m-input-bg);
+    color: var(--m-text-s);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .catalog-mob-vista-menu__trigger:active {
+    background: var(--m-border);
+  }
+
+  .catalog-mob-vista-menu__trigger .material-icons {
+    font-size: 22px;
+  }
+
+  .catalog-mob-vista-menu__popover {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 188px;
+    background: var(--m-card);
+    border: var(--m-border-w) solid var(--m-border);
+    border-radius: var(--m-r-card);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+    padding: 6px 0;
+    z-index: 130;
+  }
+
+  .catalog-mob-vista-menu__item {
+    display: block;
+    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--m-text);
+    text-decoration: none;
+    font-family: inherit;
+  }
+
+  .catalog-mob-vista-menu__item:active {
+    background: var(--m-bg-alt);
+  }
+
+  .catalog-mob-vista-menu__item--active {
+    color: var(--m-accent);
+    font-weight: 600;
   }
 }
 

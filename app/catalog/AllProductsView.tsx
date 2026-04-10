@@ -39,6 +39,7 @@ import {
 import { buildLocationCatalogPath } from "@/lib/location-path";
 import { getOriginalPriceForDisplay, getPromotionBadgeLabel } from "@/lib/catalog-promotion";
 import { useMetrics } from "@/src/metrics/useMetrics";
+import { CatalogMobileVistaMenu } from "@/app/catalog/_components/CatalogMobileVistaMenu";
 
 const STROVA_BUSINESS_URL = getBusinessUrl();
 
@@ -747,6 +748,7 @@ export default function AllProductsView() {
                 />
               </div>
             </div>
+            <CatalogMobileVistaMenu active="productos" />
           </div>
 
           <div className="mp-marketplace-toolbar mp-marketplace-toolbar--mobile-only">
