@@ -918,19 +918,18 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
-   MARKETPLACE — Mobile redesign (≤ 959px)
+   MARKETPLACE — Mobile light theme (≤ 959px)
    ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 959px) {
-  /* Sticky search bar at the top of the content area */
   .sp-layout--marketplace .sp-catalog-header {
     position: sticky;
     top: 56px;
     z-index: 40;
-    background: #fff;
-    border-bottom: 1px solid var(--dir-divider);
-    padding: 12px 14px;
-    margin: -12px -14px 0;
+    background: var(--m-card);
+    border-bottom: var(--m-border-w) solid var(--m-border);
+    padding: 12px var(--m-px);
+    margin: -12px calc(var(--m-px) * -1) 0;
     flex-direction: row;
     align-items: center;
     gap: 10px;
@@ -948,34 +947,34 @@
 
   .sp-layout--marketplace .sp-catalog-search {
     height: 42px;
-    font-size: 14px;
-    border-radius: 10px;
-    background: #F8FAFC;
+    font-size: 13.5px;
+    border-radius: var(--m-r-pill);
+    background: var(--m-input-bg);
     border-color: transparent;
+    border: none;
   }
 
   .sp-layout--marketplace .sp-catalog-search:focus {
-    background: #fff;
-    border-color: var(--dir-primary);
+    background: var(--m-card);
+    border: var(--m-border-w) solid var(--m-accent);
   }
 
-  /* Filter trigger button — styled for mobile */
   .mp-marketplace-toolbar--mobile-only {
-    padding: 0 14px 10px;
-    margin: 0 -14px;
+    padding: 0 var(--m-px) 10px;
+    margin: 0 calc(var(--m-px) * -1);
   }
 
   .dir-tiendas-filters-trigger {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 14px;
-    border: 1.5px solid var(--dir-divider);
-    border-radius: 9999px;
-    background: #fff;
-    color: var(--dir-text-secondary);
+    padding: 7px 15px;
+    border: var(--m-border-w) solid var(--m-border);
+    border-radius: var(--m-r-pill);
+    background: var(--m-card);
+    color: var(--m-text);
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 400;
     cursor: pointer;
     font-family: inherit;
     white-space: nowrap;
@@ -984,29 +983,27 @@
   }
 
   .dir-tiendas-filters-trigger:active {
-    border-color: var(--dir-primary);
-    color: var(--dir-primary);
+    border-color: var(--m-accent);
+    color: var(--m-accent);
   }
 
   .dir-tiendas-filters-trigger .material-icons {
     font-size: 17px;
   }
 
-  /* Result count meta */
   .sp-layout--marketplace .mp-toolbar__meta {
     font-size: 12px;
-    color: var(--dir-hint);
-    padding: 0 14px 6px;
-    margin: 0 -14px;
+    color: var(--m-text-m);
+    padding: 0 var(--m-px) 6px;
+    margin: 0 calc(var(--m-px) * -1);
   }
 
-  /* Grid: always 2 columns on mobile */
   .sp-layout--marketplace .sp-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 10px;
+    padding: 0 var(--m-px);
   }
 
-  /* Marketplace cards on mobile — same clean card system */
   .sp-layout--marketplace .sp-card:not(.sp-card--store) .sp-card__store-line {
     display: block;
     font-size: 11px;
@@ -1014,9 +1011,9 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: var(--m-text-m);
   }
 
-  /* Load more button */
   .sp-layout--marketplace .sp-load-more {
     padding-bottom: 80px;
   }
@@ -1025,18 +1022,18 @@
 @media (max-width: 599px) {
   .sp-layout--marketplace .sp-catalog-header {
     top: 48px;
-    padding: 10px 12px;
-    margin: -10px -12px 0;
+    padding: 10px var(--m-px);
+    margin: -10px calc(var(--m-px) * -1) 0;
   }
 
   .mp-marketplace-toolbar--mobile-only {
-    padding: 0 12px 8px;
-    margin: 0 -12px;
+    padding: 0 var(--m-px) 8px;
+    margin: 0 calc(var(--m-px) * -1);
   }
 
   .sp-layout--marketplace .mp-toolbar__meta {
-    padding: 0 12px 6px;
-    margin: 0 -12px;
+    padding: 0 var(--m-px) 6px;
+    margin: 0 calc(var(--m-px) * -1);
   }
 
   .sp-layout--marketplace .sp-grid {
@@ -1044,7 +1041,6 @@
   }
 }
 
-/* Marketplace card: show store name on mobile (it's hidden by default in the mobile card styles) */
 @media (max-width: 959px) {
   .sp-layout--marketplace .sp-card__store-line .material-icons {
     font-size: 12px;

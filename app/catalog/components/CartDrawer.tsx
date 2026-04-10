@@ -11,6 +11,10 @@ import { toImageProxyUrl } from "@/lib/image";
 import { formatPrice } from "@/lib/format";
 import { getOriginalUnitPriceForDisplay } from "@/lib/catalog-promotion";
 import { clearPendingCartStorage } from "@/src/metrics/pendingCart";
+import { encodeOrderToken, buildOrderUrl, type OrderTokenData } from "@/lib/order-token";
+import { getBusinessUrl } from "@/lib/runtime-config";
+
+const SITE_URL = getBusinessUrl();
 
 interface CustomerInfo {
   name: string;
@@ -20,10 +24,11 @@ interface CustomerInfo {
 }
 
 function buildWaMessage(
-  items: { name: string; quantity: number; unitPrice: number }[],
+  items: { name: string; quantity: number; unitPrice: number; originalUnitPrice?: number | null }[],
   locationName: string,
   folio: string,
-  customer: CustomerInfo
+  customer: CustomerInfo,
+  orderUrl: string
 ): string {
   const lines = items
     .map((i) => {
@@ -43,6 +48,7 @@ function buildWaMessage(
   if (customer.phone) parts.push(`Teléfono: ${customer.phone}`);
   if (customer.address) parts.push(`Dirección de entrega: ${customer.address}`);
   if (customer.notes) parts.push(`Notas: ${customer.notes}`);
+  parts.push(``, `Puede consultar su orden aquí: ${orderUrl}`);
   return parts.join("\n");
 }
 
@@ -265,8 +271,31 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
       clearPendingCartStorage();
 
+      // Build the immutable order token so the seller can verify prices
+      const tokenData: OrderTokenData = {
+        folio,
+        store: cart.locationName,
+        locationId: cart.locationId!,
+        customer: {
+          name: customer.name,
+          address: customer.address,
+          phone: customer.phone || undefined,
+          notes: customer.notes || undefined,
+        },
+        items: cart.items.map((i) => ({
+          name: i.name,
+          qty: i.quantity,
+          price: i.unitPrice,
+          originalPrice: i.originalUnitPrice ?? undefined,
+        })),
+        total: cart.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0),
+        ts: Math.floor(Date.now() / 1000),
+      };
+      const token = encodeOrderToken(tokenData);
+      const orderUrl = buildOrderUrl(token, SITE_URL);
+
       if (cart.whatsAppContact) {
-        const msg = buildWaMessage(cart.items, cart.locationName, folio, customer);
+        const msg = buildWaMessage(cart.items, cart.locationName, folio, customer, orderUrl);
         const waNumber = cart.whatsAppContact.replace(/\D/g, "");
         if (waNumber) {
           // Mobile browsers may block popup windows after async work; navigate directly instead.

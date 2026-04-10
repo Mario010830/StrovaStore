@@ -11,9 +11,15 @@ import { isCatalogIndexPath } from "@/lib/path-utils";
 
 const STROVA_BUSINESS_URL = getBusinessUrl();
 
-/** Navbar sin `useSearchParams` — sirve de fallback de Suspense (evita UI “muerta” en prod). */
+/** Routes that render their own chrome — global navbar/footer/cart are hidden. */
+function isStandaloneRoute(pathname: string): boolean {
+  return pathname.startsWith("/pedido");
+}
+
+/** Navbar fallback (no useSearchParams) — avoids dead UI during Suspense in prod. */
 function NavbarPathnameOnly() {
   const pathname = usePathname();
+  if (isStandaloneRoute(pathname)) return null;
   const isCatalogRoute = pathname.startsWith("/catalog");
   const variant = isCatalogRoute ? "store" : "landing";
   return (
@@ -24,6 +30,7 @@ function NavbarPathnameOnly() {
 function NavbarWithSearchParams() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  if (isStandaloneRoute(pathname)) return null;
   const tab = searchParams.get("tab") ?? "tiendas";
   const activeCatalogTab = tab === "productos" ? "productos" : "tiendas";
   const isCatalogRoute = pathname.startsWith("/catalog");
@@ -47,17 +54,24 @@ function CartDrawerWithSearchParams({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  if (isStandaloneRoute(pathname)) return null;
+
   const tab = searchParams.get("tab") ?? "tiendas";
   const activeCatalogTab = tab === "productos" ? "productos" : "tiendas";
   const isLandingHome = pathname === "/";
   const hideCartOnTiendasDirectory = isCatalogIndexPath(pathname) && activeCatalogTab === "tiendas";
-  /** En el marketplace de productos el pedido se arma en cada tienda; el FAB confunde el flujo. */
   const hideCartOnMarketplace = isCatalogIndexPath(pathname) && activeCatalogTab === "productos";
   const showCart =
     !isLandingHome && !hideCartOnTiendasDirectory && !hideCartOnMarketplace;
 
   if (!showCart) return null;
   return <CartDrawer open={cartOpen} onOpenChange={onOpenChange} />;
+}
+
+function FooterWithPathname() {
+  const pathname = usePathname();
+  if (isStandaloneRoute(pathname)) return null;
+  return <LandingFooter businessUrl={STROVA_BUSINESS_URL} />;
 }
 
 export function AppChrome({ children }: { children: React.ReactNode }) {
@@ -74,7 +88,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
         <NavbarWithSearchParams />
       </Suspense>
       {children}
-      <LandingFooter businessUrl={STROVA_BUSINESS_URL} />
+      <FooterWithPathname />
       <Suspense fallback={null}>
         <CartDrawerWithSearchParams cartOpen={cartOpen} onOpenChange={setCartOpen} />
       </Suspense>

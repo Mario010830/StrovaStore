@@ -71,6 +71,23 @@
   --bp-mobile: 600px;
   --bp-tablet: 960px;
   --bp-desktop: 1280px;
+
+  /* Mobile light theme tokens */
+  --m-bg:        #FAFAF8;
+  --m-bg-alt:    #F4F3EF;
+  --m-card:      #FFFFFF;
+  --m-border:    #EDECE6;
+  --m-border-w:  0.5px;
+  --m-accent:    #1d6b3e;
+  --m-accent-bg: #E8F5EC;
+  --m-text:      #1A1A18;
+  --m-text-s:    #7A7A72;
+  --m-text-m:    #ABABA3;
+  --m-input-bg:  #F0EFE9;
+  --m-r-card:    14px;
+  --m-r-pill:    20px;
+  --m-r-btn:     8px;
+  --m-px:        14px;
 }
 
 /* ══════════════════════════════════════
@@ -3289,7 +3306,7 @@
   }
 }
 
-/* Hide global navbar + force white background on mobile */
+/* Hide global navbar + light background on mobile */
 @media (max-width: 959px) {
   .page-store-detail .store-nav,
   .page-store-detail .store-nav--directory,
@@ -3306,20 +3323,19 @@
   .page-store-detail,
   .page-store-detail .sp-layout,
   .page-store-detail .sp-main {
-    --dir-surface: #ffffff;
-    --dir-bg: #ffffff;
-    background: #ffffff;
+    --dir-surface: var(--m-bg);
+    --dir-bg: var(--m-bg);
+    background: var(--m-bg);
   }
 }
 
 /* ══════════════════════════════════════════════════════════════
-   PRODUCT DETAIL — Mobile redesign (≤ 959px)
-   Full-bleed image, sticky bottom action bar, collapsible desc
+   PRODUCT DETAIL — Mobile light theme (≤ 959px)
    ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 959px) {
   .pd-page {
-    background: #F8FAFC;
+    background: var(--m-bg);
     padding-bottom: calc(72px + env(safe-area-inset-bottom, 0));
   }
 
@@ -3328,64 +3344,60 @@
     max-width: 100%;
   }
 
-  /* Hide breadcrumb — too small on mobile */
   .pd-breadcrumb {
     display: none;
   }
 
-  /* Single column layout */
   .pd-main {
     grid-template-columns: 1fr;
     gap: 0;
     margin-bottom: 0;
   }
 
-  /* Image: full-bleed, no border-radius */
   .pd-gallery__main {
     border-radius: 0;
     border: none;
-    aspect-ratio: 4 / 3;
-    background: #eef1f5;
+    aspect-ratio: 1 / 1;
+    background: var(--m-bg-alt);
   }
 
   .pd-gallery__thumbs {
-    padding: 10px 16px;
+    padding: 10px var(--m-px);
     gap: 8px;
-    background: #fff;
-    border-bottom: 1px solid #F1F5F9;
+    background: var(--m-card);
+    border-bottom: var(--m-border-w) solid var(--m-border);
   }
 
   .pd-thumb {
     max-width: 60px;
-    border-radius: 8px;
+    border-radius: var(--m-r-btn);
   }
 
-  /* Info block: white card below image */
   .pd-info {
-    background: #fff;
-    padding: 18px 16px 20px;
+    background: var(--m-card);
+    padding: 18px var(--m-px) 20px;
     gap: 14px;
-    border-bottom: 8px solid #F8FAFC;
+    border-bottom: 8px solid var(--m-bg-alt);
   }
 
   .pd-title {
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 1.25;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--m-text);
   }
 
   .pd-price {
-    font-size: 26px;
-    font-weight: 800;
-    color: var(--dir-primary, #0F766E);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--m-text);
   }
 
-  /* Seller card: compact on mobile */
   .pd-seller {
     padding: 12px;
-    border-radius: 12px;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
+    border-radius: var(--m-r-card);
+    background: var(--m-bg-alt);
+    border: var(--m-border-w) solid var(--m-border);
   }
 
   .pd-seller__avatar {
@@ -3397,118 +3409,125 @@
 
   .pd-seller__name {
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 500;
+    color: var(--m-text);
   }
 
   .pd-seller__location {
     font-size: 12px;
+    color: var(--m-text-s);
   }
 
   .pd-seller__link {
     font-size: 13px;
     padding: 6px 12px;
-    border-radius: 9999px;
+    border-radius: var(--m-r-pill);
     background: transparent;
-    border: 1.5px solid var(--dir-primary);
-    color: var(--dir-primary);
-    font-weight: 600;
+    border: var(--m-border-w) solid var(--m-accent);
+    color: var(--m-accent);
+    font-weight: 500;
     white-space: nowrap;
     text-decoration: none;
     flex-shrink: 0;
   }
 
-  /* Description block */
   .pd-desc-block {
     padding: 0;
   }
 
   .pd-desc-title {
     font-size: 14px;
-    font-weight: 700;
-    color: var(--dir-text-secondary);
+    font-weight: 500;
+    color: var(--m-text-s);
     margin-bottom: 6px;
   }
 
   .pd-desc-text {
     font-size: 14px;
     line-height: 1.55;
-    color: var(--dir-text, #0F172A);
+    color: var(--m-text);
   }
 
-  /* WhatsApp button: full-width pill */
   .pd-wa-btn {
     width: 100%;
     padding: 14px 20px;
-    border-radius: 9999px;
+    border-radius: var(--m-r-btn);
     font-size: 15px;
+    font-weight: 500;
     justify-content: center;
     box-sizing: border-box;
+    background: var(--m-accent);
+    color: #fff;
   }
 
   .pd-wa-hint {
     font-size: 11px;
     text-align: center;
+    color: var(--m-text-m);
   }
 
-  /* "Others" section: full-width, 2-column grid */
   .pd-others {
-    background: #fff;
-    padding: 20px 16px 24px;
+    background: var(--m-card);
+    padding: 20px var(--m-px) 24px;
     margin-bottom: 0;
   }
 
   .pd-others__title {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--m-text);
   }
 
   .pd-others__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 10px;
   }
 
   .pd-other-card {
-    border-radius: 12px;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.07);
-    border: none;
-    background: #fff;
+    border-radius: var(--m-r-card);
+    box-shadow: none;
+    border: var(--m-border-w) solid var(--m-border);
+    background: var(--m-card);
   }
 
   .pd-other-card__img {
-    border-radius: 12px 12px 0 0;
-    aspect-ratio: 4 / 3;
+    border-radius: var(--m-r-card) var(--m-r-card) 0 0;
+    aspect-ratio: 1 / 1;
     height: auto;
+    background: var(--m-bg-alt);
   }
 
   .pd-other-card__name {
-    font-size: 12px;
-    padding: 6px 10px 2px;
+    font-size: 12.5px;
+    font-weight: 400;
+    padding: 8px 10px 2px;
+    color: var(--m-text);
   }
 
   .pd-other-card__price {
     font-size: 14px;
-    font-weight: 800;
-    color: var(--dir-primary);
+    font-weight: 500;
+    color: var(--m-text);
     padding: 0 10px 10px;
   }
 }
 
 @media (max-width: 599px) {
   .pd-info {
-    padding: 16px 14px 18px;
+    padding: 16px var(--m-px) 18px;
     gap: 12px;
   }
 
   .pd-title {
-    font-size: 19px;
+    font-size: 17px;
   }
 
   .pd-price {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .pd-others {
-    padding: 16px 14px 20px;
+    padding: 16px var(--m-px) 20px;
   }
 
   .pd-others__grid {
