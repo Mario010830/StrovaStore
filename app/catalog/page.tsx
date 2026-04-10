@@ -21,6 +21,7 @@ import AllProductsView from "./AllProductsView";
 import { CatalogMobileVistaMenu } from "@/app/catalog/_components/CatalogMobileVistaMenu";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getRtkErrorInfo } from "@/lib/rtk-error";
+import { formatPrice } from "@/lib/format";
 import { buildCatalogZoneHref } from "@/app/lib/landing-zones";
 import {
   filterByRadiusKm,
@@ -695,7 +696,7 @@ export default function CatalogLocationsPage() {
                                       )}
                                       <div className="dir-rebajas__card-overlay">
                                         <span className="dir-rebajas__card-name">{p.name}</span>
-                                        <span className="dir-rebajas__card-price">${p.precio.toLocaleString()}</span>
+                                        <span className="dir-rebajas__card-price">{formatPrice(p.precio)}</span>
                                       </div>
                                       {badge ? <span className="dir-rebajas__card-badge">{badge}</span> : null}
                                     </Link>
