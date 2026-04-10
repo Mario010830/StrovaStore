@@ -1,8 +1,17 @@
-const DEFAULT_BUSINESS_URL = "https://tucuadre.com";
+/** Panel / registro de comercios (CTA «¿Tienes un negocio?», «Registrarse», etc.). */
+const DEFAULT_BUSINESS_URL = "https://admin.tucuadre.com";
+
+/** Origen público del catálogo (sitemap, enlaces de pedido, URLs absolutas al sitio). */
+const DEFAULT_SITE_URL = "https://tucuadre.com";
 
 export function getBusinessUrl(): string {
   const envUrl = process.env.NEXT_PUBLIC_STROVA_BUSINESS_URL?.trim();
   return envUrl && envUrl.length > 0 ? envUrl : DEFAULT_BUSINESS_URL;
+}
+
+export function getSiteUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  return envUrl && envUrl.length > 0 ? envUrl : DEFAULT_SITE_URL;
 }
 
 export function getPushInternalToken(): string {

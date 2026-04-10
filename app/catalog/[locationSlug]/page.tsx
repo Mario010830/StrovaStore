@@ -30,7 +30,7 @@ import { useFavoriteProduct } from "@/hooks/useFavorites";
 import { useOpenCart } from "@/components/ui/CartUiContext";
 import { getFavoriteProductSortKey, subscribeFavorites } from "@/lib/favorites";
 import { getProductCardSubtitle, categoryDotColor } from "@/lib/catalog-display";
-import { buildLocationCatalogPath, parseLocationRouteParam } from "@/lib/location-path";
+import { buildLocationCatalogPath, resolveLocationIdFromCatalogSlug } from "@/lib/location-path";
 import { getOriginalPriceForDisplay, getPromotionBadgeLabel } from "@/lib/catalog-promotion";
 import { useMetrics } from "@/src/metrics/useMetrics";
 
@@ -242,10 +242,6 @@ export default function CatalogProductsPage() {
   const lastStoreSearchTracked = useRef("");
   const params = useParams();
   const locationSlugParam = String(params.locationSlug ?? "");
-  const locationId = useMemo(
-    () => parseLocationRouteParam(locationSlugParam),
-    [locationSlugParam],
-  );
   const dispatch = useAppDispatch();
   const openCart = useOpenCart();
   const cartCount = useAppSelector((s) =>
@@ -268,11 +264,15 @@ export default function CatalogProductsPage() {
     return () => document.body.classList.remove("page-store-detail");
   }, []);
 
+  const { data: locations } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
+  const locationId = useMemo(
+    () => resolveLocationIdFromCatalogSlug(locationSlugParam, locations),
+    [locationSlugParam, locations],
+  );
   const { data: products, isLoading, isError, error, refetch } = useGetPublicCatalogQuery(
     locationId != null ? locationId : skipToken,
     QUERY_POLLING_OPTIONS.storeCatalog,
   );
-  const { data: locations } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
   const { data: businessCategories = [] } = useGetBusinessCategoriesQuery(
     undefined,
     QUERY_POLLING_OPTIONS.general,

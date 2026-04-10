@@ -17,7 +17,7 @@ import {
   useGetPublicLocationsQuery,
 } from "../../../_service/catalogApi";
 import { getProductCardSubtitle } from "@/lib/catalog-display";
-import { buildLocationCatalogPath, parseLocationRouteParam } from "@/lib/location-path";
+import { buildLocationCatalogPath, resolveLocationIdFromCatalogSlug } from "@/lib/location-path";
 import { getOriginalPriceForDisplay, getPromotionBadgeLabel } from "@/lib/catalog-promotion";
 import { useMetrics } from "@/src/metrics/useMetrics";
 
@@ -34,17 +34,17 @@ export default function ProductDetailPage() {
   const { trackProductView } = useMetrics();
   const params = useParams();
   const locationSlugParam = String(params.locationSlug ?? "");
-  const locationId = useMemo(
-    () => parseLocationRouteParam(locationSlugParam),
-    [locationSlugParam],
-  );
   const productId = Number(params.productId);
 
+  const { data: locations } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
+  const locationId = useMemo(
+    () => resolveLocationIdFromCatalogSlug(locationSlugParam, locations),
+    [locationSlugParam, locations],
+  );
   const { data: products, isLoading, isError, error } = useGetPublicCatalogQuery(
     locationId != null ? locationId : skipToken,
     QUERY_POLLING_OPTIONS.storeCatalog,
   );
-  const { data: locations } = useGetPublicLocationsQuery(undefined, QUERY_POLLING_OPTIONS.general);
   const loc =
     locationId != null ? (locations?.find((l) => l.id === locationId) ?? null) : null;
 

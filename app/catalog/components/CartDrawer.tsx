@@ -12,9 +12,9 @@ import { formatPrice } from "@/lib/format";
 import { getOriginalUnitPriceForDisplay } from "@/lib/catalog-promotion";
 import { clearPendingCartStorage } from "@/src/metrics/pendingCart";
 import { encodeOrderToken, buildOrderUrl, type OrderTokenData } from "@/lib/order-token";
-import { getBusinessUrl } from "@/lib/runtime-config";
+import { getSiteUrl } from "@/lib/runtime-config";
 
-const SITE_URL = getBusinessUrl();
+const SITE_URL = getSiteUrl();
 
 interface CustomerInfo {
   name: string;

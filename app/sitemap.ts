@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getApiUrl } from "@/lib/auth-api";
-import { getBusinessUrl } from "@/lib/runtime-config";
+import { getSiteUrl } from "@/lib/runtime-config";
 import { buildLocationCatalogPath, buildLocationProductPath } from "@/lib/location-path";
 
 const PUBLIC_FETCH_HEADERS = { "ngrok-skip-browser-warning": "true" } as const;
@@ -8,7 +8,7 @@ const SITEMAP_REVALIDATE_SEC = 3600;
 const CATALOG_PAGE_SIZE = 200;
 
 function siteOrigin(): string {
-  return getBusinessUrl().replace(/\/$/, "");
+  return getSiteUrl().replace(/\/$/, "");
 }
 
 function parseList(raw: unknown): Record<string, unknown>[] {
