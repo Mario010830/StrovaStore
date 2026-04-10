@@ -361,46 +361,6 @@
   margin-top: 8px;
 }
 
-/* Barra inferior móvil (acciones rápidas) 
-.dir-mp-mobile-bar {
-  display: none;
-}
-
-@media (min-width: 960px) {
-  .dir-mp-mobile-bar {
-    display: none;
-  }
-}
-
-.dir-mp-mobile-bar__btn {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 48px;
-  padding: 0 12px;
-  border: 1px solid var(--dir-mp-border);
-  border-radius: 12px;
-  background: #f8fafc;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: inherit;
-  color: var(--dir-text, #0f172a);
-  cursor: pointer;
-  outline: none;
-}
-
-.dir-mp-mobile-bar__btn--primary {
-  background: var(--dir-primary, #0f766e);
-  border-color: var(--dir-primary, #0f766e);
-  color: #fff;
-}
-
-.dir-mp-mobile-bar__btn:focus-visible {
-  box-shadow: var(--dir-focus-ring, 0 0 0 3px rgba(15, 118, 110, 0.45));
-}
-
 /* Zona view dentro de mp */
 .dir-tiendas-filters-panel__body {
   padding: 0 0 8px;
@@ -422,15 +382,16 @@
   padding-bottom: 8px;
 }
 
-.dir-tiendas-zones .dir-zone-card-row .sp-card--store {
-  width: 100%;
-}
-
 @media (min-width: 960px) {
   .dir-mp .dir-zone-card-row {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(192px, 1fr));
     overflow-x: visible;
+  }
+
+  .dir-tiendas-zones .dir-zone-card-row .sp-card--store {
+    width: 100%;
+    max-width: none;
   }
 }
 
@@ -545,6 +506,82 @@
   .dir-mob-header__pill-search .material-icons {
     font-size: 22px;
     color: var(--m-text-s);
+  }
+
+  .dir-mob-header__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .dir-mob-header__toolbar .dir-mob-header__pill {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+  }
+
+  .dir-mob-header__icon-btn {
+    position: relative;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 12px;
+    background: var(--m-input-bg);
+    color: var(--m-text);
+    cursor: pointer;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .dir-mob-header__icon-btn:active {
+    background: var(--m-border);
+  }
+
+  .dir-mob-header__icon-btn .material-icons {
+    font-size: 24px;
+    color: var(--m-text-s);
+  }
+
+  .dir-mob-header__icon-btn--badged::after {
+    content: "";
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--m-accent);
+  }
+
+  .dir-mob-header__search-row--toolbar {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .dir-mob-header__menu {
+    margin-top: 10px;
+    padding: 6px 0;
+    border-radius: var(--m-r-card);
+    background: var(--m-input-bg);
+    border: var(--m-border-w) solid var(--m-border);
+  }
+
+  .dir-mob-header__menu-link {
+    display: block;
+    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--m-text);
+    text-decoration: none;
+    font-family: inherit;
+  }
+
+  .dir-mob-header__menu-link:active {
+    background: var(--m-border);
   }
 
   /* Hide sidebar on mobile */
@@ -976,7 +1013,7 @@
   /* ══════ SPACING ══════ */
   .sp-layout .sp-main {
     padding-top: 4px;
-    padding-bottom: 84px;
+    padding-bottom: 24px;
   }
 
   .dir-tiendas-results-bar {
@@ -993,6 +1030,39 @@
     font-weight: 500;
     color: var(--m-text-s);
     margin-bottom: 12px;
+  }
+
+  /* Carril horizontal por municipio (vista zonas) */
+  .page-catalog-directory .dir-tiendas-zones:not(.dir-tiendas-zones--grid-mode) .dir-zone-municipio {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .page-catalog-directory .dir-tiendas-zones:not(.dir-tiendas-zones--grid-mode) .dir-zone-municipio__label {
+    padding-left: var(--m-px);
+    padding-right: var(--m-px);
+  }
+
+  .page-catalog-directory .dir-tiendas-zones:not(.dir-tiendas-zones--grid-mode) .dir-zone-card-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 12px;
+    padding: 2px var(--m-px) 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .page-catalog-directory .dir-tiendas-zones:not(.dir-tiendas-zones--grid-mode) .dir-zone-card-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .page-catalog-directory .dir-tiendas-zones:not(.dir-tiendas-zones--grid-mode) .dir-zone-card-row > .sp-card--store {
+    flex: 0 0 min(172px, 78vw);
+    width: min(172px, 78vw);
+    max-width: min(172px, 78vw);
   }
 
   /* ══════ STORE CARDS ══════ */

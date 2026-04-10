@@ -22,6 +22,7 @@ export function SharedNavbar({
   const [activeInfoModal, setActiveInfoModal] = useState<"about" | "help" | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const landingNavRef = useRef<HTMLElement>(null);
+  const storeNavRef = useRef<HTMLElement>(null);
 
   const isStore = variant === "store";
   const navClassName = isStore ? "store-nav store-nav--directory" : "landing-nav";
@@ -46,17 +47,20 @@ export function SharedNavbar({
   }, [activeInfoModal]);
 
   useEffect(() => {
-    if (isStore || !mobileNavOpen) return;
+    if (!mobileNavOpen) return;
+
+    const maxWidth = isStore ? 959 : 768;
+    const navEl = isStore ? storeNavRef.current : landingNavRef.current;
 
     const onResize = () => {
-      if (window.innerWidth > 768) {
+      if (window.innerWidth > maxWidth) {
         setMobileNavOpen(false);
       }
     };
 
     const onDocMouseDown = (event: MouseEvent) => {
       const el = event.target as Node;
-      if (landingNavRef.current?.contains(el)) return;
+      if (navEl?.contains(el)) return;
       setMobileNavOpen(false);
     };
 
@@ -78,7 +82,7 @@ export function SharedNavbar({
 
   return (
     <>
-      <nav ref={!isStore ? landingNavRef : undefined} className={navClassName}>
+      <nav ref={isStore ? storeNavRef : landingNavRef} className={navClassName}>
         <Link href="/" className={`${prefix}__brand`} onClick={closeMobileNav}>
           <span className={`${prefix}__logo-box`}>
             <Image
@@ -206,7 +210,50 @@ export function SharedNavbar({
               </div>
             ) : null}
           </>
-        ) : null}
+        ) : (
+          <>
+            <button
+              type="button"
+              className="store-nav__menu-toggle"
+              aria-expanded={mobileNavOpen}
+              aria-controls="store-nav-mobile-menu"
+              aria-label={mobileNavOpen ? "Cerrar menú" : "Abrir menú"}
+              onClick={() => setMobileNavOpen((prev) => !prev)}
+            >
+              <Icon name={mobileNavOpen ? "close" : "menu"} />
+            </button>
+            {mobileNavOpen ? (
+              <div id="store-nav-mobile-menu" className="store-nav__mobile-menu" role="menu">
+                <Link
+                  href="/catalog"
+                  role="menuitem"
+                  className="store-nav__mobile-link"
+                  onClick={closeMobileNav}
+                >
+                  Tiendas
+                </Link>
+                <Link
+                  href="/catalog?tab=productos"
+                  role="menuitem"
+                  className="store-nav__mobile-link"
+                  onClick={closeMobileNav}
+                >
+                  Productos
+                </Link>
+                <a
+                  href={businessUrl}
+                  role="menuitem"
+                  className="store-nav__mobile-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={closeMobileNav}
+                >
+                  ¿Tienes un negocio?
+                </a>
+              </div>
+            ) : null}
+          </>
+        )}
       </nav>
 
       {activeInfoModal && (

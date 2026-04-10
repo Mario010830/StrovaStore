@@ -42,6 +42,9 @@ import {
   DirectoryFiltersForm,
   type DirectoryCategoryItem,
 } from "@/app/catalog/_components/directory/DirectoryFiltersForm";
+import { getBusinessUrl } from "@/lib/runtime-config";
+
+const STROVA_BUSINESS_URL = getBusinessUrl();
 
 type PublicLocationSearch = PublicLocation & { _bizSearch: string };
 
@@ -144,15 +147,22 @@ function TiendasEmptyIllustration() {
 }
 
 export default function CatalogLocationsPage() {
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const directorySearchInputRef = useRef<HTMLInputElement>(null);
+  const productSearchInputRef = useRef<HTMLInputElement>(null);
+  const dirMobHeaderRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    document.body.classList.add("page-catalog-directory");
-    return () => document.body.classList.remove("page-catalog-directory");
-  }, []);
   const router = useRouter();
   const tab = searchParams.get("tab") ?? "tiendas";
+
+  useEffect(() => {
+    if (tab === "tiendas") {
+      document.body.classList.add("page-catalog-directory");
+    } else {
+      document.body.classList.remove("page-catalog-directory");
+    }
+    return () => document.body.classList.remove("page-catalog-directory");
+  }, [tab]);
   const zonaProvincia = searchParams.get("provincia")?.trim() ?? "";
   const zonaMunicipio = searchParams.get("municipio")?.trim() ?? "";
   const categorySlug = searchParams.get("category")?.trim() ?? "";
@@ -171,8 +181,10 @@ export default function CatalogLocationsPage() {
     QUERY_POLLING_OPTIONS.general,
   );
   const { search, setSearch } = useCatalogCtx();
+  const [directorySearch, setDirectorySearch] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [mobSearchOpen, setMobSearchOpen] = useState(false);
+  const [mobMenuOpen, setMobMenuOpen] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const patchParams = useCallback(
@@ -233,7 +245,7 @@ export default function CatalogLocationsPage() {
       { name: "province" as const, weight: 0.05 },
       { name: "municipality" as const, weight: 0.05 },
     ],
-    search,
+    directorySearch,
   );
 
   const activeBizCategoryId = useMemo(() => {
@@ -340,7 +352,7 @@ export default function CatalogLocationsPage() {
 
   const onVistaChange = useCallback(
     (v: DirectoryVistaUrl) => {
-      patchParams({ vista: v === "grid" ? null : "zonas" });
+      patchParams({ vista: v === "zonas" ? null : "grid" });
     },
     [patchParams],
   );
@@ -358,12 +370,48 @@ export default function CatalogLocationsPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [filtersOpen]);
 
-  const clearSearch = useCallback(() => setSearch(""), [setSearch]);
+  useEffect(() => {
+    if (!mobMenuOpen) return;
+    const onResize = () => {
+      if (window.innerWidth > 959) setMobMenuOpen(false);
+    };
+    const onDocMouseDown = (event: MouseEvent) => {
+      const el = event.target as Node;
+      if (dirMobHeaderRef.current?.contains(el)) return;
+      setMobMenuOpen(false);
+    };
+    const onEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobMenuOpen(false);
+    };
+    window.addEventListener("resize", onResize);
+    document.addEventListener("mousedown", onDocMouseDown);
+    window.addEventListener("keydown", onEsc);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      document.removeEventListener("mousedown", onDocMouseDown);
+      window.removeEventListener("keydown", onEsc);
+    };
+  }, [mobMenuOpen]);
 
-  const focusSearch = useCallback(() => {
-    searchInputRef.current?.focus();
-    searchInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, []);
+  const clearDirectorySearch = useCallback(() => setDirectorySearch(""), []);
+
+  const goToProductSearch = useCallback(() => {
+    const q = search.trim();
+    const sp = new URLSearchParams(searchParams.toString());
+    sp.set("tab", "productos");
+    if (q) sp.set("q", q);
+    else sp.delete("q");
+    router.push(`/catalog?${sp.toString()}`);
+    setMobSearchOpen(false);
+  }, [router, search, searchParams]);
+
+  useEffect(() => {
+    if (!mobSearchOpen) return;
+    const id = window.requestAnimationFrame(() => {
+      productSearchInputRef.current?.focus();
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [mobSearchOpen]);
 
   const showTiendas = tab === "tiendas";
   const errorInfo = getRtkErrorInfo(error);
@@ -374,51 +422,125 @@ export default function CatalogLocationsPage() {
   if (showTiendas) {
     return (
       <>
-      {/* Mobile-only: pill search header (YerroMenu style) */}
-      <div className="dir-mob-header">
-        {mobSearchOpen ? (
-          <div className="dir-mob-header__search-row">
-            <div className="dir-mob-header__search-box">
-              <Icon name="search" />
-              <input
-                ref={searchInputRef}
-                type="search"
-                className="dir-mob-header__search-input"
-                placeholder="Buscar productos o tiendas..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                autoFocus
-                onBlur={() => { if (!search) setMobSearchOpen(false); }}
-              />
-              {search ? (
-                <button
-                  type="button"
-                  className="dir-mob-header__search-clear"
-                  onClick={() => { setSearch(""); searchInputRef.current?.focus(); }}
-                  aria-label="Limpiar"
-                >
-                  <Icon name="close" />
-                </button>
-              ) : null}
-            </div>
+      {/* Mobile-only: menú, búsqueda de productos y filtros */}
+      <div ref={dirMobHeaderRef} className="dir-mob-header">
+        <div className="dir-mob-header__toolbar">
+          {!mobSearchOpen ? (
             <button
               type="button"
-              className="dir-mob-header__search-cancel"
-              onClick={() => { setMobSearchOpen(false); setSearch(""); }}
+              className="dir-mob-header__icon-btn"
+              aria-expanded={mobMenuOpen}
+              aria-controls="dir-mob-header-menu"
+              aria-label={mobMenuOpen ? "Cerrar menú" : "Abrir menú"}
+              onClick={() => setMobMenuOpen((o) => !o)}
             >
-              Cancelar
+              <Icon name={mobMenuOpen ? "close" : "menu"} />
             </button>
+          ) : null}
+          {mobSearchOpen ? (
+            <div className="dir-mob-header__search-row dir-mob-header__search-row--toolbar">
+              <div className="dir-mob-header__search-box">
+                <Icon name="search" />
+                <input
+                  ref={productSearchInputRef}
+                  type="search"
+                  className="dir-mob-header__search-input"
+                  placeholder="Buscar productos…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  enterKeyHint="search"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      goToProductSearch();
+                    }
+                  }}
+                  onBlur={() => {
+                    if (!search) setMobSearchOpen(false);
+                  }}
+                />
+                {search ? (
+                  <button
+                    type="button"
+                    className="dir-mob-header__search-clear"
+                    onClick={() => {
+                      setSearch("");
+                      productSearchInputRef.current?.focus();
+                    }}
+                    aria-label="Limpiar"
+                  >
+                    <Icon name="close" />
+                  </button>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                className="dir-mob-header__search-cancel"
+                onClick={() => {
+                  setMobSearchOpen(false);
+                  setSearch("");
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <>
+              <button type="button" className="dir-mob-header__pill" onClick={() => setMobSearchOpen(true)}>
+                <span className="dir-mob-header__pill-icon">
+                  <Icon name="storefront" />
+                </span>
+                <span className="dir-mob-header__pill-text">
+                  <span className="dir-mob-header__pill-title">Buscar productos</span>
+                  <span className="dir-mob-header__pill-sub">Marketplace · Enter para ver resultados</span>
+                </span>
+                <span className="dir-mob-header__pill-search">
+                  <Icon name="search" />
+                </span>
+              </button>
+              <button
+                type="button"
+                className={`dir-mob-header__icon-btn${hasActiveFilters ? " dir-mob-header__icon-btn--badged" : ""}`}
+                aria-expanded={filtersOpen}
+                aria-controls="dir-tiendas-filters-panel"
+                aria-label="Filtros"
+                onClick={() => setFiltersOpen(true)}
+              >
+                <Icon name="filter_list" />
+              </button>
+            </>
+          )}
+        </div>
+        {mobMenuOpen ? (
+          <div id="dir-mob-header-menu" className="dir-mob-header__menu" role="menu">
+            <Link
+              href="/catalog"
+              role="menuitem"
+              className="dir-mob-header__menu-link"
+              onClick={() => setMobMenuOpen(false)}
+            >
+              Tiendas
+            </Link>
+            <Link
+              href="/catalog?tab=productos"
+              role="menuitem"
+              className="dir-mob-header__menu-link"
+              onClick={() => setMobMenuOpen(false)}
+            >
+              Productos
+            </Link>
+            <a
+              href={STROVA_BUSINESS_URL}
+              role="menuitem"
+              className="dir-mob-header__menu-link"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMobMenuOpen(false)}
+            >
+              ¿Tienes un negocio?
+            </a>
           </div>
-        ) : (
-          <button type="button" className="dir-mob-header__pill" onClick={() => setMobSearchOpen(true)}>
-            <span className="dir-mob-header__pill-icon"><Icon name="storefront" /></span>
-            <span className="dir-mob-header__pill-text">
-              <span className="dir-mob-header__pill-title">Catálogos</span>
-              <span className="dir-mob-header__pill-sub">Tu Cuadre</span>
-            </span>
-            <span className="dir-mob-header__pill-search"><Icon name="search" /></span>
-          </button>
-        )}
+        ) : null}
       </div>
 
       {/* Mobile-only icon category tabs */}
@@ -487,12 +609,12 @@ export default function CatalogLocationsPage() {
                     <div className="sp-catalog-search-box">
                       <Icon name="search" />
                       <input
-                        ref={searchInputRef}
+                        ref={directorySearchInputRef}
                         type="search"
                         className="sp-catalog-search"
                         placeholder="Buscar tiendas por nombre o categoría..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        value={directorySearch}
+                        onChange={(e) => setDirectorySearch(e.target.value)}
                         aria-label="Buscar tiendas por nombre o categoría"
                       />
                     </div>
@@ -614,8 +736,8 @@ export default function CatalogLocationsPage() {
                       <p className="dir-tiendas-empty__hint">
                         Prueba ampliar la distancia, quitar &quot;Solo abiertas&quot; o limpiar filtros.
                       </p>
-                      {search.trim() ? (
-                        <button type="button" className="dir-tiendas-empty__clear" onClick={clearSearch}>
+                      {directorySearch.trim() ? (
+                        <button type="button" className="dir-tiendas-empty__clear" onClick={clearDirectorySearch}>
                           Limpiar búsqueda
                         </button>
                       ) : null}
@@ -732,23 +854,6 @@ export default function CatalogLocationsPage() {
               </div>
             </main>
       </div>
-
-        <div className="dir-mp-mobile-bar" role="toolbar" aria-label="Acciones del directorio">
-          <button type="button" className="dir-mp-mobile-bar__btn" onClick={focusSearch}>
-            <Icon name="search" />
-            Buscar
-          </button>
-          <button
-            type="button"
-            className="dir-mp-mobile-bar__btn dir-mp-mobile-bar__btn--primary"
-            aria-expanded={filtersOpen}
-            aria-controls="dir-tiendas-filters-panel"
-            onClick={() => setFiltersOpen(true)}
-          >
-            <Icon name="filter_list" />
-            Filtros
-          </button>
-        </div>
 
         {filtersOpen ? (
           <>

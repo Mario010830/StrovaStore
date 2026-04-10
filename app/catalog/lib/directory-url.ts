@@ -15,7 +15,8 @@ export function parseSortParam(value: string | null): DirectorySortUrl {
 }
 
 export function parseVistaParam(value: string | null): DirectoryVistaUrl {
-  return value === "zonas" ? "zonas" : "grid";
+  if (value === "grid") return "grid";
+  return "zonas";
 }
 
 export function sortUrlToLabel(key: DirectorySortUrl): string {
