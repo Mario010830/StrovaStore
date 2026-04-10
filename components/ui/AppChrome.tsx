@@ -1,13 +1,13 @@
 "use client";
 
-import { Suspense, useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { SharedNavbar } from "@/components/ui/SharedNavbar";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { CartDrawer } from "@/app/catalog/components/CartDrawer";
 import { CartUiProvider } from "@/components/ui/CartUiContext";
 import { getBusinessUrl } from "@/lib/runtime-config";
-import { isCatalogIndexPath } from "@/lib/path-utils";
+import { shouldShowGlobalCartDrawer } from "@/lib/path-utils";
 
 const STROVA_BUSINESS_URL = getBusinessUrl();
 
@@ -44,6 +44,20 @@ function NavbarWithSearchParams() {
   );
 }
 
+function CloseCartWhenDrawerHidden({
+  setCartOpen,
+}: {
+  setCartOpen: (open: boolean) => void;
+}) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const showCart = shouldShowGlobalCartDrawer(pathname, searchParams);
+  useEffect(() => {
+    if (!showCart) setCartOpen(false);
+  }, [showCart, setCartOpen]);
+  return null;
+}
+
 function CartDrawerWithSearchParams({
   cartOpen,
   onOpenChange,
@@ -53,16 +67,7 @@ function CartDrawerWithSearchParams({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  if (isStandaloneRoute(pathname)) return null;
-
-  const tab = searchParams.get("tab") ?? "tiendas";
-  const activeCatalogTab = tab === "productos" ? "productos" : "tiendas";
-  const isLandingHome = pathname === "/";
-  const hideCartOnTiendasDirectory = isCatalogIndexPath(pathname) && activeCatalogTab === "tiendas";
-  const hideCartOnMarketplace = isCatalogIndexPath(pathname) && activeCatalogTab === "productos";
-  const showCart =
-    !isLandingHome && !hideCartOnTiendasDirectory && !hideCartOnMarketplace;
+  const showCart = shouldShowGlobalCartDrawer(pathname, searchParams);
 
   if (!showCart) return null;
   return <CartDrawer open={cartOpen} onOpenChange={onOpenChange} />;
@@ -90,6 +95,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
       {children}
       <FooterWithPathname />
       <Suspense fallback={null}>
+        <CloseCartWhenDrawerHidden setCartOpen={setCartOpen} />
         <CartDrawerWithSearchParams cartOpen={cartOpen} onOpenChange={setCartOpen} />
       </Suspense>
     </CartUiProvider>
